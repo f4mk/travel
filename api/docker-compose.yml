@@ -1,0 +1,30 @@
+version: '3'
+services:
+  app:
+    image: travel-api:latest
+    container_name: app_main
+    restart: always
+    depends_on:
+    - postgres
+    - zipkin
+    ports:
+      - ${HOST_PORT}:${API_PORT}
+      - ${AUX_PORT}:${DEBUG_PORT}
+    networks: 
+      - local
+
+  postgres:
+    image: postgres:15.3
+    container_name: app_db
+    restart: always
+    ports:
+      - ${DB_PORT}:${PG_PORT}
+    environment:
+      - POSTGRES_USER=${PG_USER}
+      - POSTGRES_PASSWORD=${PG_PASSWORD}
+      - POSTGRES_DB=${PG_DB_NAME}
+    networks: 
+      - local
+
+networks:
+  local:
