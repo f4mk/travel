@@ -1,12 +1,11 @@
 version: '3'
 services:
-  app:
+  travel-api:
     image: travel-api:latest
-    container_name: app_main
+    container_name: travel-api
     restart: always
     depends_on:
     - postgres
-    - zipkin
     ports:
       - ${HOST_PORT}:${API_PORT}
       - ${AUX_PORT}:${DEBUG_PORT}
@@ -15,7 +14,7 @@ services:
 
   postgres:
     image: postgres:15.3
-    container_name: app_db
+    container_name: travel-api-db
     restart: always
     ports:
       - ${DB_PORT}:${PG_PORT}

@@ -1,13 +1,20 @@
 SHELL := /bin/bash
 
+#hey -n 100000 -c 200 http://localhost:8080/
+
 CONFIG_PATH = config/.env
 
 include ${CONFIG_PATH}
 
 GO_PROVIDE_CONFIG = -ldflags="-X 'main.configPath=${CONFIG_PATH}'"
 
+.PHONY: config-path
+config-path:
+	@echo ${CONFIG_PATH}
+
 #CREATE SERVICE IMAGE
 image:
+	docker rmi travel-api:latest
 	docker build \
 		-f ./dockerfile \
 		-t travel-api \
@@ -19,7 +26,7 @@ image:
 		--build-arg AUTH_PRIVATE_KEY_FILE=${AUTH_PRIVATE_KEY_FILE} \
 		--build-arg AUTH_PUBLIC_KEY_FILE=${AUTH_PUBLIC_KEY_FILE} \
 		.
-#DEKETE ALL DOCKER DANGLING IMAGES
+#DELETE ALL DOCKER DANGLING IMAGES
 docker-rmi:
 	docker rmi `docker images -f dangling=true -q`
 
@@ -47,12 +54,10 @@ pull:
 	docker pull golang:1.20.6-alpine3.18
 
 #START APP FROM SCRATCH
-all: pull image
-	docker compose --env-file ${CONFIG_PATH} up
+all: pull image up
 
 #RUN APP WITH REBUILD
-up: image
-	docker compose --env-file ${CONFIG_PATH} up
+up: image compose
 
 #RUN APP
 compose:
