@@ -1,0 +1,66 @@
+.wrapper {
+  display: grid;
+  width: 100vw;
+  height: 100vh;
+  min-width: 768px;
+  max-width: 1440px;
+  grid-template-areas:
+  "header  header  header  header"
+  "content content content content"
+  "footer  footer  footer  footer";
+  grid-template-columns: 150px auto auto auto;
+  grid-template-rows: min-content auto 50px;
+}
+
+.header {
+  grid-area: header;
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  object-fit: contain;
+  height: 40px;
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  animation: spin 24s linear infinite;
+  cursor: pointer;
+}
+
+.button {
+    background: transparent;
+    border: none;
+    font-size:0;
+}
+
+.tabs {
+  margin: 0 auto;
+}
+
+.sidebar {
+  grid-area: sidebar;
+}
+
+.footer {
+  grid-area: footer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.content {
+  grid-area: content;
+  overflow: scroll;
+  background-color: #f0f0f0;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+  
+}
