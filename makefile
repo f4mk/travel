@@ -19,7 +19,7 @@ pull:
 	docker pull openzipkin/zipkin:2.24.2
 	docker pull alpine:3.18.2
 	docker pull golang:1.20.6-alpine3.18
-	docker pull node:18.17
+	docker pull node:18.17-alpine
 
 .PHONY: compose
 compose:

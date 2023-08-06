@@ -1,4 +1,4 @@
-FROM node:18.17
+FROM node:18.17-alpine as build
 
 WORKDIR /app
 
@@ -8,5 +8,11 @@ RUN npm ci
 
 RUN npm run build
 RUN npm run build:server
+
+FROM node:18.17-alpine
+
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/package.json ./package.json
 
 CMD [ "npm","run","server:prod" ]
