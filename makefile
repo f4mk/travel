@@ -21,8 +21,17 @@ pull:
 	docker pull golang:1.20.6-alpine3.18
 	docker pull node:18.17-alpine
 
-.PHONY: compose
-compose:
+.PHONY: compose-up
+compose-up:
+	docker-compose \
+		--env-file api/${API_CONFIG_PATH} \
+		-f docker-compose.yml \
+		-f api/docker-compose.yml \
+		-f frontend/docker-compose.yml \
+		up
+
+.PHONY: compose-down
+compose-down:
 	docker-compose \
 		--env-file api/${API_CONFIG_PATH} \
 		-f docker-compose.yml \

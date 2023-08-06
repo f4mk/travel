@@ -14,7 +14,8 @@ type Api struct {
 	WriteTimeout    time.Duration `env:"API_WRITE_TIMEOUT" envDefault:"5s"`
 	ShutdownTimeout time.Duration `env:"API_SHUTDOWN_TIMEOUT" envDefault:"5s"`
 	KeyFile         string        `env:"API_KEY_FILE,required"`
-	CertFile        string        `env:"API_CERT_FILE,required"`
+	// TODO: remove from here
+	CertFile string `env:"API_CERT_FILE,required"`
 }
 
 type Service struct {

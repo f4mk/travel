@@ -2,7 +2,6 @@ package application
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	"net/http"
 	"os"
@@ -17,6 +16,7 @@ import (
 	"github.com/f4mk/api/internal/pkg/keystore"
 	"github.com/rs/zerolog"
 	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 )
 
 func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
@@ -84,17 +84,6 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	// Start API Service
 	log.Info().Msgf("api: initializing API server: %s", getHost(cfg.Api.HostName, cfg.Api.Port))
 
-	serverTLSCert, err := tls.LoadX509KeyPair(cfg.Api.CertFile, cfg.Api.KeyFile)
-
-	if err != nil {
-		log.Err(err).Msg("Error loading certificate and key file:")
-		return err
-	}
-
-	tlsConfig := &tls.Config{
-		Certificates: []tls.Certificate{serverTLSCert},
-	}
-
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
 
@@ -106,10 +95,11 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 		DB:       db,
 	}
 
+	h2s := &http2.Server{}
+
 	api := &http.Server{
-		Addr:      getHost(cfg.Api.HostName, cfg.Api.Port),
-		Handler:   api.New(apiCfg),
-		TLSConfig: tlsConfig,
+		Addr:    getHost(cfg.Api.HostName, cfg.Api.Port),
+		Handler: h2c.NewHandler(api.New(apiCfg), h2s),
 	}
 
 	if err := http2.ConfigureServer(api, &http2.Server{}); err != nil {
@@ -121,7 +111,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 
 	go func() {
 		log.Info().Msgf("api: api is listening on: %s", getHost(cfg.Api.HostName, cfg.Api.Port))
-		serverErrors <- api.ListenAndServeTLS("", "")
+		serverErrors <- api.ListenAndServe()
 	}()
 
 	// -------------------------------------------------------------------------

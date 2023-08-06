@@ -1,6 +1,6 @@
 version: '3'
 services:
-  frontend-ssr:
+  travel-frontend:
     image: travel-front:latest
     container_name: travel-frontend
     restart: always
