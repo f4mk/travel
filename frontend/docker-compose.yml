@@ -1,0 +1,13 @@
+version: '3'
+services:
+  frontend-ssr:
+    image: travel-front:latest
+    container_name: travel-frontend
+    restart: always
+    ports:
+      - 3000:3000
+    networks: 
+      - local
+
+networks:
+  local:

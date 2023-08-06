@@ -1,0 +1,12 @@
+FROM node:18.17
+
+WORKDIR /app
+
+COPY . .
+
+RUN npm ci
+
+RUN npm run build
+RUN npm run build:server
+
+CMD [ "npm","run","server:prod" ]
