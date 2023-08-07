@@ -4,8 +4,8 @@ services:
     image: haproxy:2.8
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
-      - ./cert.pem:/etc/haproxy/certs/cert.pem
-      - ./cert.pem.key:/etc/haproxy/certs/cert.pem.key
+      - ../cert.pem:/etc/haproxy/certs/cert.pem
+      - ../cert.pem.key:/etc/haproxy/certs/cert.pem.key
     ports:
       - 80:80
       - 443:443
