@@ -6,7 +6,7 @@ api-image:
 	$(MAKE) -C ./api image
 
 front-image:
-	$(MAKE) -C ./frontend image
+	$(MAKE) -C ./ssr image
 
 #DELETE ALL DOCKER DANGLING IMAGES
 docker-rmi:
@@ -25,25 +25,25 @@ pull:
 compose-up:
 	docker-compose \
 		--env-file api/${API_CONFIG_PATH} \
-		-f docker-compose.yml \
+		-f haproxy/docker-compose.yml \
 		-f api/docker-compose.yml \
-		-f frontend/docker-compose.yml \
+		-f ssr/docker-compose.yml \
 		up
 
 .PHONY: compose-down
 compose-down:
 	docker-compose \
 		--env-file api/${API_CONFIG_PATH} \
-		-f docker-compose.yml \
+		-f haproxy/docker-compose.yml \
 		-f api/docker-compose.yml \
-		-f frontend/docker-compose.yml \
+		-f ssr/docker-compose.yml \
 		up
 
 #START APP FROM SCRATCH
-all: pull api-image front-image compose
+all: pull api-image front-image compose-up
 
 #RUN APP WITH REBUILD
-up: api-image front-image compose
+up: api-image front-image compose-up
 
 #GENERATE SSL CERTIFICATE FOR HTTPS
 cert:

@@ -1,8 +1,8 @@
 version: '3'
 services:
-  travel-frontend:
-    image: travel-front:latest
-    container_name: travel-frontend
+  travel-ssr:
+    image: travel-ssr:latest
+    container_name: travel-ssr
     restart: always
     ports:
       - 3000:3000

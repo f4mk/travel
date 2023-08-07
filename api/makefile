@@ -14,7 +14,7 @@ config-path:
 
 #CREATE SERVICE IMAGE
 image:
-	docker rmi travel-api:latest
+	docker rmi travel-api:latest || true
 	docker build \
 		-f ./dockerfile \
 		-t travel-api \

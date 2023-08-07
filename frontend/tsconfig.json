@@ -3,9 +3,9 @@
     "target": "ESNext",
     "module": "ESNext",
     "noImplicitAny": true,
-    "useDefineForClassFields": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    "useDefineForClassFields": true,
     "lib": [
       "DOM",
       "DOM.Iterable",
@@ -13,7 +13,7 @@
     ],
     "allowJs": false,
     "skipLibCheck": true,
-    "esModuleInterop": true,
+    "esModuleInterop": false,
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
@@ -27,13 +27,6 @@
       "#/*": [
         "src/*"
       ]
-    }
-  },
-  "ts-node": {
-    "transpileOnly": true,
-    "esm": true,
-    "compilerOptions": {
-      "moduleResolution": "Node"
     }
   },
   "include": [

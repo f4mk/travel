@@ -49,7 +49,7 @@ export const RegisterModal = ({ opened, onClose, onSwitch }: Props) => {
 
   return (
     <Modal opened={opened} onClose={onClose} title="Registration" centered>
-      <form>
+      <form onSubmit={form.onSubmit((values) => console.log(values))}>
         <TextInput
           placeholder="SuperJohn3000"
           label="Username"

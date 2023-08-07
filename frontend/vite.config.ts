@@ -2,8 +2,8 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 import { defineConfig } from 'vite'
 import check from 'vite-plugin-checker'
-import ssr from 'vite-plugin-ssr/plugin'
 
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
@@ -15,8 +15,7 @@ export default defineConfig({
       eslint: {
         lintCommand: 'eslint "./src/**/*.{ts,tsx}"'
       }
-    }),
-    ssr()
+    })
   ],
   resolve: {
     alias: {

@@ -9,7 +9,7 @@ export const Pin = ({ lat, lng, map, onPress }: Props) => {
   const { pressProps } = usePress({ onPress })
   return (
     <Marker lat={lat} lng={lng} map={map}>
-      <S.Div {...(!!onPress && { pressProps })} isPressable={!!onPress}>
+      <S.Div {...pressProps} isPressable={!!onPress}>
         {/* TODO: use palette */}
         <MapPin color="red" size={32} fill="beige" fillOpacity={20} />
       </S.Div>

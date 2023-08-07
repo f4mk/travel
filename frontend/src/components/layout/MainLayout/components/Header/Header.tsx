@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '@mantine/core'
-import { navigate } from 'vite-plugin-ssr/client/router'
 
 import logo from '#/assets/coggers.png'
 import { ProfileMenu } from '#/components/ui/ProfileMenu'
@@ -10,13 +10,18 @@ import { ERoutes } from '#/constants/routes'
 import * as S from './styled'
 
 export const Header = () => {
-  const handleTabChange = useCallback((path: ERoutes) => {
-    navigate(path)
-  }, [])
+  const navigate = useNavigate()
+
+  const handleTabChange = useCallback(
+    (path: ERoutes) => {
+      navigate(path)
+    },
+    [navigate]
+  )
 
   const handleLogoClick = useCallback(() => {
     navigate(ERoutes.ROOT)
-  }, [])
+  }, [navigate])
 
   return (
     <S.Header>
