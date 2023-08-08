@@ -1,32 +1,25 @@
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import { Menu } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { Cog, LogOut, MessageSquare, Trash } from 'lucide-react'
 
+import { Auth } from '#/components/ui/Auth'
 import { ProfileButton } from '#/components/ui/ProfileButton'
-
-import { AuthModal } from '../AuthModal'
-import { RegisterModal } from '../RegisterModal'
 
 import { SignIn } from './components/SignIn'
 import { SignUp } from './components/SignUp'
-import { FormView, Props } from './types'
+import { EFormView, Props } from './types'
 export const ProfileMenu = ({ isLoggedIn }: Props) => {
   const [menuOpened, { open: menuOpen, close: menuClose }] =
     useDisclosure(false)
   const [modalOpened, { open: modalOpen, close: modalClose }] =
     useDisclosure(false)
-  const [view, setView] = useState<FormView>(FormView.SIGN_IN)
+  const [view, setView] = useState<EFormView>(EFormView.SIGN_IN)
 
-  const handleOpen = (view: FormView) => {
+  const handleOpen = (view: EFormView) => {
     setView(view)
     modalOpen()
   }
-  const handleSwitch = useCallback(() => {
-    setView((oldView) =>
-      oldView === FormView.SIGN_IN ? FormView.SIGN_UP : FormView.SIGN_IN
-    )
-  }, [])
 
   return (
     <>
@@ -49,26 +42,18 @@ export const ProfileMenu = ({ isLoggedIn }: Props) => {
             </>
           ) : (
             <>
-              <SignIn onClick={() => handleOpen(FormView.SIGN_IN)} />
-              <SignUp onClick={() => handleOpen(FormView.SIGN_UP)} />
+              <SignIn onClick={() => handleOpen(EFormView.SIGN_IN)} />
+              <SignUp onClick={() => handleOpen(EFormView.SIGN_UP)} />
             </>
           )}
         </Menu.Dropdown>
       </Menu>
-
-      {view === FormView.SIGN_IN ? (
-        <AuthModal
-          opened={modalOpened}
-          onClose={modalClose}
-          onSwitch={handleSwitch}
-        />
-      ) : (
-        <RegisterModal
-          opened={modalOpened}
-          onClose={modalClose}
-          onSwitch={handleSwitch}
-        />
-      )}
+      <Auth
+        opened={modalOpened}
+        activeTab={view}
+        setActiveTab={setView}
+        onClose={modalClose}
+      />
     </>
   )
 }
