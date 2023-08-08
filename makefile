@@ -6,7 +6,7 @@ api-image:
 	$(MAKE) -C ./api image
 
 front-image:
-	$(MAKE) -C ./ssr image
+	$(MAKE) -C ./frontend image
 
 #DELETE ALL DOCKER DANGLING IMAGES
 docker-rmi:
@@ -27,7 +27,7 @@ compose-up:
 		--env-file api/${API_CONFIG_PATH} \
 		-f haproxy/docker-compose.yml \
 		-f api/docker-compose.yml \
-		-f ssr/docker-compose.yml \
+		-f frontend/docker-compose.yml \
 		up
 
 .PHONY: compose-down
@@ -36,7 +36,7 @@ compose-down:
 		--env-file api/${API_CONFIG_PATH} \
 		-f haproxy/docker-compose.yml \
 		-f api/docker-compose.yml \
-		-f ssr/docker-compose.yml \
+		-f frontend/docker-compose.yml \
 		up
 
 #START APP FROM SCRATCH
