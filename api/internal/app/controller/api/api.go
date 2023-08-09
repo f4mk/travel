@@ -31,19 +31,19 @@ func New(cfg Config) *web.WebApp {
 		middleware.Panics(cfg.Log),
 	)
 
-	user := user.NewService(cfg.Log, cfg.DB)
-	authService := authService.NewService(cfg.Log, cfg.DB, cfg.Auth)
+	us := user.NewService(cfg.Log, cfg.DB)
+	as := authService.NewService(cfg.Log, cfg.DB, cfg.Auth)
 
-	app.Handle(http.MethodPost, "/user", user.CreateUser)
-	app.Handle(http.MethodGet, "/user", user.GetUsers)
-	app.Handle(http.MethodGet, "/user/:id", user.GetUser)
-	app.Handle(http.MethodPut, "/user/:id", user.UpdateUser, middleware.Authenticate(cfg.Auth))
-	app.Handle(http.MethodDelete, "/user/:id", user.DeleteUser, middleware.Authenticate(cfg.Auth))
+	app.Handle(http.MethodPost, "/user", us.CreateUser)
+	app.Handle(http.MethodGet, "/user", us.GetUsers)
+	app.Handle(http.MethodGet, "/user/:id", us.GetUser)
+	app.Handle(http.MethodPut, "/user/:id", us.UpdateUser, middleware.Authenticate(cfg.Auth))
+	app.Handle(http.MethodDelete, "/user/:id", us.DeleteUser, middleware.Authenticate(cfg.Auth))
 
-	app.Handle(http.MethodPost, "/auth/login", authService.Login)
-	app.Handle(http.MethodPost, "/auth/logout", authService.Logout)
-	app.Handle(http.MethodPost, "/auth/refresh", authService.Refresh)
-	app.Handle(http.MethodPost, "/auth/password/reset", authService.PasswordReset)
+	app.Handle(http.MethodPost, "/auth/login", as.Login)
+	app.Handle(http.MethodPost, "/auth/logout", as.Logout)
+	app.Handle(http.MethodPost, "/auth/refresh", as.Refresh)
+	app.Handle(http.MethodPost, "/auth/password/reset", as.PasswordReset)
 
 	return app
 }
