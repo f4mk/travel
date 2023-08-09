@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"reflect"
 
 	"github.com/f4mk/api/internal/app/usecase/user"
 	"github.com/f4mk/api/pkg/web"
@@ -206,13 +205,4 @@ func getResponseErrorFromUsecase(err error) error {
 	default:
 		return err
 	}
-}
-
-func GetJSONTagName(s interface{}, fieldName string) (string, error) {
-	rt := reflect.TypeOf(s)
-	field, found := rt.FieldByName(fieldName)
-	if !found {
-		return "", fmt.Errorf("field %s not found in the struct", fieldName)
-	}
-	return field.Tag.Get("json"), nil
 }

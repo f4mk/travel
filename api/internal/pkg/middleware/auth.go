@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
+	"time"
 
 	"github.com/f4mk/api/internal/pkg/auth"
 	"github.com/f4mk/api/pkg/web"
@@ -15,31 +17,61 @@ func Authenticate(a *auth.Auth) web.Middleware {
 
 		h := func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 
-			// TODO: may be this way
-			// authHeader := r.Header.Get("Authorization")
-			// parts := strings.Split(authHeader, " ")
-			// if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-			// 	err := errors.New("authenticate: failed: unexpected auth header format; expected: Bearer <token>")
-
-			cookie, err := r.Cookie("auth_token")
-
-			if err != nil {
-				if errors.Is(err, http.ErrNoCookie) {
-					return web.NewRequestError(errors.New("authenticate: failed: auth_token cookie not found"), http.StatusUnauthorized)
-				}
-				err := errors.New("authenticate: failed: cannot parse auth_token cookie")
+			authHeader := r.Header.Get("Authorization")
+			parts := strings.Split(authHeader, " ")
+			if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
+				err := errors.New("authenticate: failed: unexpected auth header format; expected: Bearer <token>")
 				return web.NewRequestError(err, http.StatusUnauthorized)
 			}
 
-			token := cookie.Value
+			token := parts[1]
 			claims, err := a.ValidateToken(token)
 
 			if err != nil {
-
 				return web.NewRequestError(
 					errors.New("authenticate: failed: token is invalid"),
 					http.StatusUnauthorized,
 				)
+			}
+
+			// Check if auth token is about to expire
+			if time.Until(claims.ExpiresAt.Time) < time.Duration(10)*time.Minute { // assuming 10 minutes here
+				refreshToken, err := r.Cookie("refresh_token")
+				if err != nil {
+					// Missing refresh token, this could mean potential session hijack or cookie deletion
+					// Redirect to login
+					http.Redirect(w, r, "/login", http.StatusFound)
+					return nil
+				}
+
+				// Validate the refresh token (assuming a.ValidateRefreshToken exists)
+				// TODO: implement revoke check
+				newClaims, err := a.ValidateRefreshToken(refreshToken.Value)
+				if err != nil {
+					// Invalid refresh token
+					// Redirect to login
+					http.Redirect(w, r, "/login", http.StatusFound)
+					return nil
+				}
+
+				// Generate new tokens
+				newAuthToken, newRefreshToken, err := a.GenerateTokens(newClaims)
+				if err != nil {
+					return web.NewRequestError(
+						errors.New("authenticate: failed to generate new tokens"),
+						http.StatusInternalServerError,
+					)
+				}
+
+				// Set the new auth token in the response header and the new refresh token as a cookie
+				w.Header().Set("Authorization", "Bearer "+newAuthToken)
+				http.SetCookie(w, &http.Cookie{
+					Name:     "refresh_token",
+					Value:    newRefreshToken,
+					Path:     "/",
+					HttpOnly: true,
+					Secure:   true,
+				})
 			}
 
 			ctx = auth.SetClaims(ctx, claims)

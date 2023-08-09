@@ -95,3 +95,31 @@ func (a *Auth) ValidateToken(tokenStr string) (Claims, error) {
 
 	return claims, nil
 }
+
+// TODO: refactor this to check is token was revoked
+func (a *Auth) ValidateRefreshToken(tokenStr string) (Claims, error) {
+	var claims Claims
+	token, err := a.parser.ParseWithClaims(tokenStr, &claims, a.keyFunc)
+
+	if err != nil {
+		return Claims{}, fmt.Errorf("cannot parse token: %w", err)
+	}
+
+	if !token.Valid {
+		return Claims{}, errors.New("token is invalid")
+	}
+
+	return claims, nil
+}
+
+func (a *Auth) GenerateTokens(c Claims) (string, string, error) {
+	token, err := a.GenerateToken(c)
+	if err != nil {
+		return "", "", err
+	}
+	refreshToken, err := a.GenerateToken(c)
+	if err != nil {
+		return "", "", err
+	}
+	return token, refreshToken, nil
+}
