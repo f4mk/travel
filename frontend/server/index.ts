@@ -1,4 +1,3 @@
-import fastifyStatic from '@fastify/static'
 import Fastify from 'fastify'
 import fs from 'fs'
 import path from 'path'
@@ -10,7 +9,9 @@ const startServer = async () => {
   const indexPath = path.resolve('./dist/index.html')
   const index = fs.readFileSync(indexPath, 'utf8')
 
-  fastify.register(fastifyStatic, {
+  await fastify.register(import('@fastify/compress'), { global: true })
+
+  await fastify.register(import('@fastify/static'), {
     root: path.resolve('./dist/assets'),
     prefix: '/assets/'
   })

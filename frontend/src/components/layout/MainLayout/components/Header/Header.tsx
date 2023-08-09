@@ -1,13 +1,15 @@
-import { useCallback } from 'react'
+import { Suspense, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button } from '@mantine/core'
+import { Button, Loader } from '@mantine/core'
 
 import logo from '#/assets/coggers.png'
-import { ProfileMenu } from '#/components/ui/ProfileMenu'
 import { RoundButton } from '#/components/ui/RoundButton'
 import { ERoutes } from '#/constants/routes'
+import { lazy } from '#/utils/lazy'
 
 import * as S from './styled'
+
+const { ProfileMenu } = lazy(() => import('#/components/ui/ProfileMenu'))
 
 export const Header = () => {
   const navigate = useNavigate()
@@ -40,7 +42,9 @@ export const Header = () => {
           Blog
         </Button>
       </S.Tabs>
-      <ProfileMenu isLoggedIn={false} />
+      <Suspense fallback={<Loader />}>
+        <ProfileMenu isLoggedIn={false} />
+      </Suspense>
     </S.Header>
   )
 }
