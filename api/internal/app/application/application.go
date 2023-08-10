@@ -14,27 +14,13 @@ import (
 	"github.com/f4mk/api/internal/pkg/auth"
 	"github.com/f4mk/api/internal/pkg/database"
 	"github.com/f4mk/api/internal/pkg/keystore"
+	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 )
 
 func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
-
-	// -------------------------------------------------------------------------
-	// Creating Auth
-	ks, err := keystore.NewFS(os.DirFS(cfg.Auth.KeyPath))
-	if err != nil {
-		return fmt.Errorf("api: error creating keystore: %w", err)
-	}
-
-	activeKids := ks.CollectKeyIDs()
-
-	auth, err := auth.New(activeKids, ks)
-
-	if err != nil {
-		return fmt.Errorf("api: error constructing auth: %w", err)
-	}
 
 	// -------------------------------------------------------------------------
 	// Initializing DB Connection
@@ -61,6 +47,43 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 		log.Info().Msgf("api: closing db connection %s", getHost(cfg.DB.HostName, cfg.DB.Port))
 		db.Close()
 	}()
+
+	// -------------------------------------------------------------------------
+	// Creating Auth
+	//loading keys
+	ks, err := keystore.NewFS(os.DirFS(cfg.Auth.KeyPath))
+	if err != nil {
+		return fmt.Errorf("api: error creating keystore: %w", err)
+	}
+
+	activeKids := ks.CollectKeyIDs()
+
+	//creating cache
+	rdb := redis.NewClient(&redis.Options{
+		Addr:         getHost(cfg.Cache.HostName, cfg.Cache.Port),
+		Password:     "",
+		DB:           cfg.Cache.DB,
+		PoolSize:     cfg.Cache.PoolSize,
+		MinIdleConns: cfg.Cache.MinIdleConns,
+	})
+
+	pong, err := rdb.Ping(context.TODO()).Result()
+	if err != nil {
+		log.Err(err).Msgf("Could not connect to Redis: ")
+	}
+
+	fmt.Println("api: connected to redis: ", pong)
+
+	defer func() {
+		log.Info().Msgf("api: closing rdc connection %s", getHost(cfg.Cache.HostName, cfg.Cache.Port))
+		rdb.Close()
+	}()
+
+	auth, err := auth.New(activeKids, ks, rdb, db)
+
+	if err != nil {
+		return fmt.Errorf("api: error constructing auth: %w", err)
+	}
 
 	// -------------------------------------------------------------------------
 	// Start Debug Service

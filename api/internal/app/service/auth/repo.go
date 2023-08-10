@@ -34,7 +34,11 @@ func (r *Repo) DeleteAll(ctx context.Context, uID string) error {
 	return nil
 }
 
-// TODO: implement
-func (r *Repo) QueryByEmail(ctx context.Context, uID string) (authUsecase.User, error) {
-	return authUsecase.User{}, nil
+func (r *Repo) QueryByEmail(ctx context.Context, email string) (authUsecase.User, error) {
+	user := authUsecase.User{}
+	q := `SELECT * FROM users WHERE email = $1`
+	if err := r.repo.Get(&user, q, email); err != nil {
+		return authUsecase.User{}, err
+	}
+	return user, nil
 }

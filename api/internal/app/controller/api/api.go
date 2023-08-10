@@ -42,6 +42,7 @@ func New(cfg Config) *web.WebApp {
 
 	app.Handle(http.MethodPost, "/auth/login", as.Login)
 	app.Handle(http.MethodPost, "/auth/logout", as.Logout)
+	// TODO: think about permissions here
 	app.Handle(http.MethodPost, "/auth/refresh", as.Refresh)
 	app.Handle(http.MethodPost, "/auth/password/reset", as.PasswordReset)
 

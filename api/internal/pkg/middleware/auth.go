@@ -44,9 +44,7 @@ func Authenticate(a *auth.Auth) web.Middleware {
 					return nil
 				}
 
-				// Validate the refresh token (assuming a.ValidateRefreshToken exists)
-				// TODO: implement revoke check
-				newClaims, err := a.ValidateRefreshToken(refreshToken.Value)
+				newClaims, err := a.ValidateRefreshToken(ctx, refreshToken.Value)
 				if err != nil {
 					// Invalid refresh token
 					// Redirect to login

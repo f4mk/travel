@@ -5,7 +5,8 @@ services:
     container_name: travel-api
     restart: always
     depends_on:
-    - postgres
+      - postgres
+      - redis
     ports:
       - ${HOST_PORT}:${API_PORT}
       - ${AUX_PORT}:${DEBUG_PORT}
@@ -22,6 +23,17 @@ services:
       - POSTGRES_USER=${PG_USER}
       - POSTGRES_PASSWORD=${PG_PASSWORD}
       - POSTGRES_DB=${PG_DB_NAME}
+    networks: 
+      - local
+  
+  redis:
+    image: redis:6.2-alpine
+    container_name: travel-api-redis
+    restart: always
+    depends_on:
+      - postgres
+    ports:
+      - ${CACHE_PORT}:${REDIS_PORT}
     networks: 
       - local
 

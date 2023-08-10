@@ -2,11 +2,11 @@ package user
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 
-	"github.com/f4mk/api/internal/app/usecase/user"
+	userUsecase "github.com/f4mk/api/internal/app/usecase/user"
+	"github.com/f4mk/api/internal/pkg/database"
 	"github.com/f4mk/api/pkg/web"
 	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog"
@@ -27,14 +27,14 @@ import (
 // that is acceptable by an underlying usecase
 
 type UserService struct {
-	core *user.Core
+	core *userUsecase.Core
 	log  *zerolog.Logger
 }
 
 func NewService(l *zerolog.Logger, db *sqlx.DB) *UserService {
 
 	repo := NewRepo(db, l)
-	core := user.NewCore(repo, l)
+	core := userUsecase.NewCore(repo, l)
 
 	return &UserService{
 		core: core,
@@ -53,7 +53,7 @@ func (us *UserService) GetUsers(
 	if err != nil {
 		return fmt.Errorf(
 			"cannot get users: %w",
-			getResponseErrorFromUsecase(err),
+			database.GetResponseErrorFromBusiness(err),
 		)
 	}
 
@@ -81,7 +81,7 @@ func (us *UserService) GetUser(
 	if err != nil {
 		return fmt.Errorf(
 			"cannot get user: %w",
-			getResponseErrorFromUsecase(err),
+			database.GetResponseErrorFromBusiness(err),
 		)
 	}
 	return web.Respond(ctx, w, res, http.StatusOK)
@@ -93,7 +93,7 @@ func (us *UserService) CreateUser(
 	r *http.Request,
 ) error {
 
-	u := user.NewUser{}
+	u := userUsecase.NewUser{}
 
 	if err := web.Decode(r, &u); err != nil {
 		return web.NewRequestError(
@@ -107,7 +107,7 @@ func (us *UserService) CreateUser(
 	if err != nil {
 		return fmt.Errorf(
 			"cannot create users: %w",
-			getResponseErrorFromUsecase(err),
+			database.GetResponseErrorFromBusiness(err),
 		)
 	}
 
@@ -130,7 +130,7 @@ func (us *UserService) UpdateUser(
 		)
 	}
 
-	u := user.UpdateUser{}
+	u := userUsecase.UpdateUser{}
 	if err := web.Decode(r, &u); err != nil {
 		return web.NewRequestError(
 			err,
@@ -143,7 +143,7 @@ func (us *UserService) UpdateUser(
 	if err != nil {
 		return fmt.Errorf(
 			"cannot update user: %w",
-			getResponseErrorFromUsecase(err),
+			database.GetResponseErrorFromBusiness(err),
 		)
 	}
 	return web.Respond(ctx, w, res, http.StatusOK)
@@ -170,39 +170,9 @@ func (us *UserService) DeleteUser(
 	if err != nil {
 		return fmt.Errorf(
 			"cannot delete user: %w",
-			getResponseErrorFromUsecase(err),
+			database.GetResponseErrorFromBusiness(err),
 		)
 	}
 
 	return web.Respond(ctx, w, nil, http.StatusOK)
-}
-
-func getResponseErrorFromUsecase(err error) error {
-
-	switch {
-	case errors.Is(err, user.ErrNotFound):
-		return web.NewRequestError(
-			err,
-			http.StatusNotFound,
-		)
-
-	case errors.Is(err, user.ErrForbidden):
-		return web.NewRequestError(
-			err,
-			http.StatusForbidden,
-		)
-
-	case errors.Is(err, user.ErrAlreadyExists):
-		return web.NewRequestError(
-			err,
-			http.StatusConflict,
-		)
-	case errors.Is(err, user.ErrAuthFailed):
-		return web.NewRequestError(
-			err,
-			http.StatusUnauthorized,
-		)
-	default:
-		return err
-	}
 }

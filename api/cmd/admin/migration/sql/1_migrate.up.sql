@@ -40,4 +40,13 @@ FROM
 JOIN
     products AS p ON p.user_id = u.user_id
 GROUP BY
-    u.user_id
+    u.user_id;
+
+CREATE TABLE revoked_tokens (
+    token_id UUID PRIMARY KEY,
+    subject UUID NOT NULL, 
+		issued_at TIMESTAMP NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    revoked_at TIMESTAMP NOT NULL,
+    FOREIGN KEY (subject) REFERENCES users(user_id)
+);

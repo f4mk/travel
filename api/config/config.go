@@ -31,6 +31,14 @@ type Auth struct {
 	KeyPath string `env:"AUTH_KEY_PATH,required"`
 }
 
+type Cache struct {
+	HostName     string `env:"REDIS_HOST_NAME,required"`
+	Port         string `env:"REDIS_PORT,required"`
+	DB           int    `env:"REDIS_DB,required"`
+	PoolSize     int    `env:"REDIS_POOL_SIZE,required"`
+	MinIdleConns int    `env:"REDIS_MIN_IDLE_CONNS,required"`
+}
+
 type Log struct {
 	LogLevel int `env:"LOG_LEVEL,required"`
 }
@@ -61,6 +69,7 @@ type Config struct {
 	Debug       Debug
 	Auth        Auth
 	DB          DB
+	Cache       Cache
 	Telemetry   Telemetry
 }
 

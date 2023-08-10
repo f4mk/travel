@@ -49,19 +49,23 @@ run:
 #PULL DOCKER IMAGES
 pull: 
 	docker pull postgres:15.3
-	docker pull openzipkin/zipkin:2.24.2
 	docker pull alpine:3.18.2
 	docker pull golang:1.20.6-alpine3.18
+	docker pull redis:6.2-alpine
 
 #START APP FROM SCRATCH
 all: pull image up
 
 #RUN APP WITH REBUILD
-up: image compose
+up: image compose-up
 
 #RUN APP
-compose:
+compose-up:
 	docker compose --env-file ${CONFIG_PATH} up
+
+#STOP APP
+compose-down:
+	docker compose --env-file ${CONFIG_PATH} down
 
 #GENERATE SSL CERTIFICATE FOR HTTPS
 cert:

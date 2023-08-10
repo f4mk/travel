@@ -2,29 +2,14 @@ package user
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/f4mk/api/internal/pkg/auth"
+	"github.com/f4mk/api/internal/pkg/database"
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 	"github.com/rs/zerolog"
 	"golang.org/x/crypto/bcrypt"
-)
-
-// lib/pq errorCodeNames
-// https://github.com/lib/pq/blob/master/error.go#L178
-const (
-	uniqueViolation = pq.ErrorCode("23505")
-)
-
-var (
-	ErrNotFound      = errors.New("user not found")
-	ErrForbidden     = errors.New("not allowed")
-	ErrAuthFailed    = errors.New("authentication failed")
-	ErrAlreadyExists = errors.New("already exists")
 )
 
 type Storer interface {
@@ -82,7 +67,7 @@ func (c *Core) Create(ctx context.Context, nu NewUser) (User, error) {
 	}
 
 	if err := c.storer.Create(ctx, usr); err != nil {
-		return User{}, fmt.Errorf("create: %w", wrapError(err))
+		return User{}, fmt.Errorf("create: %w", database.WrapBusinessError(err))
 	}
 
 	return usr, nil
@@ -94,7 +79,7 @@ func (c *Core) Update(ctx context.Context, uID string, uu UpdateUser) (User, err
 	usr, err := c.storer.QueryByID(ctx, uID)
 
 	if err != nil {
-		return User{}, fmt.Errorf("query user: %w", wrapError(err))
+		return User{}, fmt.Errorf("query user: %w", database.WrapBusinessError(err))
 	}
 
 	claims, err := auth.GetClaims(ctx)
@@ -105,7 +90,7 @@ func (c *Core) Update(ctx context.Context, uID string, uu UpdateUser) (User, err
 
 	// TODO: should check ID in JWT token
 	if !claims.Authorize(auth.RoleAdmin) && uID != usr.ID {
-		return User{}, ErrForbidden
+		return User{}, database.ErrForbidden
 	}
 
 	//update user
@@ -137,7 +122,7 @@ func (c *Core) QueryByID(ctx context.Context, uID string) (User, error) {
 
 	usr, err := c.storer.QueryByID(ctx, uID)
 	if err != nil {
-		return User{}, fmt.Errorf("query user: %w", wrapError(err))
+		return User{}, fmt.Errorf("query user: %w", database.WrapBusinessError(err))
 	}
 
 	return usr, nil
@@ -148,7 +133,7 @@ func (c *Core) Delete(ctx context.Context, uID string) error {
 	//query existing user
 	_, err := c.storer.QueryByID(ctx, uID)
 	if err != nil {
-		return fmt.Errorf("query user: %w", wrapError(err))
+		return fmt.Errorf("query user: %w", database.WrapBusinessError(err))
 	}
 
 	claims, err := auth.GetClaims(ctx)
@@ -159,24 +144,13 @@ func (c *Core) Delete(ctx context.Context, uID string) error {
 
 	// TODO: should check ID in JWT token == uID
 	if !claims.Authorize(auth.RoleAdmin) {
-		return ErrForbidden
+		return database.ErrForbidden
 	}
 
 	if err := c.storer.Delete(ctx, uID); err != nil {
-		return fmt.Errorf("delete user: %w", wrapError(err))
+		return fmt.Errorf("delete user: %w", database.WrapBusinessError(err))
 	}
 	return nil
 }
 
 // TODO: may be should be here
-func wrapError(err error) error {
-	if errors.Is(err, sql.ErrNoRows) {
-		return ErrNotFound
-	}
-
-	if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == uniqueViolation {
-		return ErrAlreadyExists
-	}
-
-	return err
-}

@@ -2,9 +2,11 @@ package auth
 
 import (
 	"context"
-	"time"
+	"fmt"
 
+	"github.com/f4mk/api/internal/pkg/database"
 	"github.com/rs/zerolog"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Storer interface {
@@ -28,9 +30,24 @@ func NewCore(s Storer, l *zerolog.Logger) *Core {
 	}
 }
 
-func (c *Core) Login(ctx context.Context, email string, pw string, t string, exp time.Time) error {
-	// TODO: check user exists, check pw, store token in tokens table with user id and exp date
-	return nil
+func (c *Core) Login(ctx context.Context, u LoginUser) (AuthenticatedUser, error) {
+	user, err := c.storer.QueryByEmail(ctx, u.Email)
+
+	if err != nil {
+		return AuthenticatedUser{}, fmt.Errorf("query user: %w", database.WrapBusinessError(err))
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(u.Password)); err != nil {
+		return AuthenticatedUser{}, fmt.Errorf("wrong credentials: %w", database.WrapBusinessError(err))
+	}
+	auser := AuthenticatedUser{
+		ID:    user.ID,
+		Email: user.Email,
+		Name:  user.Name,
+		Roles: user.Roles,
+	}
+
+	return auser, nil
 }
 
 func (c *Core) Logout(ctx context.Context, email string, t string) error {
