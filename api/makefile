@@ -1,6 +1,9 @@
 SHELL := /bin/bash
 
 #hey -n 100000 -c 200 http://localhost:8080/
+#go install github.com/divan/expvarmon@latest
+#expvarmon -ports="8081"
+#expvarmon -ports="8081" -vars="goroutines,mem:memstats.Alloc"
 
 CONFIG_PATH = config/.env
 
