@@ -79,7 +79,16 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 		rdb.Close()
 	}()
 
-	auth, err := auth.New(activeKids, ks, rdb, db)
+	authCfg := auth.Config{
+		ActiveKIDs:      activeKids,
+		KeyLookup:       ks,
+		Cache:           rdb,
+		DB:              db,
+		AuthDuration:    cfg.Auth.AuthDuration,
+		RefreshDuration: cfg.Auth.RefreshDuration,
+	}
+
+	auth, err := auth.New(authCfg)
 
 	if err != nil {
 		return fmt.Errorf("api: error constructing auth: %w", err)

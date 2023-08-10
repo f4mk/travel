@@ -19,19 +19,30 @@ type KeyLookup interface {
 }
 
 type Auth struct {
-	activeKIDs []string
-	method     jwt.SigningMethod
-	keyFunc    func(t *jwt.Token) (any, error)
-	parser     *jwt.Parser
-	keyLookup  KeyLookup
-	cache      *redis.Client
-	db         *sqlx.DB
+	activeKIDs      []string
+	method          jwt.SigningMethod
+	keyFunc         func(t *jwt.Token) (any, error)
+	parser          *jwt.Parser
+	keyLookup       KeyLookup
+	cache           *redis.Client
+	db              *sqlx.DB
+	AuthDuration    time.Duration
+	RefreshDuration time.Duration
 }
 
-func New(activeKIDs []string, keyLookup KeyLookup, rdb *redis.Client, db *sqlx.DB) (*Auth, error) {
+type Config struct {
+	ActiveKIDs      []string
+	KeyLookup       KeyLookup
+	Cache           *redis.Client
+	DB              *sqlx.DB
+	AuthDuration    time.Duration
+	RefreshDuration time.Duration
+}
 
-	for _, activeKID := range activeKIDs {
-		_, err := keyLookup.PrivateKey(activeKID)
+func New(cfg Config) (*Auth, error) {
+
+	for _, activeKID := range cfg.ActiveKIDs {
+		_, err := cfg.KeyLookup.PrivateKey(activeKID)
 		if err != nil {
 			return nil, fmt.Errorf("cannot find active key: %w", err)
 		}
@@ -52,19 +63,21 @@ func New(activeKIDs []string, keyLookup KeyLookup, rdb *redis.Client, db *sqlx.D
 			return nil, fmt.Errorf("key ID must be of type string")
 		}
 
-		return keyLookup.PublicKey(kidStr)
+		return cfg.KeyLookup.PublicKey(kidStr)
 	}
 
 	parser := jwt.NewParser(jwt.WithValidMethods([]string{method.Name}))
 
 	a := Auth{
-		method:     jwt.GetSigningMethod(method.Name),
-		keyLookup:  keyLookup,
-		keyFunc:    keyFunc,
-		parser:     parser,
-		activeKIDs: activeKIDs,
-		cache:      rdb,
-		db:         db,
+		method:          jwt.GetSigningMethod(method.Name),
+		keyLookup:       cfg.KeyLookup,
+		keyFunc:         keyFunc,
+		parser:          parser,
+		activeKIDs:      cfg.ActiveKIDs,
+		cache:           cfg.Cache,
+		db:              cfg.DB,
+		AuthDuration:    cfg.AuthDuration,
+		RefreshDuration: cfg.RefreshDuration,
 	}
 
 	if err := a.LoadRevokedTokensToCache(); err != nil {
@@ -74,10 +87,13 @@ func New(activeKIDs []string, keyLookup KeyLookup, rdb *redis.Client, db *sqlx.D
 	return &a, nil
 }
 
-func (a *Auth) GenerateToken(claims Claims) (string, error) {
-
+func (a *Auth) GenerateToken(claims Claims, duration time.Duration) (string, error) {
+	ia := time.Now()
+	ea := ia.Add(duration)
 	jti := uuid.New().String()
 	claims.ID = jti
+	claims.IssuedAt = &jwt.NumericDate{Time: ia}
+	claims.ExpiresAt = &jwt.NumericDate{Time: ea}
 	token := jwt.NewWithClaims(a.method, claims)
 	// TODO: select the most fresh KID
 	currentKID := a.activeKIDs[0]
@@ -133,18 +149,6 @@ func (a *Auth) ValidateRefreshToken(ctx context.Context, tokenStr string) (Claim
 	}
 
 	return claims, nil
-}
-
-func (a *Auth) GenerateTokens(c Claims) (string, string, error) {
-	token, err := a.GenerateToken(c)
-	if err != nil {
-		return "", "", err
-	}
-	refreshToken, err := a.GenerateToken(c)
-	if err != nil {
-		return "", "", err
-	}
-	return token, refreshToken, nil
 }
 
 func (a *Auth) LoadRevokedTokensToCache() error {

@@ -59,9 +59,12 @@ func (as *AuthService) Login(ctx context.Context, w http.ResponseWriter, r *http
 	c.Subject = au.ID
 	c.Roles = au.Roles
 
-	// TODO: add expiration and issue time
-	newAuthToken, newRefreshToken, err := as.auth.GenerateTokens(c)
+	newAuthToken, err := as.auth.GenerateToken(c, as.auth.AuthDuration)
+	if err != nil {
+		return fmt.Errorf("error generating token: %w", err)
+	}
 
+	newRefreshToken, err := as.auth.GenerateToken(c, as.auth.RefreshDuration)
 	if err != nil {
 		return fmt.Errorf("error generating token: %w", err)
 	}

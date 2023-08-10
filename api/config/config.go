@@ -28,7 +28,9 @@ type Debug struct {
 }
 
 type Auth struct {
-	KeyPath string `env:"AUTH_KEY_PATH,required"`
+	KeyPath         string        `env:"AUTH_KEY_PATH,required"`
+	AuthDuration    time.Duration `env:"AUTH_AUTH_DURATION,required"`
+	RefreshDuration time.Duration `env:"AUTH_REFRESH_DURATION,required"`
 }
 
 type Cache struct {

@@ -53,10 +53,18 @@ func Authenticate(a *auth.Auth) web.Middleware {
 				}
 
 				// Generate new tokens
-				newAuthToken, newRefreshToken, err := a.GenerateTokens(newClaims)
+				newAuthToken, err := a.GenerateToken(newClaims, a.AuthDuration)
 				if err != nil {
 					return web.NewRequestError(
-						errors.New("authenticate: failed to generate new tokens"),
+						errors.New("authenticate: failed to generate auth token"),
+						http.StatusInternalServerError,
+					)
+				}
+
+				newRefreshToken, err := a.GenerateToken(newClaims, a.RefreshDuration)
+				if err != nil {
+					return web.NewRequestError(
+						errors.New("authenticate: failed to generate refresh token"),
 						http.StatusInternalServerError,
 					)
 				}
