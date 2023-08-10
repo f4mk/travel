@@ -15,10 +15,7 @@ docker-rmi:
 
 #PULL DOCKER IMAGES
 pull: 
-	docker pull postgres:15.3
-	docker pull openzipkin/zipkin:2.24.2
-	docker pull alpine:3.18.2
-	docker pull golang:1.20.6-alpine3.18
+	$(MAKE) -C ./api pull
 	docker pull node:18.17-alpine
 
 .PHONY: compose-up
