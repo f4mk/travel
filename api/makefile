@@ -19,7 +19,7 @@ config-path:
 image:
 	docker rmi travel-api:latest || true
 	docker build \
-		-f ./dockerfile \
+		-f ./dockerfile.api \
 		-t travel-api \
 		--build-arg BUILD_REF=`git rev-parse HEAD` \
 		--build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
@@ -29,6 +29,16 @@ image:
 		--build-arg AUTH_PRIVATE_KEY_FILE=${AUTH_PRIVATE_KEY_FILE} \
 		--build-arg AUTH_PUBLIC_KEY_FILE=${AUTH_PUBLIC_KEY_FILE} \
 		.
+
+#CREATE CRON IMAGE
+image-cron:
+	docker rmi travel-api-cron:latest || true
+	docker build \
+		-f ./dockerfile.cron \
+		-t travel-api-cron \
+		--build-arg CONFIG_PATH=${CONFIG_PATH} \
+		.
+
 #DELETE ALL DOCKER DANGLING IMAGES
 docker-rmi:
 	docker rmi `docker images -f dangling=true -q`
@@ -57,10 +67,10 @@ pull:
 	docker pull redis:6.2-alpine
 
 #START APP FROM SCRATCH
-all: pull image up
+all: pull image image-cron up
 
 #RUN APP WITH REBUILD
-up: image compose-up
+up: image image-cron compose-up
 
 #RUN APP
 compose-up:

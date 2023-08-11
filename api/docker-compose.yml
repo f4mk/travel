@@ -37,5 +37,13 @@ services:
     networks: 
       - local
 
+  cron:
+    image: travel-api-cron:latest
+    container_name: travel-api-cron
+    depends_on:
+      - postgres
+    networks:
+      - local
+
 networks:
   local:

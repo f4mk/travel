@@ -13,6 +13,7 @@ RUN go mod download
 
 WORKDIR /service
 COPY . .
+
 RUN go build -o app \
   -ldflags="-X 'main.build=${BUILD_REF}' \
   -X 'main.date=${BUILD_DATE}' \
