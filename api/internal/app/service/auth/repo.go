@@ -32,19 +32,19 @@ func (r *Repo) DeleteAllTokes(ctx context.Context, uID string) error {
 }
 
 func (r *Repo) QueryByEmail(ctx context.Context, email string) (authUsecase.User, error) {
-	user := authUsecase.User{}
+	u := authUsecase.User{}
 	q := `SELECT * FROM users WHERE email = $1`
-	if err := r.repo.Get(&user, q, email); err != nil {
+	if err := r.repo.Get(&u, q, email); err != nil {
 		return authUsecase.User{}, err
 	}
-	return user, nil
+	return u, nil
 }
 
 func (r *Repo) QueryByID(ctx context.Context, id string) (authUsecase.User, error) {
-	user := authUsecase.User{}
+	u := authUsecase.User{}
 	q := `SELECT * FROM users WHERE user_id = $1`
-	if err := r.repo.Get(&user, q, id); err != nil {
+	if err := r.repo.Get(&u, q, id); err != nil {
 		return authUsecase.User{}, err
 	}
-	return user, nil
+	return u, nil
 }

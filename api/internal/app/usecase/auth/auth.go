@@ -30,24 +30,24 @@ func NewCore(s Storer, l *zerolog.Logger) *Core {
 	}
 }
 
-func (c *Core) Login(ctx context.Context, u LoginUser) (AuthenticatedUser, error) {
-	user, err := c.storer.QueryByEmail(ctx, u.Email)
+func (c *Core) Login(ctx context.Context, lu LoginUser) (AuthenticatedUser, error) {
+	u, err := c.storer.QueryByEmail(ctx, lu.Email)
 
 	if err != nil {
 		return AuthenticatedUser{}, fmt.Errorf("query user: %w", database.WrapBusinessError(err))
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(u.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(lu.Password)); err != nil {
 		return AuthenticatedUser{}, fmt.Errorf("wrong credentials: %w", database.WrapBusinessError(err))
 	}
-	auser := AuthenticatedUser{
-		ID:    user.ID,
-		Email: user.Email,
-		Name:  user.Name,
-		Roles: user.Roles,
+	au := AuthenticatedUser{
+		ID:    u.ID,
+		Email: u.Email,
+		Name:  u.Name,
+		Roles: u.Roles,
 	}
 
-	return auser, nil
+	return au, nil
 }
 
 func (c *Core) Logout(ctx context.Context, dt DeleteToken) error {

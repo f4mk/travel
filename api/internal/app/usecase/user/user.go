@@ -56,27 +56,28 @@ func (c *Core) Create(ctx context.Context, nu NewUser) (User, error) {
 
 	now := time.Now().UTC()
 
-	usr := User{
+	u := User{
 		ID:           uuid.New().String(),
 		Name:         nu.Name,
 		Email:        nu.Email,
 		PasswordHash: hash,
-		Roles:        nu.Roles,
-		DateCreated:  now,
-		DateUpdated:  now,
+		// TODO: may be find a better place
+		Roles:       []string{auth.RoleUser},
+		DateCreated: now,
+		DateUpdated: now,
 	}
 
-	if err := c.storer.Create(ctx, usr); err != nil {
+	if err := c.storer.Create(ctx, u); err != nil {
 		return User{}, fmt.Errorf("create: %w", database.WrapBusinessError(err))
 	}
 
-	return usr, nil
+	return u, nil
 }
 
 func (c *Core) Update(ctx context.Context, uID string, uu UpdateUser) (User, error) {
 
 	//query existing user
-	usr, err := c.storer.QueryByID(ctx, uID)
+	u, err := c.storer.QueryByID(ctx, uID)
 
 	if err != nil {
 		return User{}, fmt.Errorf("query user: %w", database.WrapBusinessError(err))
@@ -89,43 +90,41 @@ func (c *Core) Update(ctx context.Context, uID string, uu UpdateUser) (User, err
 	}
 
 	// TODO: should check ID in JWT token
-	if !claims.Authorize(auth.RoleAdmin) && uID != usr.ID {
+	if !claims.Authorize(auth.RoleAdmin) && uID != u.ID {
 		return User{}, database.ErrForbidden
 	}
 
 	//update user
 	if uu.Name != nil {
-		usr.Name = *uu.Name
+		u.Name = *uu.Name
 	}
 	if uu.Email != nil {
-		usr.Email = *uu.Email
+		u.Email = *uu.Email
 	}
 	if uu.Password != nil {
 		hash, err := bcrypt.GenerateFromPassword([]byte(*uu.Password), bcrypt.DefaultCost)
 		if err != nil {
 			return User{}, fmt.Errorf("generate password hash: %w", err)
 		}
-		usr.PasswordHash = hash
+		u.PasswordHash = hash
 	}
-	if len(uu.Roles) > 0 {
-		usr.Roles = uu.Roles
-	}
-	usr.DateUpdated = time.Now().UTC()
 
-	if err := c.storer.Update(ctx, usr); err != nil {
+	u.DateUpdated = time.Now().UTC()
+
+	if err := c.storer.Update(ctx, u); err != nil {
 		return User{}, fmt.Errorf("update: %w", err)
 	}
-	return usr, nil
+	return u, nil
 }
 
 func (c *Core) QueryByID(ctx context.Context, uID string) (User, error) {
 
-	usr, err := c.storer.QueryByID(ctx, uID)
+	u, err := c.storer.QueryByID(ctx, uID)
 	if err != nil {
 		return User{}, fmt.Errorf("query user: %w", database.WrapBusinessError(err))
 	}
 
-	return usr, nil
+	return u, nil
 }
 
 func (c *Core) Delete(ctx context.Context, uID string) error {
