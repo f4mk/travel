@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	authUsecase "github.com/f4mk/api/internal/app/usecase/auth"
 	"github.com/f4mk/api/internal/pkg/auth"
@@ -34,7 +35,6 @@ func NewService(l *zerolog.Logger, db *sqlx.DB, auth *auth.Auth) *AuthService {
 	}
 }
 
-// TODO: Implement
 func (as *AuthService) Login(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 
 	u := authUsecase.LoginUser{}
@@ -51,9 +51,6 @@ func (as *AuthService) Login(ctx context.Context, w http.ResponseWriter, r *http
 	if err != nil {
 		return database.GetResponseErrorFromBusiness(err)
 	}
-
-	//so far get the auth user info,
-	//need to create token with user subject, set token to user credentials
 
 	c := auth.Claims{}
 	c.Subject = au.ID
@@ -83,7 +80,69 @@ func (as *AuthService) Login(ctx context.Context, w http.ResponseWriter, r *http
 
 // TODO: Implement
 func (as *AuthService) Logout(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	return nil
+
+	refreshToken, err := r.Cookie("refresh_token")
+	if err != nil {
+		w.Header().Del("Authorization")
+		return web.NewRequestError(
+			err,
+			http.StatusBadRequest,
+		)
+	}
+
+	claims, err := as.auth.ValidateRefreshToken(ctx, refreshToken.Value)
+	if err != nil {
+
+		//delete all auth info just in case
+		w.Header().Del("Authorization")
+		http.SetCookie(w, &http.Cookie{
+			Name:    "refresh_token",
+			Value:   "",
+			Path:    "/",
+			Expires: time.Unix(0, 0),
+			MaxAge:  -1,
+		})
+
+		return web.NewRequestError(
+			err,
+			http.StatusBadRequest,
+		)
+	}
+
+	dt := authUsecase.DeleteToken{
+		TokenID:   claims.ID,
+		Subject:   claims.Subject,
+		IssuedAt:  claims.IssuedAt.UTC(),
+		ExpiresAt: claims.ExpiresAt.UTC(),
+		RevokedAt: time.Now().UTC(),
+	}
+
+	if err := as.core.Logout(ctx, dt); err != nil {
+		return database.GetResponseErrorFromBusiness(err)
+	}
+
+	//try to mark token as revoked
+	if err := as.auth.MarkTokenAsRevoked(ctx, auth.TokenParams{
+		TokenID:   dt.TokenID,
+		Subject:   dt.Subject,
+		IssuedAt:  dt.IssuedAt,
+		ExpiresAt: dt.ExpiresAt,
+		RevokedAt: dt.RevokedAt,
+	}); err != nil {
+		return err
+	}
+
+	//delete all auth info after revoking
+	w.Header().Del("Authorization")
+	http.SetCookie(w, &http.Cookie{
+		Name:    "refresh_token",
+		Value:   "",
+		Path:    "/",
+		Expires: time.Unix(0, 0),
+		MaxAge:  -1,
+	})
+
+	return web.Respond(ctx, w, nil, http.StatusOK)
 }
 
 // TODO: Implement

@@ -51,10 +51,10 @@ type PasswordReset struct {
 	Email string `json:"email" validate:"required"`
 }
 
-type StoreToken struct {
-	Token     string `db:"token"`
-	UserID    string `db:"user_id"`
-	ExpiresAt int64  `db:"expires_at"`
-	IssuedAt  int64  `db:"issued_at"`
-	CreatedAt int64  `db:"created_at"`
+type DeleteToken struct {
+	TokenID   string    `db:"token_id"`
+	Subject   string    `db:"subject"`
+	IssuedAt  time.Time `db:"issued_at"`
+	ExpiresAt time.Time `db:"expires_at"`
+	RevokedAt time.Time `db:"revoked_at"`
 }

@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"crypto/rsa"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -88,7 +89,7 @@ func New(cfg Config) (*Auth, error) {
 }
 
 func (a *Auth) GenerateToken(claims Claims, duration time.Duration) (string, error) {
-	ia := time.Now()
+	ia := time.Now().UTC()
 	ea := ia.Add(duration)
 	jti := uuid.New().String()
 	claims.ID = jti
@@ -151,6 +152,22 @@ func (a *Auth) ValidateRefreshToken(ctx context.Context, tokenStr string) (Claim
 	return claims, nil
 }
 
+func (a *Auth) MarkTokenAsRevoked(ctx context.Context, t TokenParams) error {
+	jsonData, err := json.Marshal(t)
+	if err != nil {
+		return fmt.Errorf("error setting token in cache: %w", err)
+	}
+	if err := a.cache.Set(
+		ctx,
+		t.TokenID,
+		jsonData,
+		time.Duration(t.ExpiresAt.Sub(time.Now().UTC())),
+	).Err(); err != nil {
+		return fmt.Errorf("error setting token in cache: %w", err)
+	}
+	return nil
+}
+
 func (a *Auth) LoadRevokedTokensToCache() error {
 	// Step 1: Query Database for Revoked Tokens
 	revokedTokens, err := a.getRevokedTokens()
@@ -159,26 +176,35 @@ func (a *Auth) LoadRevokedTokensToCache() error {
 	}
 
 	// Step 2: Insert Revoked Tokens into Redis
-	for _, token := range revokedTokens {
-		err := a.cache.Set(context.TODO(), token.ID, "revoked", time.Duration(token.ExpiresAt))
+	for _, t := range revokedTokens {
+		jsonData, err := json.Marshal(t)
 		if err != nil {
-			return fmt.Errorf("error setting token in Redis: %w", err.Err())
+			return fmt.Errorf("error marshalling tokens in Redis: %w", err)
+		}
+
+		if err := a.cache.Set(
+			context.TODO(),
+			t.TokenID,
+			jsonData,
+			time.Duration(t.ExpiresAt.Sub(time.Now().UTC()))).Err(); err != nil {
+
+			return fmt.Errorf("error setting token in Redis: %w", err)
 		}
 	}
 
 	return nil
 }
 
-type Token struct {
-	ID        string `db:"token_id"`
-	ExpiresAt int64  `db:"expires_at"`
-	IssuedAt  int64  `db:"issued_at"`
-	RevokedAt int64  `db:"revoked_at"`
-	Subject   string `db:"subject"`
+type TokenParams struct {
+	TokenID   string    `db:"token_id" json:"token_id"`
+	ExpiresAt time.Time `db:"expires_at" json:"expires_at"`
+	IssuedAt  time.Time `db:"issued_at" json:"issued_at"`
+	RevokedAt time.Time `db:"revoked_at" json:"revoked_at"`
+	Subject   string    `db:"subject" json:"subject"`
 }
 
-func (a *Auth) getRevokedTokens() ([]Token, error) {
-	var tokens []Token
+func (a *Auth) getRevokedTokens() ([]TokenParams, error) {
+	var tokens []TokenParams
 	err := a.db.Select(&tokens, "SELECT token_id, expires_at, issued_at, revoked_at, subject FROM revoked_tokens")
 	if err != nil {
 		return nil, fmt.Errorf("error fetching revoked tokens from database: %w", err)

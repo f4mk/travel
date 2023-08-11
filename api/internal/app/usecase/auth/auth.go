@@ -11,10 +11,10 @@ import (
 
 type Storer interface {
 	// TODO: add CRUD methods
-	Update(ctx context.Context, u User) error
-	Delete(ctx context.Context, t string) error
-	DeleteAll(ctx context.Context, uID string) error
+	DeleteToken(ctx context.Context, dt DeleteToken) error
+	DeleteAllTokes(ctx context.Context, uID string) error
 	QueryByEmail(ctx context.Context, email string) (User, error)
+	QueryByID(ctx context.Context, uID string) (User, error)
 }
 
 type Core struct {
@@ -50,8 +50,15 @@ func (c *Core) Login(ctx context.Context, u LoginUser) (AuthenticatedUser, error
 	return auser, nil
 }
 
-func (c *Core) Logout(ctx context.Context, email string, t string) error {
-	// TODO: delete this token from tokens table
+func (c *Core) Logout(ctx context.Context, dt DeleteToken) error {
+	_, err := c.storer.QueryByID(ctx, dt.Subject)
+	if err != nil {
+		return fmt.Errorf("query user: %w", database.WrapBusinessError(err))
+	}
+	if err := c.storer.DeleteToken(ctx, dt); err != nil {
+		return fmt.Errorf("delete token: %w", database.WrapBusinessError(err))
+	}
+
 	return nil
 }
 
