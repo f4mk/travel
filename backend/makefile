@@ -1,5 +1,13 @@
 SHELL := /bin/bash
 
+# Dont forget to add $GOPATH and sourse you .zshrc
+#.zshrc content:
+#export GOPATH=$HOME/go
+#export PATH=/usr/local/bin:$PATH:$GOPATH/bin
+#eval $(/opt/homebrew/bin/brew shellenv)
+#command:
+#source ~/.zshrc
+
 # For load testing use hey:
 #brew install hey
 #hey -n 100000 -c 200 http://localhost:8080/
