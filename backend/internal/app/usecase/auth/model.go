@@ -7,7 +7,6 @@ import (
 )
 
 type User struct {
-	// TODO: validation
 	ID           string         `db:"user_id" json:"id"`
 	Name         string         `db:"name" json:"name"`
 	Email        string         `db:"email" json:"email"`
@@ -18,37 +17,15 @@ type User struct {
 }
 
 type AuthenticatedUser struct {
-	ID    string   `json:"id"`
-	Roles []string `json:"-"`
-	Email string   `json:"email"`
-	Name  string   `json:"name"`
+	ID    string
+	Roles []string
+	Email string
+	Name  string
 }
 
-// TODO: validation
 type LoginUser struct {
-	Email    string `json:"email" validate:"required"`
-	Password string `json:"password" validate:"required"`
-}
-
-type Login struct {
-	// TODO: validation
-	Email    string `json:"email" validate:"required"`
-	Password string `json:"password" validate:"required"`
-}
-
-// TODO: validation
-type Logout struct {
-	Email string `json:"email" validate:"required"`
-}
-
-// TODO: validation
-type Refresh struct {
-	Token string `json:"token" validate:"required"`
-}
-
-// TODO: validation
-type PasswordReset struct {
-	Email string `json:"email" validate:"required"`
+	Email    string
+	Password string
 }
 
 type DeleteToken struct {

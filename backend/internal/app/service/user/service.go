@@ -8,7 +8,6 @@ import (
 	userUsecase "github.com/f4mk/api/internal/app/usecase/user"
 	"github.com/f4mk/api/internal/pkg/database"
 	"github.com/f4mk/api/pkg/web"
-	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog"
 )
 
@@ -31,9 +30,8 @@ type UserService struct {
 	log  *zerolog.Logger
 }
 
-func NewService(l *zerolog.Logger, db *sqlx.DB) *UserService {
+func NewService(l *zerolog.Logger, repo userUsecase.Storer) *UserService {
 
-	repo := NewRepo(db, l)
 	core := userUsecase.NewCore(repo, l)
 
 	return &UserService{
@@ -93,7 +91,7 @@ func (us *UserService) CreateUser(
 	r *http.Request,
 ) error {
 
-	u := userUsecase.NewUser{}
+	u := NewUserDTO{}
 
 	if err := web.Decode(r, &u); err != nil {
 		return web.NewRequestError(
@@ -102,7 +100,14 @@ func (us *UserService) CreateUser(
 		)
 	}
 
-	res, err := us.core.Create(ctx, u)
+	nu := userUsecase.NewUser{
+		Name:            u.Name,
+		Email:           u.Email,
+		Password:        u.Password,
+		PasswordConfirm: u.PasswordConfirm,
+	}
+
+	res, err := us.core.Create(ctx, nu)
 
 	if err != nil {
 		return fmt.Errorf(
@@ -130,7 +135,7 @@ func (us *UserService) UpdateUser(
 		)
 	}
 
-	u := userUsecase.UpdateUser{}
+	u := UpdateUserDTO{}
 	if err := web.Decode(r, &u); err != nil {
 		return web.NewRequestError(
 			err,
@@ -138,7 +143,14 @@ func (us *UserService) UpdateUser(
 		)
 	}
 
-	res, err := us.core.Update(ctx, id, u)
+	uu := userUsecase.UpdateUser{
+		Name:            u.Name,
+		Email:           u.Email,
+		Password:        u.Password,
+		PasswordConfirm: u.PasswordConfirm,
+	}
+
+	res, err := us.core.Update(ctx, id, uu)
 
 	if err != nil {
 		return fmt.Errorf(
@@ -146,7 +158,15 @@ func (us *UserService) UpdateUser(
 			database.GetResponseErrorFromBusiness(err),
 		)
 	}
-	return web.Respond(ctx, w, res, http.StatusOK)
+
+	ur := UserResponseDTO{
+		ID:          res.ID,
+		Name:        res.Name,
+		Email:       res.Email,
+		DateCreated: res.DateCreated,
+	}
+
+	return web.Respond(ctx, w, ur, http.StatusOK)
 }
 
 func (us *UserService) DeleteUser(

@@ -14,7 +14,7 @@ type Repo struct {
 	log  *zerolog.Logger
 }
 
-func NewRepo(r *sqlx.DB, l *zerolog.Logger) *Repo {
+func NewRepo(l *zerolog.Logger, r *sqlx.DB) *Repo {
 
 	return &Repo{repo: r, log: l}
 }

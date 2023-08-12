@@ -28,10 +28,11 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
-	github.com/mattn/go-colorable v0.1.12 // indirect
-	github.com/mattn/go-isatty v0.0.16 // indirect
-	github.com/stretchr/testify v1.8.3 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.19 // indirect
+	github.com/stretchr/testify v1.8.4 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	golang.org/x/sys v0.10.0 // indirect
 	golang.org/x/text v0.11.0 // indirect
+	golang.org/x/tools v0.11.1 // indirect
 )

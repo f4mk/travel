@@ -11,25 +11,21 @@ import (
 	"github.com/f4mk/api/internal/pkg/database"
 	"github.com/f4mk/api/pkg/web"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog"
 )
 
 type AuthService struct {
 	log  *zerolog.Logger
-	db   *sqlx.DB
 	auth *auth.Auth
 	core *authUsecase.Core
 }
 
-func NewService(l *zerolog.Logger, db *sqlx.DB, auth *auth.Auth) *AuthService {
+func NewService(l *zerolog.Logger, auth *auth.Auth, repo authUsecase.Storer) *AuthService {
 
-	repo := NewRepo(db, l)
 	core := authUsecase.NewCore(repo, l)
 
 	return &AuthService{
 		log:  l,
-		db:   db,
 		auth: auth,
 		core: core,
 	}
@@ -37,7 +33,7 @@ func NewService(l *zerolog.Logger, db *sqlx.DB, auth *auth.Auth) *AuthService {
 
 func (as *AuthService) Login(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 
-	u := authUsecase.LoginUser{}
+	u := LoginUserDTO{}
 
 	if err := web.Decode(r, &u); err != nil {
 		return web.NewRequestError(
@@ -46,15 +42,20 @@ func (as *AuthService) Login(ctx context.Context, w http.ResponseWriter, r *http
 		)
 	}
 
-	au, err := as.core.Login(ctx, u)
+	au := authUsecase.LoginUser{
+		Email:    u.Email,
+		Password: u.Password,
+	}
+
+	res, err := as.core.Login(ctx, au)
 
 	if err != nil {
 		return database.GetResponseErrorFromBusiness(err)
 	}
 
 	c := auth.Claims{}
-	c.Subject = au.ID
-	c.Roles = au.Roles
+	c.Subject = res.ID
+	c.Roles = res.Roles
 
 	newAuthToken, err := as.auth.GenerateToken(c, as.auth.AuthDuration)
 	if err != nil {
@@ -78,7 +79,6 @@ func (as *AuthService) Login(ctx context.Context, w http.ResponseWriter, r *http
 	return web.Respond(ctx, w, au, http.StatusOK)
 }
 
-// TODO: Implement
 func (as *AuthService) Logout(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 
 	refreshToken, err := r.Cookie("refresh_token")
@@ -92,16 +92,6 @@ func (as *AuthService) Logout(ctx context.Context, w http.ResponseWriter, r *htt
 
 	claims, err := as.auth.ValidateRefreshToken(ctx, refreshToken.Value)
 	if err != nil {
-
-		//delete all auth info just in case
-		w.Header().Del("Authorization")
-		http.SetCookie(w, &http.Cookie{
-			Name:    "refresh_token",
-			Value:   "",
-			Path:    "/",
-			Expires: time.Unix(0, 0),
-			MaxAge:  -1,
-		})
 
 		return web.NewRequestError(
 			err,

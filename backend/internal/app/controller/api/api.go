@@ -4,8 +4,10 @@ import (
 	"net/http"
 	"os"
 
+	authRepo "github.com/f4mk/api/internal/app/repo/auth"
+	userRepo "github.com/f4mk/api/internal/app/repo/user"
 	authService "github.com/f4mk/api/internal/app/service/auth"
-	"github.com/f4mk/api/internal/app/service/user"
+	userService "github.com/f4mk/api/internal/app/service/user"
 	"github.com/f4mk/api/internal/pkg/auth"
 	"github.com/f4mk/api/internal/pkg/middleware"
 	"github.com/f4mk/api/pkg/web"
@@ -31,8 +33,11 @@ func New(cfg Config) *web.WebApp {
 		middleware.Panics(cfg.Log),
 	)
 
-	us := user.NewService(cfg.Log, cfg.DB)
-	as := authService.NewService(cfg.Log, cfg.DB, cfg.Auth)
+	ur := userRepo.NewRepo(cfg.Log, cfg.DB)
+	ar := authRepo.NewRepo(cfg.Log, cfg.DB)
+
+	us := userService.NewService(cfg.Log, ur)
+	as := authService.NewService(cfg.Log, cfg.Auth, ar)
 
 	app.Handle(http.MethodPost, "/user", us.CreateUser)
 	app.Handle(http.MethodGet, "/user", us.GetUsers)

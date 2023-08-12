@@ -1,9 +1,16 @@
 SHELL := /bin/bash
 
+# For load testing use hey:
+#brew install hey
 #hey -n 100000 -c 200 http://localhost:8080/
+
+# For monitoring service resourse utilization install expvarmon
 #go install github.com/divan/expvarmon@latest
 #expvarmon -ports="8081"
 #expvarmon -ports="8081" -vars="goroutines,mem:memstats.Alloc"
+
+# For typegen install oapi-codegen globally
+#go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@latest
 
 CONFIG_PATH = config/.env
 
