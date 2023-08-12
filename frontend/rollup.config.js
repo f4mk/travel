@@ -7,7 +7,7 @@ export default {
   input: 'server/index.ts',
   output: {
     file: 'distServer/index.js',
-    format: 'esm'
+    inlineDynamicImports: true
   },
   plugins: [
     typescript({ tsconfig: './tsconfig.server.json' }),
