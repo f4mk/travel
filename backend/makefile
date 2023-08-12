@@ -1,24 +1,27 @@
 SHELL := /bin/bash
 
 # Dont forget to add $GOPATH and sourse you .zshrc
-#.zshrc content:
-#export GOPATH=$HOME/go
-#export PATH=/usr/local/bin:$PATH:$GOPATH/bin
-#eval $(/opt/homebrew/bin/brew shellenv)
-#command:
-#source ~/.zshrc
+# .zshrc content:
+# export GOPATH=$HOME/go
+# export PATH=/usr/local/bin:$PATH:$GOPATH/bin
+# eval $(/opt/homebrew/bin/brew shellenv)
+# command:
+# source ~/.zshrc
 
 # For load testing use hey:
-#brew install hey
-#hey -n 100000 -c 200 http://localhost:8080/
+# brew install hey
+# hey -n 100000 -c 200 http://localhost:8080/
 
 # For monitoring service resourse utilization install expvarmon
-#go install github.com/divan/expvarmon@latest
-#expvarmon -ports="8081"
-#expvarmon -ports="8081" -vars="goroutines,mem:memstats.Alloc"
+# go install github.com/divan/expvarmon@latest
+# expvarmon -ports="8081"
+# expvarmon -ports="8081" -vars="goroutines,mem:memstats.Alloc"
 
 # For typegen install oapi-codegen globally
-#go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@latest
+# go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@latest
+
+
+################# CONFIG ##################
 
 CONFIG_PATH = config/.env
 
@@ -30,6 +33,9 @@ GO_PROVIDE_CONFIG = -ldflags="-X 'main.configPath=${CONFIG_PATH}'"
 config-path:
 	@echo ${CONFIG_PATH}
 
+###########################################
+
+################# IMAGES ##################
 #CREATE SERVICE IMAGE
 image:
 	docker rmi travel-api:latest || true
@@ -62,6 +68,17 @@ docker-rmi:
 run-docker:
 	docker run -p ${HOST_PORT}:${API_PORT} app
 
+#PULL DOCKER IMAGES
+pull: 
+	docker pull postgres:15.3
+	docker pull alpine:3.18.2
+	docker pull golang:1.20.6-alpine3.18
+	docker pull redis:6.2-alpine
+
+###########################################
+
+################# GO CODE #################
+
 #UPDATE SERVICE DEPENDENCIES
 tidy:
 	go mod tidy
@@ -74,12 +91,9 @@ build:
 run:
 	go run ${GO_PROVIDE_CONFIG} ./cmd/app/main.go
 
-#PULL DOCKER IMAGES
-pull: 
-	docker pull postgres:15.3
-	docker pull alpine:3.18.2
-	docker pull golang:1.20.6-alpine3.18
-	docker pull redis:6.2-alpine
+###########################################
+
+################### APP ###################
 
 #START APP FROM SCRATCH
 all: pull image image-cron up
@@ -94,6 +108,10 @@ compose-up:
 #STOP APP
 compose-down:
 	docker compose --env-file ${CONFIG_PATH} down
+
+###########################################
+
+################## TOOLS ##################
 
 #GENERATE SSL CERTIFICATE FOR HTTPS
 cert:
@@ -120,3 +138,7 @@ gen-jwt-all:
 #GENERATE JWT TOKEN/PRIVATE KEY FOR AUTH
 gen-key:
 	go run ${GO_PROVIDE_CONFIG} ./cmd/admin/main.go -keygen
+
+#GENERATE DTO TYPES FROM OPENAPI SPEC
+gen-types:
+	go run cmd/tools/typegen/main.go

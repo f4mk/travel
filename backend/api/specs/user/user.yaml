@@ -1,0 +1,142 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: API
+paths:
+  /user:
+    get:
+      tags: ["user","get"]
+      responses:
+        '200':
+          description: returns all users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponseDTO'
+        '500':
+          description: internal server error
+    post:
+      tags: ["user","post","create"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUserDTO'
+      responses:
+        '200':
+          description: user created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponseDTO'
+        '400':
+          description: bad request
+        '409':
+          description: conflict
+        '500':
+          description: internal server error
+    put:
+      tags: ["user","put","update"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserDTO'
+      responses:
+        '200':
+          description: user created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponseDTO'
+        '400':
+          description: bad request
+        '401':
+          description: unauthorized
+        '403':
+          description: forbidden
+        '404':
+          description: not found
+        '500':
+          description: internal server error
+
+components:
+  schemas:
+    NewUserDTO:
+      type: object
+      properties:
+        name:
+          type: string
+          description: "user name"
+          x-oapi-codegen-extra-tags:
+            validate: "required,gte=2"
+        email:
+          type: string
+          description: "user email"
+          x-oapi-codegen-extra-tags:
+            validate: "required,email"
+        password:
+          type: string
+          description: "user password"
+          x-oapi-codegen-extra-tags:
+            validate: "required,gte=6"
+        password_confirm:
+          type: string
+          description: "user password confirm"
+          x-oapi-codegen-extra-tags:
+            validate: "eqfield=Password"
+      required:
+        - name
+        - email
+        - password
+        - password_confirm
+
+    UpdateUserDTO:
+      type: object
+      properties:
+        name:
+          type: string
+          description: "user name"
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,gte=2"
+        email:
+          type: string
+          description: "user email"
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,email"
+        password:
+          type: string
+          description: "user password"
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,gte=6"
+        password_confirm:
+          type: string
+          description: "user password confirm"
+          x-oapi-codegen-extra-tags:
+            validate: "eqfield=Password"
+
+    UserResponseDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          description: user unique id
+          x-go-name: ID
+        name:
+          type: string
+          description: user's name
+        email:
+          type: string
+          description: user's email
+        date_created:    
+          type: string
+          description: date created
+          x-go-type: time.Time
+      required:
+        - id
+        - name
+        - email
+        - date_created
+
