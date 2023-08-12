@@ -144,5 +144,6 @@ gen-key:
 gen-types:
 	go run cmd/tools/typegen/main.go
 
+#LINT CODE
 lint: 
 	golangci-lint run
