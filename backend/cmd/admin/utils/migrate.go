@@ -8,7 +8,9 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 
 	postgresMigrate "github.com/golang-migrate/migrate/v4/database/postgres"
+	//for using file source
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	//for using postgres driver
 	_ "github.com/lib/pq"
 )
 

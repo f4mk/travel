@@ -7,7 +7,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type Api struct {
+type API struct {
 	HostName        string        `env:"API_HOST_NAME,required"`
 	Port            string        `env:"API_PORT,required"`
 	ReadTimeout     time.Duration `env:"API_READ_TIMEOUT" envDefault:"5s"`
@@ -67,7 +67,7 @@ type Config struct {
 	Environment string `env:"ENVIRONMENT,required"`
 	Service     Service
 	Log         Log
-	Api         Api
+	API         API
 	Debug       Debug
 	Auth        Auth
 	DB          DB

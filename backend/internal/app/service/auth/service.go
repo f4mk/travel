@@ -14,24 +14,24 @@ import (
 	"github.com/rs/zerolog"
 )
 
-type AuthService struct {
+type Service struct {
 	log  *zerolog.Logger
 	auth *auth.Auth
 	core *authUsecase.Core
 }
 
-func NewService(l *zerolog.Logger, auth *auth.Auth, repo authUsecase.Storer) *AuthService {
+func NewService(l *zerolog.Logger, auth *auth.Auth, repo authUsecase.Storer) *Service {
 
 	core := authUsecase.NewCore(repo, l)
 
-	return &AuthService{
+	return &Service{
 		log:  l,
 		auth: auth,
 		core: core,
 	}
 }
 
-func (as *AuthService) Login(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+func (as *Service) Login(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 
 	u := LoginUserDTO{}
 
@@ -79,7 +79,7 @@ func (as *AuthService) Login(ctx context.Context, w http.ResponseWriter, r *http
 	return web.Respond(ctx, w, au, http.StatusOK)
 }
 
-func (as *AuthService) Logout(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+func (as *Service) Logout(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 
 	refreshToken, err := r.Cookie("refresh_token")
 	if err != nil {
@@ -136,21 +136,25 @@ func (as *AuthService) Logout(ctx context.Context, w http.ResponseWriter, r *htt
 }
 
 // TODO: Implement
-func (as *AuthService) Revoke(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+//
+//revive:disable
+func (as *Service) Revoke(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
 // TODO: Implement
-func (as *AuthService) Refresh(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+func (as *Service) Refresh(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
 // TODO: Implement
-func (as *AuthService) PasswordReset(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+func (as *Service) PasswordReset(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
 // TODO: Implement
-func (as *AuthService) PasswordChange(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+func (as *Service) PasswordChange(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
+
+//revive:enable

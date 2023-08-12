@@ -114,7 +114,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 
 	// -------------------------------------------------------------------------
 	// Start API Service
-	log.Info().Msgf("api: initializing API server: %s", getHost(cfg.Api.HostName, cfg.Api.Port))
+	log.Info().Msgf("api: initializing API server: %s", getHost(cfg.API.HostName, cfg.API.Port))
 
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
@@ -130,7 +130,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	h2s := &http2.Server{}
 
 	api := &http.Server{
-		Addr:    getHost(cfg.Api.HostName, cfg.Api.Port),
+		Addr:    getHost(cfg.API.HostName, cfg.API.Port),
 		Handler: h2c.NewHandler(api.New(apiCfg), h2s),
 	}
 
@@ -142,7 +142,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	serverErrors := make(chan error, 1)
 
 	go func() {
-		log.Info().Msgf("api: api is listening on: %s", getHost(cfg.Api.HostName, cfg.Api.Port))
+		log.Info().Msgf("api: api is listening on: %s", getHost(cfg.API.HostName, cfg.API.Port))
 		serverErrors <- api.ListenAndServe()
 	}()
 
@@ -154,7 +154,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	case sig := <-shutdown:
 		log.Info().Msgf("api: shutting down on signal: %s", sig)
 		defer log.Info().Msgf("api: shutdown completed on signal: %s", sig)
-		ctx, cancel := context.WithTimeout(context.Background(), cfg.Api.ShutdownTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), cfg.API.ShutdownTimeout)
 		defer cancel()
 
 		if err := api.Shutdown(ctx); err != nil {

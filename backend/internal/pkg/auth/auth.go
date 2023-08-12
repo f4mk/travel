@@ -161,7 +161,7 @@ func (a *Auth) MarkTokenAsRevoked(ctx context.Context, t TokenParams) error {
 		ctx,
 		t.TokenID,
 		jsonData,
-		time.Duration(t.ExpiresAt.Sub(time.Now().UTC())),
+		t.ExpiresAt.Sub(time.Now().UTC()),
 	).Err(); err != nil {
 		return fmt.Errorf("error setting token in cache: %w", err)
 	}
@@ -186,7 +186,7 @@ func (a *Auth) LoadRevokedTokensToCache() error {
 			context.TODO(),
 			t.TokenID,
 			jsonData,
-			time.Duration(t.ExpiresAt.Sub(time.Now().UTC()))).Err(); err != nil {
+			t.ExpiresAt.Sub(time.Now().UTC())).Err(); err != nil {
 
 			return fmt.Errorf("error setting token in Redis: %w", err)
 		}

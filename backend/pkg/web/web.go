@@ -11,16 +11,16 @@ import (
 	"github.com/google/uuid"
 )
 
-type WebApp struct {
+type App struct {
 	*httptreemux.ContextMux
 	shutdown   chan os.Signal
 	middleware []Middleware
 }
 type Handler func(ctx context.Context, w http.ResponseWriter, r *http.Request) error
 
-func New(shutdown chan os.Signal, mw ...Middleware) *WebApp {
+func New(shutdown chan os.Signal, mw ...Middleware) *App {
 
-	app := WebApp{
+	app := App{
 		ContextMux: httptreemux.NewContextMux(),
 		shutdown:   shutdown,
 		middleware: mw,
@@ -29,7 +29,7 @@ func New(shutdown chan os.Signal, mw ...Middleware) *WebApp {
 	return &app
 }
 
-func (a WebApp) Handle(method string, path string, handler Handler, mw ...Middleware) {
+func (a App) Handle(method string, path string, handler Handler, mw ...Middleware) {
 
 	h := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -55,7 +55,7 @@ func (a WebApp) Handle(method string, path string, handler Handler, mw ...Middle
 	a.ContextMux.Handle(method, path, h)
 }
 
-func (a WebApp) SignalShutdown() {
+func (a App) SignalShutdown() {
 
 	a.shutdown <- syscall.SIGTERM
 }

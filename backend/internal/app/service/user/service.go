@@ -25,25 +25,25 @@ import (
 // Handlers should handle user input validation as well as convert request data to DTO
 // that is acceptable by an underlying usecase
 
-type UserService struct {
+type Service struct {
 	core *userUsecase.Core
 	log  *zerolog.Logger
 }
 
-func NewService(l *zerolog.Logger, repo userUsecase.Storer) *UserService {
+func NewService(l *zerolog.Logger, repo userUsecase.Storer) *Service {
 
 	core := userUsecase.NewCore(repo, l)
 
-	return &UserService{
+	return &Service{
 		core: core,
 		log:  l,
 	}
 }
 
-func (us *UserService) GetUsers(
+func (us *Service) GetUsers(
 	ctx context.Context,
 	w http.ResponseWriter,
-	r *http.Request,
+	_ *http.Request,
 ) error {
 
 	res, err := us.core.QueryAll(ctx)
@@ -58,7 +58,7 @@ func (us *UserService) GetUsers(
 	return web.Respond(ctx, w, res, http.StatusOK)
 }
 
-func (us *UserService) GetUser(
+func (us *Service) GetUser(
 	ctx context.Context,
 	w http.ResponseWriter,
 	r *http.Request,
@@ -85,7 +85,7 @@ func (us *UserService) GetUser(
 	return web.Respond(ctx, w, res, http.StatusOK)
 }
 
-func (us *UserService) CreateUser(
+func (us *Service) CreateUser(
 	ctx context.Context,
 	w http.ResponseWriter,
 	r *http.Request,
@@ -119,7 +119,7 @@ func (us *UserService) CreateUser(
 	return web.Respond(ctx, w, res, http.StatusOK)
 }
 
-func (us *UserService) UpdateUser(
+func (us *Service) UpdateUser(
 	ctx context.Context,
 	w http.ResponseWriter,
 	r *http.Request,
@@ -169,7 +169,7 @@ func (us *UserService) UpdateUser(
 	return web.Respond(ctx, w, ur, http.StatusOK)
 }
 
-func (us *UserService) DeleteUser(
+func (us *Service) DeleteUser(
 	ctx context.Context,
 	w http.ResponseWriter,
 	r *http.Request,

@@ -19,19 +19,14 @@ func NewRepo(l *zerolog.Logger, r *sqlx.DB) *Repo {
 	return &Repo{repo: r, log: l}
 }
 
-func (r *Repo) DeleteToken(ctx context.Context, t authUsecase.DeleteToken) error {
+func (r *Repo) DeleteToken(_ context.Context, t authUsecase.DeleteToken) error {
 	query := `INSERT INTO revoked_tokens (token_id, subject, issued_at, expires_at, revoked_at) 
 	VALUES (:token_id, :subject, :issued_at, :expires_at, :revoked_at)`
 	_, err := r.repo.NamedExec(query, t)
 	return err
 }
 
-// TODO: implement
-func (r *Repo) DeleteAllTokes(ctx context.Context, uID string) error {
-	return nil
-}
-
-func (r *Repo) QueryByEmail(ctx context.Context, email string) (authUsecase.User, error) {
+func (r *Repo) QueryByEmail(_ context.Context, email string) (authUsecase.User, error) {
 	u := authUsecase.User{}
 	q := `SELECT * FROM users WHERE email = $1`
 	if err := r.repo.Get(&u, q, email); err != nil {
@@ -40,7 +35,7 @@ func (r *Repo) QueryByEmail(ctx context.Context, email string) (authUsecase.User
 	return u, nil
 }
 
-func (r *Repo) QueryByID(ctx context.Context, id string) (authUsecase.User, error) {
+func (r *Repo) QueryByID(_ context.Context, id string) (authUsecase.User, error) {
 	u := authUsecase.User{}
 	q := `SELECT * FROM users WHERE user_id = $1`
 	if err := r.repo.Get(&u, q, id); err != nil {
@@ -48,3 +43,12 @@ func (r *Repo) QueryByID(ctx context.Context, id string) (authUsecase.User, erro
 	}
 	return u, nil
 }
+
+// TODO: implement
+//
+//revive:disable
+func (r *Repo) DeleteAllTokes(_ context.Context, uID string) error {
+	return nil
+}
+
+//revive:enable

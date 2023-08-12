@@ -23,7 +23,7 @@ type Config struct {
 	DB       *sqlx.DB
 }
 
-func New(cfg Config) *web.WebApp {
+func New(cfg Config) *web.App {
 
 	app := web.New(
 		cfg.Shutdown,

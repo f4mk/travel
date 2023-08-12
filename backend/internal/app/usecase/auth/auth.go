@@ -37,7 +37,7 @@ func (c *Core) Login(ctx context.Context, lu LoginUser) (AuthenticatedUser, erro
 		return AuthenticatedUser{}, fmt.Errorf("query user: %w", database.WrapBusinessError(err))
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(lu.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword(u.PasswordHash, []byte(lu.Password)); err != nil {
 		return AuthenticatedUser{}, fmt.Errorf("wrong credentials: %w", database.WrapBusinessError(err))
 	}
 	au := AuthenticatedUser{
@@ -62,6 +62,7 @@ func (c *Core) Logout(ctx context.Context, dt DeleteToken) error {
 	return nil
 }
 
+//revive:disable
 func (c *Core) LogoutAll(ctx context.Context, email string) error {
 	// TODO: delete all tokens from tokens table for that user
 	return nil
@@ -86,3 +87,5 @@ func (c *Core) ResetPassword(ctx context.Context, email string) error {
 	// TODO: send email with reset link
 	return nil
 }
+
+//revive:enable

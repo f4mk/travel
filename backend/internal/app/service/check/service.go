@@ -13,21 +13,21 @@ import (
 	"github.com/rs/zerolog"
 )
 
-type CheckService struct {
+type Service struct {
 	build string
 	store *sqlx.DB
 	log   *zerolog.Logger
 }
 
-func NewService(b string, l *zerolog.Logger, s *sqlx.DB) *CheckService {
-	return &CheckService{
+func NewService(b string, l *zerolog.Logger, s *sqlx.DB) *Service {
+	return &Service{
 		build: b,
 		store: s,
 		log:   l,
 	}
 }
 
-func (cs *CheckService) Readiness(w http.ResponseWriter, r *http.Request) {
+func (cs *Service) Readiness(w http.ResponseWriter, r *http.Request) {
 
 	status := "ok"
 	statusCode := http.StatusOK
@@ -58,7 +58,7 @@ func (cs *CheckService) Readiness(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (cs *CheckService) Liveness(w http.ResponseWriter, r *http.Request) {
+func (cs *Service) Liveness(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	host, err := os.Hostname()

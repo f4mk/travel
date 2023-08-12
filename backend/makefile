@@ -140,5 +140,9 @@ gen-key:
 	go run ${GO_PROVIDE_CONFIG} ./cmd/admin/main.go -keygen
 
 #GENERATE DTO TYPES FROM OPENAPI SPEC
+#https://pkg.go.dev/github.com/go-playground/validator/v10#section-readme
 gen-types:
 	go run cmd/tools/typegen/main.go
+
+lint: 
+	golangci-lint run

@@ -18,11 +18,11 @@ type Config struct {
 	DB    *sqlx.DB
 }
 
-type mux struct {
+type Mux struct {
 	*http.ServeMux
 }
 
-func (m *mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (m *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	r.URL.Path = strings.TrimSuffix(r.URL.Path, "/")
 	m.ServeMux.ServeHTTP(w, r)
@@ -32,9 +32,9 @@ func (m *mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // bypassing the use of the DefaultServerMux. Using the DefaultServerMux would
 // be a security risk since a dependency could inject a handler into our service
 // without us knowing it.
-func New(cfg Config) *mux {
+func New(cfg Config) *Mux {
 
-	mux := &mux{http.NewServeMux()}
+	mux := &Mux{http.NewServeMux()}
 
 	mux.HandleFunc("/debug/pprof", pprof.Index)
 	mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
