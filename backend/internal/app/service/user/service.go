@@ -102,7 +102,7 @@ func (us *Service) CreateUser(ctx context.Context, w http.ResponseWriter, r *htt
 		)
 	}
 
-	return web.Respond(ctx, w, res, http.StatusOK)
+	return web.Respond(ctx, w, res, http.StatusCreated)
 }
 
 func (us *Service) UpdateUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {

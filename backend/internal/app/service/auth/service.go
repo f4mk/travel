@@ -32,9 +32,9 @@ func NewService(l *zerolog.Logger, auth *auth.Auth, repo authUsecase.Storer) *Se
 
 func (as *Service) Login(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 
-	u := LoginUser{}
+	lu := LoginUser{}
 
-	if err := web.Decode(r, &u); err != nil {
+	if err := web.Decode(r, &lu); err != nil {
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
@@ -42,8 +42,8 @@ func (as *Service) Login(ctx context.Context, w http.ResponseWriter, r *http.Req
 	}
 
 	au := authUsecase.LoginUser{
-		Email:    u.Email,
-		Password: u.Password,
+		Email:    lu.Email,
+		Password: lu.Password,
 	}
 
 	res, err := as.core.Login(ctx, au)
@@ -75,10 +75,27 @@ func (as *Service) Login(ctx context.Context, w http.ResponseWriter, r *http.Req
 		Secure:   true,
 	})
 
-	return web.Respond(ctx, w, au, http.StatusOK)
+	u := UserResponse{
+		Name:        res.Name,
+		ID:          res.ID,
+		Email:       res.Email,
+		DateCreated: res.DateCreated,
+	}
+
+	return web.Respond(ctx, w, u, http.StatusCreated)
 }
 
 func (as *Service) Logout(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+
+	// TODO: do i need this?
+	lu := struct{}{}
+
+	if err := web.Decode(r, &lu); err != nil {
+		return web.NewRequestError(
+			err,
+			http.StatusBadRequest,
+		)
+	}
 
 	refreshToken, err := r.Cookie("refresh_token")
 	if err != nil {
@@ -131,7 +148,7 @@ func (as *Service) Logout(ctx context.Context, w http.ResponseWriter, r *http.Re
 		MaxAge:  -1,
 	})
 
-	return web.Respond(ctx, w, nil, http.StatusOK)
+	return web.Respond(ctx, w, struct{}{}, http.StatusOK)
 }
 
 // TODO: Implement

@@ -1,0 +1,161 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: API
+paths:
+  /auth/login:
+    post:
+      tags: ["auth","post","login"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginUser'
+      responses:
+        '201':
+          description: user logged in successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /auth/logout/:
+    post:
+      tags: ["auth","post","logout"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+
+      responses:
+        '201':
+          description: user logged in successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+        '400':
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+ 
+components:
+  schemas:
+    LoginUser:
+      type: object
+      properties:
+        email:
+          type: string
+          description: "user email"
+          x-oapi-codegen-extra-tags:
+            validate: "required,email"
+        password:
+          type: string
+          description: "user password"
+          x-oapi-codegen-extra-tags:
+            validate: "required"
+      required:
+        - email
+        - password
+
+    UpdateUser:
+      type: object
+      properties:
+        name:
+          type: string
+          description: "user name"
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,gte=2"
+        email:
+          type: string
+          description: "user email"
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,email"
+        password:
+          type: string
+          description: "user password"
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,gte=6"
+        password_confirm:
+          type: string
+          description: "user password confirm"
+          x-oapi-codegen-extra-tags:
+            validate: "eqfield=Password"
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: user unique id
+          x-go-name: ID
+        name:
+          type: string
+          description: user's name
+        email:
+          type: string
+          description: user's email
+        date_created:    
+          type: string
+          description: date created
+          x-go-type: time.Time
+      required:
+        - id
+        - name
+        - email
+        - date_created
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: error message
+        fields:
+          type: object
+          additionalProperties:
+            type: string
+      required:
+        - error
+

@@ -17,10 +17,11 @@ type User struct {
 }
 
 type AuthenticatedUser struct {
-	ID    string
-	Roles []string
-	Email string
-	Name  string
+	ID          string
+	Roles       []string
+	Email       string
+	Name        string
+	DateCreated time.Time
 }
 
 type LoginUser struct {

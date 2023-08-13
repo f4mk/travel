@@ -5,14 +5,16 @@ info:
 paths:
   /user:
     get:
-      tags: ["user","get"]
+      tags: ["user","get-all"]
       responses:
         '200':
           description: returns all users
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserResponse'
         '500':
           description: internal server error
           content:
@@ -87,6 +89,35 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /user/{id}:
+    get:
+      tags: ["user","get"]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: the ID of the user
+          schema:
+            type: string
+      responses:
+        '200':
+          description: returns the user with the specified ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '404':
+          description: User not found
           content:
             application/json:
               schema:

@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"strings"
 )
 
 const (
@@ -17,12 +19,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to read directory %s: %v", apiDir, err)
 	}
-	for _, modelDir := range modelDirs {
-		if modelDir.IsDir() {
-			modelName := modelDir.Name()
-			specPath := fmt.Sprintf("%s/%s/%s%s", apiDir, modelName, modelName, ".yaml")
-			if _, err := os.Stat(specPath); !os.IsNotExist(err) {
+	for _, modelFile := range modelDirs {
+		if !modelFile.IsDir() { // Ensure the entry is a file
+			specPath := filepath.Join(apiDir, modelFile.Name())
+
+			// Check if the file has a .yaml extension
+			if filepath.Ext(specPath) == ".yaml" {
+				modelName := strings.TrimSuffix(modelFile.Name(), ".yaml")
 				outPath := fmt.Sprintf("%s/%s/model.go", internalDir, modelName)
+
 				err := generateModel(specPath, modelName, outPath)
 				if err != nil {
 					log.Printf("Failed to generate model for spec %s: %v", specPath, err)
@@ -30,6 +35,7 @@ func main() {
 			}
 		}
 	}
+
 }
 
 func generateModel(specPath, modelName, outPath string) error {
