@@ -3,6 +3,14 @@ package web
 import (
 	"encoding/json"
 	"errors"
+	"net/http"
+)
+
+var (
+	ErrNotFound      = errors.New("not found")
+	ErrForbidden     = errors.New("not allowed")
+	ErrAuthFailed    = errors.New("authentication failed")
+	ErrAlreadyExists = errors.New("already exists")
 )
 
 type ResponseError struct {
@@ -113,4 +121,34 @@ func IsShutdown(err error) bool {
 		return true
 	}
 	return false
+}
+
+func GetResponseErrorFromBusiness(err error) error {
+
+	switch {
+	case errors.Is(err, ErrNotFound):
+		return NewRequestError(
+			err,
+			http.StatusNotFound,
+		)
+
+	case errors.Is(err, ErrForbidden):
+		return NewRequestError(
+			err,
+			http.StatusForbidden,
+		)
+
+	case errors.Is(err, ErrAlreadyExists):
+		return NewRequestError(
+			err,
+			http.StatusConflict,
+		)
+	case errors.Is(err, ErrAuthFailed):
+		return NewRequestError(
+			err,
+			http.StatusUnauthorized,
+		)
+	default:
+		return err
+	}
 }

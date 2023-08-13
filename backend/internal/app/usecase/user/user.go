@@ -7,6 +7,7 @@ import (
 
 	"github.com/f4mk/api/internal/pkg/auth"
 	"github.com/f4mk/api/internal/pkg/database"
+	"github.com/f4mk/api/pkg/web"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 	"golang.org/x/crypto/bcrypt"
@@ -76,7 +77,6 @@ func (c *Core) Create(ctx context.Context, nu NewUser) (User, error) {
 
 func (c *Core) Update(ctx context.Context, uID string, uu UpdateUser) (User, error) {
 
-	//query existing user
 	u, err := c.storer.QueryByID(ctx, uID)
 
 	if err != nil {
@@ -91,7 +91,7 @@ func (c *Core) Update(ctx context.Context, uID string, uu UpdateUser) (User, err
 
 	// TODO: should check ID in JWT token
 	if !claims.Authorize(auth.RoleAdmin) && uID != u.ID {
-		return User{}, database.ErrForbidden
+		return User{}, web.ErrForbidden
 	}
 
 	//update user
@@ -143,7 +143,7 @@ func (c *Core) Delete(ctx context.Context, uID string) error {
 
 	// TODO: should check ID in JWT token == uID
 	if !claims.Authorize(auth.RoleAdmin) {
-		return database.ErrForbidden
+		return web.ErrForbidden
 	}
 
 	if err := c.storer.Delete(ctx, uID); err != nil {

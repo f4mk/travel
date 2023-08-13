@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	userUsecase "github.com/f4mk/api/internal/app/usecase/user"
-	"github.com/f4mk/api/internal/pkg/database"
 	"github.com/f4mk/api/pkg/web"
 	"github.com/rs/zerolog"
 )
@@ -40,33 +39,24 @@ func NewService(l *zerolog.Logger, repo userUsecase.Storer) *Service {
 	}
 }
 
-func (us *Service) GetUsers(
-	ctx context.Context,
-	w http.ResponseWriter,
-	_ *http.Request,
-) error {
+func (us *Service) GetUsers(ctx context.Context, w http.ResponseWriter, _ *http.Request) error {
 
 	res, err := us.core.QueryAll(ctx)
 
 	if err != nil {
 		return fmt.Errorf(
 			"cannot get users: %w",
-			database.GetResponseErrorFromBusiness(err),
+			web.GetResponseErrorFromBusiness(err),
 		)
 	}
 
 	return web.Respond(ctx, w, res, http.StatusOK)
 }
 
-func (us *Service) GetUser(
-	ctx context.Context,
-	w http.ResponseWriter,
-	r *http.Request,
-) error {
+func (us *Service) GetUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 
 	id := web.Param(r, "id")
 
-	//check if id is valid uuid
 	if err := web.ValidateUUID(id); err != nil {
 		return web.NewRequestError(
 			fmt.Errorf("invalid id: %w", err),
@@ -79,17 +69,13 @@ func (us *Service) GetUser(
 	if err != nil {
 		return fmt.Errorf(
 			"cannot get user: %w",
-			database.GetResponseErrorFromBusiness(err),
+			web.GetResponseErrorFromBusiness(err),
 		)
 	}
 	return web.Respond(ctx, w, res, http.StatusOK)
 }
 
-func (us *Service) CreateUser(
-	ctx context.Context,
-	w http.ResponseWriter,
-	r *http.Request,
-) error {
+func (us *Service) CreateUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 
 	u := NewUser{}
 
@@ -112,18 +98,14 @@ func (us *Service) CreateUser(
 	if err != nil {
 		return fmt.Errorf(
 			"cannot create users: %w",
-			database.GetResponseErrorFromBusiness(err),
+			web.GetResponseErrorFromBusiness(err),
 		)
 	}
 
 	return web.Respond(ctx, w, res, http.StatusOK)
 }
 
-func (us *Service) UpdateUser(
-	ctx context.Context,
-	w http.ResponseWriter,
-	r *http.Request,
-) error {
+func (us *Service) UpdateUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 
 	id := web.Param(r, "id")
 
@@ -155,7 +137,7 @@ func (us *Service) UpdateUser(
 	if err != nil {
 		return fmt.Errorf(
 			"cannot update user: %w",
-			database.GetResponseErrorFromBusiness(err),
+			web.GetResponseErrorFromBusiness(err),
 		)
 	}
 
@@ -169,15 +151,10 @@ func (us *Service) UpdateUser(
 	return web.Respond(ctx, w, ur, http.StatusOK)
 }
 
-func (us *Service) DeleteUser(
-	ctx context.Context,
-	w http.ResponseWriter,
-	r *http.Request,
-) error {
+func (us *Service) DeleteUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 
 	id := web.Param(r, "id")
 
-	//check if id is valid uuid
 	if err := web.ValidateUUID(id); err != nil {
 		return web.NewRequestError(
 			fmt.Errorf("invalid id: %w", err),
@@ -190,7 +167,7 @@ func (us *Service) DeleteUser(
 	if err != nil {
 		return fmt.Errorf(
 			"cannot delete user: %w",
-			database.GetResponseErrorFromBusiness(err),
+			web.GetResponseErrorFromBusiness(err),
 		)
 	}
 

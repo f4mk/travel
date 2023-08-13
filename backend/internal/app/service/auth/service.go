@@ -8,7 +8,6 @@ import (
 
 	authUsecase "github.com/f4mk/api/internal/app/usecase/auth"
 	"github.com/f4mk/api/internal/pkg/auth"
-	"github.com/f4mk/api/internal/pkg/database"
 	"github.com/f4mk/api/pkg/web"
 
 	"github.com/rs/zerolog"
@@ -50,7 +49,7 @@ func (as *Service) Login(ctx context.Context, w http.ResponseWriter, r *http.Req
 	res, err := as.core.Login(ctx, au)
 
 	if err != nil {
-		return database.GetResponseErrorFromBusiness(err)
+		return web.GetResponseErrorFromBusiness(err)
 	}
 
 	c := auth.Claims{}
@@ -95,7 +94,7 @@ func (as *Service) Logout(ctx context.Context, w http.ResponseWriter, r *http.Re
 
 		return web.NewRequestError(
 			err,
-			http.StatusBadRequest,
+			http.StatusUnauthorized,
 		)
 	}
 
@@ -108,7 +107,7 @@ func (as *Service) Logout(ctx context.Context, w http.ResponseWriter, r *http.Re
 	}
 
 	if err := as.core.Logout(ctx, dt); err != nil {
-		return database.GetResponseErrorFromBusiness(err)
+		return web.GetResponseErrorFromBusiness(err)
 	}
 
 	//try to mark token as revoked
@@ -119,7 +118,7 @@ func (as *Service) Logout(ctx context.Context, w http.ResponseWriter, r *http.Re
 		ExpiresAt: dt.ExpiresAt,
 		RevokedAt: dt.RevokedAt,
 	}); err != nil {
-		return err
+		return fmt.Errorf("error marking token as revoked: %w", err)
 	}
 
 	//delete all auth info after revoking

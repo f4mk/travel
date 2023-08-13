@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/f4mk/api/internal/pkg/database"
+	"github.com/f4mk/api/pkg/web"
 	"github.com/rs/zerolog"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -34,11 +35,12 @@ func (c *Core) Login(ctx context.Context, lu LoginUser) (AuthenticatedUser, erro
 	u, err := c.storer.QueryByEmail(ctx, lu.Email)
 
 	if err != nil {
-		return AuthenticatedUser{}, fmt.Errorf("query user: %w", database.WrapBusinessError(err))
+		// return ErrAuthFailed to not spoil user email if not found
+		return AuthenticatedUser{}, fmt.Errorf("wrong credentials: %w", web.ErrAuthFailed)
 	}
 
 	if err := bcrypt.CompareHashAndPassword(u.PasswordHash, []byte(lu.Password)); err != nil {
-		return AuthenticatedUser{}, fmt.Errorf("wrong credentials: %w", database.WrapBusinessError(err))
+		return AuthenticatedUser{}, fmt.Errorf("wrong credentials: %w", web.ErrAuthFailed)
 	}
 	au := AuthenticatedUser{
 		ID:    u.ID,
