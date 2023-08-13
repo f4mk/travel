@@ -6,13 +6,6 @@ export const loadTranslation = async (
 ) => {
   try {
     switch (langCode) {
-      case 'ru': {
-        const translations = await import('#/translations/ru.json')
-        return cb((dict: Dict) => ({
-          ...dict,
-          [langCode]: translations.default
-        }))
-      }
       default: {
         const translations = await import('#/translations/en.json')
         return cb((dict: Dict) => ({
