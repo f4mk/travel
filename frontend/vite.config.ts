@@ -6,7 +6,11 @@ import check from 'vite-plugin-checker'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    react(),
+    react({
+      babel: {
+        babelrc: true
+      }
+    }),
     check({
       overlay: {
         initialIsOpen: false

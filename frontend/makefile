@@ -6,3 +6,9 @@ image:
 
 up: image
 	docker compose up
+
+extract:
+	npm run extract -- 'src/**/*.ts*' --ignore='**/*.d.ts' --out-file lang/en.json --id-interpolation-pattern '[sha512:contenthash:base64:6]'
+
+compile:
+	npm run compile -- lang/en.json --ast --out-file ./src/translations/en.json
