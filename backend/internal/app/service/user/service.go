@@ -22,7 +22,7 @@ import (
 // Handlers should always accept a default set of arguments (context, responseWriter, *request),
 // send a web response if succeeded, and return an error if failed.
 // Errors are supposed to be handled later by the middleware.
-// Handlers should handle user input validation as well as convert request data to DTO
+// Handlers should handle user input validation as well as convert request data to
 // that is acceptable by an underlying usecase
 
 type Service struct {
@@ -91,7 +91,7 @@ func (us *Service) CreateUser(
 	r *http.Request,
 ) error {
 
-	u := NewUserDTO{}
+	u := NewUser{}
 
 	if err := web.Decode(r, &u); err != nil {
 		return web.NewRequestError(
@@ -135,7 +135,7 @@ func (us *Service) UpdateUser(
 		)
 	}
 
-	u := UpdateUserDTO{}
+	u := UpdateUser{}
 	if err := web.Decode(r, &u); err != nil {
 		return web.NewRequestError(
 			err,
@@ -159,7 +159,7 @@ func (us *Service) UpdateUser(
 		)
 	}
 
-	ur := UserResponseDTO{
+	ur := UserResponse{
 		ID:          res.ID,
 		Name:        res.Name,
 		Email:       res.Email,

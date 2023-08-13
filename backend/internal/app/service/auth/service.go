@@ -33,7 +33,7 @@ func NewService(l *zerolog.Logger, auth *auth.Auth, repo authUsecase.Storer) *Se
 
 func (as *Service) Login(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 
-	u := LoginUserDTO{}
+	u := LoginUser{}
 
 	if err := web.Decode(r, &u); err != nil {
 		return web.NewRequestError(

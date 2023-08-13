@@ -22,7 +22,7 @@ func main() {
 			modelName := modelDir.Name()
 			specPath := fmt.Sprintf("%s/%s/%s%s", apiDir, modelName, modelName, ".yaml")
 			if _, err := os.Stat(specPath); !os.IsNotExist(err) {
-				outPath := fmt.Sprintf("%s/%s/dto.go", internalDir, modelName)
+				outPath := fmt.Sprintf("%s/%s/model.go", internalDir, modelName)
 				err := generateModel(specPath, modelName, outPath)
 				if err != nil {
 					log.Printf("Failed to generate model for spec %s: %v", specPath, err)

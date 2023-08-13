@@ -12,7 +12,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponseDTO'
+                $ref: '../../schemas/components.yaml#/components/schemas/UserResponse'
         '500':
           description: internal server error
     post:
@@ -22,14 +22,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewUserDTO'
+              $ref: '../../schemas/components.yaml#/components/schemas/NewUser'
       responses:
         '200':
           description: user created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponseDTO'
+                $ref: '../../schemas/components.yaml#/components/schemas/UserResponse'
         '400':
           description: bad request
         '409':
@@ -43,14 +43,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateUserDTO'
+              $ref: '../../schemas/components.yaml#/components/schemas/UpdateUser'
       responses:
         '200':
           description: user created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponseDTO'
+                $ref: '../../schemas/components.yaml#/components/schemas/UserResponse'
         '400':
           description: bad request
         '401':

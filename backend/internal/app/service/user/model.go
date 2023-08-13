@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-// NewUserDTO defines model for NewUserDTO.
-type NewUserDTO struct {
+// NewUser defines model for NewUser.
+type NewUser struct {
 	// Email user email
 	Email string `json:"email" validate:"required,email"`
 
@@ -22,8 +22,8 @@ type NewUserDTO struct {
 	PasswordConfirm string `json:"password_confirm" validate:"eqfield=Password"`
 }
 
-// UpdateUserDTO defines model for UpdateUserDTO.
-type UpdateUserDTO struct {
+// UpdateUser defines model for UpdateUser.
+type UpdateUser struct {
 	// Email user email
 	Email *string `json:"email,omitempty" validate:"omitempty,email"`
 
@@ -37,8 +37,8 @@ type UpdateUserDTO struct {
 	PasswordConfirm *string `json:"password_confirm,omitempty" validate:"eqfield=Password"`
 }
 
-// UserResponseDTO defines model for UserResponseDTO.
-type UserResponseDTO struct {
+// UserResponse defines model for UserResponse.
+type UserResponse struct {
 	// DateCreated date created
 	DateCreated time.Time `json:"date_created"`
 
@@ -53,7 +53,7 @@ type UserResponseDTO struct {
 }
 
 // PostUserJSONRequestBody defines body for PostUser for application/json ContentType.
-type PostUserJSONRequestBody = NewUserDTO
+type PostUserJSONRequestBody = NewUser
 
 // PutUserJSONRequestBody defines body for PutUser for application/json ContentType.
-type PutUserJSONRequestBody = UpdateUserDTO
+type PutUserJSONRequestBody = UpdateUser
