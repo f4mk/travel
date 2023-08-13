@@ -33,7 +33,12 @@ func main() {
 }
 
 func generateModel(specPath, modelName, outPath string) error {
-	cmd := exec.Command("oapi-codegen", "-package", modelName, "-generate", "types", specPath)
+	cmd := exec.Command(
+		"oapi-codegen",
+		"-package", modelName,
+		"-generate", "types",
+		specPath)
+
 	out, err := cmd.Output()
 	if err != nil {
 		return err

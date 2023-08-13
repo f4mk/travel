@@ -141,7 +141,9 @@ gen-key:
 
 #GENERATE TYPES FROM OPENAPI SPEC
 #https://pkg.go.dev/github.com/go-playground/validator/v10#section-readme
-gen-types:
+#npm install -g @apidevtools/swagger-cli
+
+types:
 	go run cmd/tools/typegen/main.go
 
 #LINT CODE

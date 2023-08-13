@@ -12,9 +12,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../../schemas/components.yaml#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/UserResponse'
         '500':
           description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     post:
       tags: ["user","post","create"]
       requestBody:
@@ -22,20 +26,32 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../../schemas/components.yaml#/components/schemas/NewUser'
+              $ref: '#/components/schemas/NewUser'
       responses:
         '200':
           description: user created successfully
           content:
             application/json:
               schema:
-                $ref: '../../schemas/components.yaml#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/UserResponse'
         '400':
           description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '409':
           description: conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '500':
           description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     put:
       tags: ["user","put","update"]
       requestBody:
@@ -43,28 +59,49 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../../schemas/components.yaml#/components/schemas/UpdateUser'
+              $ref: '#/components/schemas/UpdateUser'
       responses:
         '200':
           description: user created successfully
           content:
             application/json:
               schema:
-                $ref: '../../schemas/components.yaml#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/UserResponse'
         '400':
           description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '403':
           description: forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '500':
           description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 
 components:
   schemas:
-    NewUserDTO:
+    NewUser:
       type: object
       properties:
         name:
@@ -93,7 +130,7 @@ components:
         - password
         - password_confirm
 
-    UpdateUserDTO:
+    UpdateUser:
       type: object
       properties:
         name:
@@ -117,7 +154,7 @@ components:
           x-oapi-codegen-extra-tags:
             validate: "eqfield=Password"
 
-    UserResponseDTO:
+    UserResponse:
       type: object
       properties:
         id:
@@ -139,4 +176,16 @@ components:
         - name
         - email
         - date_created
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: error message
+        fields:
+          type: object
+          additionalProperties:
+            type: string
+      required:
+        - error
 

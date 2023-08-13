@@ -7,6 +7,13 @@ import (
 	"time"
 )
 
+// ErrorResponse defines model for ErrorResponse.
+type ErrorResponse struct {
+	// Error error message
+	Error  string             `json:"error"`
+	Fields *map[string]string `json:"fields,omitempty"`
+}
+
 // NewUser defines model for NewUser.
 type NewUser struct {
 	// Email user email
