@@ -1,11 +1,13 @@
-import { FormattedMessage, useIntl } from 'react-intl'
+import { FormattedMessage } from 'react-intl'
 import { Button, Group, PasswordInput, Space, TextInput } from '@mantine/core'
 import { useForm } from '@mantine/form'
+
+import { useMessage } from '#/hooks'
 
 import { FormValues, Props } from './types'
 
 export const AuthForm = ({ onClose }: Props) => {
-  const intl = useIntl()
+  const message = useMessage()
 
   const form = useForm<FormValues>({
     initialValues: {
@@ -23,22 +25,25 @@ export const AuthForm = ({ onClose }: Props) => {
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
       <TextInput
-        placeholder={intl.formatMessage({
+        placeholder={message({
           description: 'Auth form email placeholder',
-          defaultMessage: 'user@example.com'
+          defaultMessage: 'user@example.com',
+          id: 'AohQXw'
         })}
-        label={intl.formatMessage({
+        label={message({
           description: 'Auth form email label',
-          defaultMessage: 'Email'
+          defaultMessage: 'Email',
+          id: '7lT95G'
         })}
         withAsterisk
         {...form.getInputProps('email')}
       />
       <PasswordInput
         placeholder="******"
-        label={intl.formatMessage({
+        label={message({
           description: 'Auth form password lable',
-          defaultMessage: 'Password'
+          defaultMessage: 'Password',
+          id: '06sNqJ'
         })}
         withAsterisk
         {...form.getInputProps('password')}

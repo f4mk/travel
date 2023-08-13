@@ -26,12 +26,14 @@ export const Auth = ({ opened, activeTab, setActiveTab, onClose }: Props) => {
               <FormattedMessage
                 description="Authentication window title"
                 defaultMessage="Authentication"
+                id="0JzVNd"
               />
             </Tabs.Tab>
             <Tabs.Tab value={EFormView.SIGN_UP} icon={<Milestone />}>
               <FormattedMessage
                 description="Registration window title"
                 defaultMessage="Registration"
+                id="70PPhl"
               />
             </Tabs.Tab>
           </Tabs.List>

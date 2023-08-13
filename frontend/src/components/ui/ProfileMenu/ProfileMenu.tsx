@@ -36,12 +36,14 @@ export const ProfileMenu = ({ isLoggedIn }: Props) => {
               <FormattedMessage
                 description="Profile menu Settings button text"
                 defaultMessage="Settings"
+                id="RpRPPn"
               />
             </Menu.Item>
             <Menu.Item icon={<MessageSquare />}>
               <FormattedMessage
                 description="Profile menu Messages button text"
                 defaultMessage="Messages"
+                id="OrXAfT"
               />
             </Menu.Item>
             <Menu.Divider />
@@ -49,6 +51,7 @@ export const ProfileMenu = ({ isLoggedIn }: Props) => {
               <FormattedMessage
                 description="Profile menu Delete my account button text"
                 defaultMessage="Delete my account"
+                id="XaZp23"
               />
             </Menu.Item>
             <Menu.Divider />
@@ -56,6 +59,7 @@ export const ProfileMenu = ({ isLoggedIn }: Props) => {
               <FormattedMessage
                 description="Profile menu Sign Out button text"
                 defaultMessage="Sign Out"
+                id="TOEbd7"
               />
             </Menu.Item>
           </>

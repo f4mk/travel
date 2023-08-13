@@ -65,7 +65,20 @@
         ]
       }
     ],
-    "formatjs/no-offset": "warn",
+    "formatjs/enforce-default-message": [
+      "warn",
+      "literal"
+    ],
+    "formatjs/enforce-description": [
+      "warn",
+      "literal"
+    ],
+    "formatjs/enforce-id": [
+      "error",
+      {
+        "idInterpolationPattern": "[sha512:contenthash:base64:6]"
+      }
+    ],
     "prettier/prettier": 2,
     "simple-import-sort/imports": [
       "error",

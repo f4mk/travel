@@ -34,13 +34,25 @@ export const Header = () => {
 
       <S.Tabs>
         <Button variant="subtle" onClick={() => handleTabChange(ERoutes.ROOT)}>
-          <FormattedMessage description="Home tab" defaultMessage="Home" />
+          <FormattedMessage
+            description="Home tab"
+            defaultMessage="Home"
+            id="BXXnPK"
+          />
         </Button>
         <Button variant="subtle" onClick={() => handleTabChange(ERoutes.MAP)}>
-          <FormattedMessage description="Map tab" defaultMessage="Map" />
+          <FormattedMessage
+            description="Map tab"
+            defaultMessage="Map"
+            id="JrIBeU"
+          />
         </Button>
         <Button variant="subtle" onClick={() => handleTabChange(ERoutes.BLOG)}>
-          <FormattedMessage description="Blog tab" defaultMessage="Blog" />
+          <FormattedMessage
+            description="Blog tab"
+            defaultMessage="Blog"
+            id="Ym3hvK"
+          />
         </Button>
       </S.Tabs>
       <Suspense fallback={<Loader />}>

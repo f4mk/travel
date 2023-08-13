@@ -9,6 +9,7 @@ export const SignIn = ({ onClick }: Props) => {
       <FormattedMessage
         description="Profile menu Sign in button text"
         defaultMessage="Sign In"
+        id="heIN4y"
       />
     </Menu.Item>
   )
