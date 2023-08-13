@@ -24,6 +24,7 @@
     "react-aria": "^3.26.0",
     "react-dom": "^18.2.0",
     "react-helmet": "^6.1.0",
+    "react-intl": "^6.4.4",
     "react-router-dom": "^6.8.0"
   },
   "devDependencies": {

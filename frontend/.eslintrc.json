@@ -55,7 +55,15 @@
     ],
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/ban-ts-comment": "off",
-    "no-console": 1,
+    "no-console": [
+      "warn",
+      {
+        "allow": [
+          "warn",
+          "error"
+        ]
+      }
+    ],
     "prettier/prettier": 2,
     "simple-import-sort/imports": [
       "error",
