@@ -1,8 +1,218 @@
 {
-  "allo": [
+  "+BKGrr": [
     {
       "type": 0,
-      "value": "ABOBA"
+      "value": "Repeat password"
+    }
+  ],
+  "06sNqJ": [
+    {
+      "type": 0,
+      "value": "Password"
+    }
+  ],
+  "0JzVNd": [
+    {
+      "type": 0,
+      "value": "Authentication"
+    }
+  ],
+  "5V6R/N": [
+    {
+      "type": 0,
+      "value": "Username"
+    }
+  ],
+  "70PPhl": [
+    {
+      "type": 0,
+      "value": "Registration"
+    }
+  ],
+  "75g0FC": [
+    {
+      "type": 0,
+      "value": "Invalid email"
+    }
+  ],
+  "7lT95G": [
+    {
+      "type": 0,
+      "value": "Email"
+    }
+  ],
+  "AohQXw": [
+    {
+      "type": 0,
+      "value": "user@example.com"
+    }
+  ],
+  "AyMd2C": [
+    {
+      "type": 0,
+      "value": "Email"
+    }
+  ],
+  "BXXnPK": [
+    {
+      "type": 0,
+      "value": "Home"
+    }
+  ],
+  "JrIBeU": [
+    {
+      "type": 0,
+      "value": "Map"
+    }
+  ],
+  "JtqjO1": [
+    {
+      "type": 0,
+      "value": "Password must include at least 6 characters"
+    }
+  ],
+  "MPtkD8": [
+    {
+      "type": 0,
+      "value": "Field should be equal to password"
+    }
+  ],
+  "OCx2dO": [
+    {
+      "type": 0,
+      "value": "Blog"
+    }
+  ],
+  "OrXAfT": [
+    {
+      "type": 0,
+      "value": "Messages"
+    }
+  ],
+  "R14xEd": [
+    {
+      "type": 0,
+      "value": "user@example.com"
+    }
+  ],
+  "RpRPPn": [
+    {
+      "type": 0,
+      "value": "Settings"
+    }
+  ],
+  "SnPjw3": [
+    {
+      "type": 0,
+      "value": "SuperJohn3000"
+    }
+  ],
+  "TOEbd7": [
+    {
+      "type": 0,
+      "value": "Sign Out"
+    }
+  ],
+  "TQEu8X": [
+    {
+      "type": 0,
+      "value": "Password"
+    }
+  ],
+  "XaZp23": [
+    {
+      "type": 0,
+      "value": "Delete my account"
+    }
+  ],
+  "Ym3hvK": [
+    {
+      "type": 0,
+      "value": "Blog"
+    }
+  ],
+  "h2nUl5": [
+    {
+      "type": 0,
+      "value": "Sign Up"
+    }
+  ],
+  "heIN4y": [
+    {
+      "type": 0,
+      "value": "Sign In"
+    }
+  ],
+  "hq0bhu": [
+    {
+      "type": 0,
+      "value": "Home"
+    }
+  ],
+  "iZRk5H": [
+    {
+      "type": 0,
+      "value": "First name"
+    }
+  ],
+  "jI32/e": [
+    {
+      "type": 0,
+      "value": "profile"
+    }
+  ],
+  "jRdArt": [
+    {
+      "type": 0,
+      "value": "Close"
+    }
+  ],
+  "kqb0Va": [
+    {
+      "type": 0,
+      "value": "Sign In"
+    }
+  ],
+  "mp6K2g": [
+    {
+      "type": 0,
+      "value": "Last name"
+    }
+  ],
+  "oWGSmJ": [
+    {
+      "type": 0,
+      "value": "Username"
+    }
+  ],
+  "qEt3X4": [
+    {
+      "type": 0,
+      "value": "Sign Up"
+    }
+  ],
+  "sHDcWI": [
+    {
+      "type": 0,
+      "value": "Name must include at least 2 characters"
+    }
+  ],
+  "tOTXPP": [
+    {
+      "type": 0,
+      "value": "Close"
+    }
+  ],
+  "v3oysd": [
+    {
+      "type": 0,
+      "value": "Username must include at least 6 characters"
+    }
+  ],
+  "zw4spD": [
+    {
+      "type": 0,
+      "value": "John"
     }
   ]
 }
