@@ -2,9 +2,9 @@ import { IntlProvider } from 'react-intl'
 import { RouterProvider } from 'react-router-dom'
 import { MantineProvider } from '@mantine/core'
 
-import { useLocale } from '#/hooks/useLocale'
+import { useLocale } from '#/hooks'
+import { useTheme } from '#/hooks'
 
-import { useTheme } from './hooks/useTheme'
 import { router } from './router'
 
 export const App = () => {

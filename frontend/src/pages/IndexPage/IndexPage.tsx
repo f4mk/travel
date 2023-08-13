@@ -1,3 +1,7 @@
+import { FormattedMessage } from 'react-intl'
+
 export const IndexPage = () => {
-  return <div>ALLO</div>
+  return (
+    <FormattedMessage description="Home page title" defaultMessage="Home" />
+  )
 }

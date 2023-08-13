@@ -1,3 +1,4 @@
+import { FormattedMessage } from 'react-intl'
 import { Modal, Tabs } from '@mantine/core'
 import FocusTrap from 'focus-trap-react'
 import { LogIn, Milestone } from 'lucide-react'
@@ -17,15 +18,21 @@ export const Auth = ({ opened, activeTab, setActiveTab, onClose }: Props) => {
       withCloseButton={false}
       closeOnClickOutside
     >
-      {/* Focus trap by mantine doesnt work here */}
+      {/* NOTE: Focus trap by mantine doesnt work here */}
       <FocusTrap>
         <Tabs variant="outline" value={activeTab} onTabChange={setActiveTab}>
           <Tabs.List>
             <Tabs.Tab value={EFormView.SIGN_IN} icon={<LogIn />}>
-              Authentication
+              <FormattedMessage
+                description="Authentication window title"
+                defaultMessage="Authentication"
+              />
             </Tabs.Tab>
             <Tabs.Tab value={EFormView.SIGN_UP} icon={<Milestone />}>
-              Registration
+              <FormattedMessage
+                description="Registration window title"
+                defaultMessage="Registration"
+              />
             </Tabs.Tab>
           </Tabs.List>
 
@@ -40,27 +47,3 @@ export const Auth = ({ opened, activeTab, setActiveTab, onClose }: Props) => {
     </Modal>
   )
 }
-
-// const ModalWrapper = forwardRef(({}, ref) => {
-//   return (
-//     <Modal opened={opened} onClose={onClose} withCloseButton={false}>
-//       <Tabs variant="outline" value={activeTab} onTabChange={setActiveTab}>
-//         <Tabs.List>
-//           <Tabs.Tab value={EFormView.SIGN_IN} icon={<LogIn />}>
-//             Authentication
-//           </Tabs.Tab>
-//           <Tabs.Tab value={EFormView.SIGN_UP} icon={<Milestone />}>
-//             Registration
-//           </Tabs.Tab>
-//         </Tabs.List>
-
-//         <Tabs.Panel value={EFormView.SIGN_IN} pt="xs">
-//           <AuthForm onClose={onClose} />
-//         </Tabs.Panel>
-//         <Tabs.Panel value={EFormView.SIGN_UP} pt="xs">
-//           <RegisterForm onClose={onClose} />
-//         </Tabs.Panel>
-//       </Tabs>
-//     </Modal>
-//   )
-// })

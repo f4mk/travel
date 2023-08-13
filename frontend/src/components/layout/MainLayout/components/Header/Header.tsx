@@ -1,4 +1,5 @@
 import { Suspense, useCallback } from 'react'
+import { FormattedMessage } from 'react-intl'
 import { useNavigate } from 'react-router-dom'
 import { Button, Loader } from '@mantine/core'
 
@@ -33,13 +34,13 @@ export const Header = () => {
 
       <S.Tabs>
         <Button variant="subtle" onClick={() => handleTabChange(ERoutes.ROOT)}>
-          Home
+          <FormattedMessage description="Home tab" defaultMessage="Home" />
         </Button>
         <Button variant="subtle" onClick={() => handleTabChange(ERoutes.MAP)}>
-          Map
+          <FormattedMessage description="Map tab" defaultMessage="Map" />
         </Button>
         <Button variant="subtle" onClick={() => handleTabChange(ERoutes.BLOG)}>
-          Blog
+          <FormattedMessage description="Blog tab" defaultMessage="Blog" />
         </Button>
       </S.Tabs>
       <Suspense fallback={<Loader />}>

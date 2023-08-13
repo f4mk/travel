@@ -40,7 +40,8 @@
     "react-hooks",
     "jsx-a11y",
     "prettier",
-    "simple-import-sort"
+    "simple-import-sort",
+    "formatjs"
   ],
   "rules": {
     "react/react-in-jsx-scope": "off",
@@ -64,6 +65,7 @@
         ]
       }
     ],
+    "formatjs/no-offset": "warn",
     "prettier/prettier": 2,
     "simple-import-sort/imports": [
       "error",

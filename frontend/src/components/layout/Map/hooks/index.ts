@@ -1,3 +1,5 @@
+import { useLocale } from '#/hooks'
+
 const DEFAULT_CENTER = {
   lat: -3.745,
   lng: -38.523
@@ -19,5 +21,6 @@ export const useCurrentLocation = () => {
 }
 
 export const useClientLanguage = () => {
-  return window?.navigator.language || 'en-GB'
+  const { locale } = useLocale(navigator.language)
+  return locale
 }

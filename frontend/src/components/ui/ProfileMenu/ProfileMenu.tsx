@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { FormattedMessage } from 'react-intl'
 import { Menu } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { Cog, LogOut, MessageSquare, Trash } from 'lucide-react'
@@ -31,14 +32,32 @@ export const ProfileMenu = ({ isLoggedIn }: Props) => {
       <Menu.Dropdown>
         {isLoggedIn ? (
           <>
-            <Menu.Item icon={<Cog />}>Settings</Menu.Item>
-            <Menu.Item icon={<MessageSquare />}>Messages</Menu.Item>
-            <Menu.Divider />
-            <Menu.Item color="red" icon={<Trash />}>
-              Delete my account
+            <Menu.Item icon={<Cog />}>
+              <FormattedMessage
+                description="Profile menu Settings button text"
+                defaultMessage="Settings"
+              />
+            </Menu.Item>
+            <Menu.Item icon={<MessageSquare />}>
+              <FormattedMessage
+                description="Profile menu Messages button text"
+                defaultMessage="Messages"
+              />
             </Menu.Item>
             <Menu.Divider />
-            <Menu.Item icon={<LogOut />}>Sign Out</Menu.Item>
+            <Menu.Item color="red" icon={<Trash />}>
+              <FormattedMessage
+                description="Profile menu Delete my account button text"
+                defaultMessage="Delete my account"
+              />
+            </Menu.Item>
+            <Menu.Divider />
+            <Menu.Item icon={<LogOut />}>
+              <FormattedMessage
+                description="Profile menu Sign Out button text"
+                defaultMessage="Sign Out"
+              />
+            </Menu.Item>
           </>
         ) : (
           <>

@@ -33,22 +33,5 @@ export const OverlayView = ({
     container.style.zIndex = `${zIndex}`
   }, [zIndex, container])
 
-  // useEffect(() => {
-  //   function checkOverlayClick(event: MouseEvent | TouchEvent) {
-  //     const target = event.target as Element
-  //     if (target.closest('#___map-overlay')) {
-  //       event.stopPropagation()
-  //       if ('touches' in event) {
-  //         event.preventDefault()
-  //       }
-  //     }
-  //   }
-
-  //   document.addEventListener('mousedown', checkOverlayClick, {
-  //     passive: false
-  //   })
-  //   return () => document.removeEventListener('mousedown', checkOverlayClick)
-  // }, [])
-
   return createPortal(children, container)
 }
