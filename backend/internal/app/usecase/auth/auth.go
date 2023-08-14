@@ -24,7 +24,6 @@ type Core struct {
 }
 
 func NewCore(s Storer, l *zerolog.Logger) *Core {
-
 	return &Core{
 		storer: s,
 		log:    l,
@@ -33,12 +32,10 @@ func NewCore(s Storer, l *zerolog.Logger) *Core {
 
 func (c *Core) Login(ctx context.Context, lu LoginUser) (AuthenticatedUser, error) {
 	u, err := c.storer.QueryByEmail(ctx, lu.Email)
-
 	if err != nil {
 		// return ErrAuthFailed to not spoil user email if not found
 		return AuthenticatedUser{}, fmt.Errorf("wrong credentials: %w", web.ErrAuthFailed)
 	}
-
 	if err := bcrypt.CompareHashAndPassword(u.PasswordHash, []byte(lu.Password)); err != nil {
 		return AuthenticatedUser{}, fmt.Errorf("wrong credentials: %w", web.ErrAuthFailed)
 	}
@@ -48,7 +45,6 @@ func (c *Core) Login(ctx context.Context, lu LoginUser) (AuthenticatedUser, erro
 		Name:  u.Name,
 		Roles: u.Roles,
 	}
-
 	return au, nil
 }
 
@@ -60,7 +56,6 @@ func (c *Core) Logout(ctx context.Context, dt DeleteToken) error {
 	if err := c.storer.DeleteToken(ctx, dt); err != nil {
 		return fmt.Errorf("delete token: %w", database.WrapBusinessError(err))
 	}
-
 	return nil
 }
 

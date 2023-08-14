@@ -87,7 +87,6 @@ func (as *Service) Login(ctx context.Context, w http.ResponseWriter, r *http.Req
 
 func (as *Service) Logout(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 
-	// TODO: do i need this?
 	lu := struct{}{}
 
 	if err := web.Decode(r, &lu); err != nil {
@@ -99,7 +98,6 @@ func (as *Service) Logout(ctx context.Context, w http.ResponseWriter, r *http.Re
 
 	refreshToken, err := r.Cookie("refresh_token")
 	if err != nil {
-		w.Header().Del("Authorization")
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
@@ -108,12 +106,13 @@ func (as *Service) Logout(ctx context.Context, w http.ResponseWriter, r *http.Re
 
 	claims, err := as.auth.ValidateRefreshToken(ctx, refreshToken.Value)
 	if err != nil {
-
 		return web.NewRequestError(
 			err,
 			http.StatusUnauthorized,
 		)
 	}
+
+	clearSession(w)
 
 	dt := authUsecase.DeleteToken{
 		TokenID:   claims.ID,
@@ -138,16 +137,6 @@ func (as *Service) Logout(ctx context.Context, w http.ResponseWriter, r *http.Re
 		return fmt.Errorf("error marking token as revoked: %w", err)
 	}
 
-	//delete all auth info after revoking
-	w.Header().Del("Authorization")
-	http.SetCookie(w, &http.Cookie{
-		Name:    "refresh_token",
-		Value:   "",
-		Path:    "/",
-		Expires: time.Unix(0, 0),
-		MaxAge:  -1,
-	})
-
 	return web.Respond(ctx, w, struct{}{}, http.StatusOK)
 }
 
@@ -168,9 +157,15 @@ func (as *Service) PasswordReset(ctx context.Context, w http.ResponseWriter, r *
 	return nil
 }
 
-// TODO: Implement
-func (as *Service) PasswordChange(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	return nil
-}
-
 //revive:enable
+
+func clearSession(w http.ResponseWriter) {
+	w.Header().Del("Authorization")
+	http.SetCookie(w, &http.Cookie{
+		Name:    "refresh_token",
+		Value:   "",
+		Path:    "/",
+		Expires: time.Unix(0, 0),
+		MaxAge:  -1,
+	})
+}

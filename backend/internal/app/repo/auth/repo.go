@@ -15,7 +15,6 @@ type Repo struct {
 }
 
 func NewRepo(l *zerolog.Logger, r *sqlx.DB) *Repo {
-
 	return &Repo{repo: r, log: l}
 }
 

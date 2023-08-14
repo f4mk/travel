@@ -28,12 +28,10 @@ func init() {
 	}
 }
 
-// Set sets the metrics data into the context.
 func Set(ctx context.Context) context.Context {
 	return context.WithValue(ctx, key, m)
 }
 
-// AddGoroutines refreshes the goroutine metric every 100 requests.
 func AddGoroutines(ctx context.Context) {
 	if v, ok := ctx.Value(key).(*metrics); ok {
 		if v.requests.Value()%100 == 0 {
@@ -42,21 +40,18 @@ func AddGoroutines(ctx context.Context) {
 	}
 }
 
-// AddRequests increments the request metric by 1.
 func AddRequests(ctx context.Context) {
 	if v, ok := ctx.Value(key).(*metrics); ok {
 		v.requests.Add(1)
 	}
 }
 
-// AddErrors increments the errors metric by 1.
 func AddErrors(ctx context.Context) {
 	if v, ok := ctx.Value(key).(*metrics); ok {
 		v.errors.Add(1)
 	}
 }
 
-// AddPanics increments the panics metric by 1.
 func AddPanics(ctx context.Context) {
 	if v, ok := ctx.Value(key).(*metrics); ok {
 		v.panics.Add(1)

@@ -31,15 +31,12 @@ func (cs *Service) Readiness(w http.ResponseWriter, r *http.Request) {
 
 	status := "ok"
 	statusCode := http.StatusOK
-
 	ctx, cancel := context.WithTimeout(r.Context(), time.Second)
 	defer cancel()
-
 	if err := database.StatusCheck(ctx, cs.store); err != nil {
 		status = fmt.Sprintf("db not ready: %s", err.Error())
 		statusCode = http.StatusInternalServerError
 	}
-
 	res := struct {
 		Status string `json:"status"`
 	}{
@@ -55,17 +52,14 @@ func (cs *Service) Readiness(w http.ResponseWriter, r *http.Request) {
 		r.URL.Path,
 		statusCode,
 	)
-
 }
 
 func (cs *Service) Liveness(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-
 	host, err := os.Hostname()
 	if err != nil {
 		host = "unavailable"
 	}
-
 	info := struct {
 		Status string `json:"status,omitempty"`
 		Build  string `json:"build,omitempty"`
@@ -75,11 +69,9 @@ func (cs *Service) Liveness(w http.ResponseWriter, r *http.Request) {
 		Build:  cs.build,
 		Host:   host,
 	}
-
 	if err := web.Respond(ctx, w, info, http.StatusOK); err != nil {
 		cs.log.Err(err).Msg("liveness: failed to respond:")
 	}
-
 	cs.log.Info().Msgf(
 		" %s : liveness  : remoteAddr: %s path[%s] statusCode [%d]",
 		web.GetTraceID(ctx),

@@ -2,7 +2,6 @@ package keystore
 
 import (
 	"crypto/rsa"
-	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -38,13 +37,14 @@ func NewMap(store map[string]*rsa.PrivateKey) *KeyStore {
 // Example: keystore.NewFS(os.DirFS("/secret/jwt/"))
 // Example: /secret/jwt/77a6ddf0-c968-4800-829e-27a26e3b3cbd.pem
 func NewFS(fsys fs.FS) (*KeyStore, error) {
+	// TODO: need logging here?
 	ks := KeyStore{
 		store: make(map[string]*rsa.PrivateKey),
 	}
 
 	fn := func(fileName string, dirEntry fs.DirEntry, err error) error {
 		if err != nil {
-			return fmt.Errorf("walkdir failure: %w", err)
+			return ErrWalkDir
 		}
 
 		if dirEntry.IsDir() {
@@ -57,7 +57,7 @@ func NewFS(fsys fs.FS) (*KeyStore, error) {
 
 		file, err := fsys.Open(fileName)
 		if err != nil {
-			return fmt.Errorf("opening key file: %w", err)
+			return ErrOpenKeyFile
 		}
 		defer file.Close()
 
@@ -66,12 +66,12 @@ func NewFS(fsys fs.FS) (*KeyStore, error) {
 		// to /dev/random or something like that.
 		privatePEM, err := io.ReadAll(io.LimitReader(file, 1024*1024))
 		if err != nil {
-			return fmt.Errorf("reading auth private key: %w", err)
+			return ErrReadPrivateKeyFile
 		}
 
 		privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privatePEM)
 		if err != nil {
-			return fmt.Errorf("parsing auth private key: %w", err)
+			return ErrParsePrivateKey
 		}
 
 		ks.store[strings.TrimSuffix(dirEntry.Name(), ".pem")] = privateKey
@@ -80,7 +80,7 @@ func NewFS(fsys fs.FS) (*KeyStore, error) {
 	}
 
 	if err := fs.WalkDir(fsys, ".", fn); err != nil {
-		return nil, fmt.Errorf("walking directory: %w", err)
+		return nil, fmt.Errorf("error walking directory: %w", err)
 	}
 
 	return &ks, nil
@@ -105,7 +105,7 @@ func (ks *KeyStore) PrivateKey(kid string) (*rsa.PrivateKey, error) {
 
 	privateKey, found := ks.store[kid]
 	if !found {
-		return nil, errors.New("kid lookup failed")
+		return nil, ErrPrivateKeyLookup
 	}
 
 	return privateKey, nil

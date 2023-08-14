@@ -2,7 +2,6 @@ package application
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -40,7 +39,8 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	})
 
 	if err != nil {
-		return fmt.Errorf("api: error initializing connection to db: %w", err)
+		log.Err(err).Msg(ErrInitConnDB.Error())
+		return ErrInitConnDB
 	}
 
 	defer func() {
@@ -53,7 +53,8 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	//loading keys
 	ks, err := keystore.NewFS(os.DirFS(cfg.Auth.KeyPath))
 	if err != nil {
-		return fmt.Errorf("api: error creating keystore: %w", err)
+		log.Err(err).Msg(ErrCreateKeyStore.Error())
+		return ErrCreateKeyStore
 	}
 
 	activeKids := ks.CollectKeyIDs()
@@ -69,10 +70,11 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 
 	pong, err := rdb.Ping(context.TODO()).Result()
 	if err != nil {
-		log.Err(err).Msgf("Could not connect to Redis: ")
+		log.Err(err).Msgf(ErrConnRedis.Error())
+		return ErrConnRedis
 	}
 
-	fmt.Println("api: connected to redis: ", pong)
+	log.Info().Msgf("api: connected to redis: %s", pong)
 
 	defer func() {
 		log.Info().Msgf("api: closing rdc connection %s", getHost(cfg.Cache.HostName, cfg.Cache.Port))
@@ -84,6 +86,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 		KeyLookup:       ks,
 		Cache:           rdb,
 		DB:              db,
+		Log:             log,
 		AuthDuration:    cfg.Auth.AuthDuration,
 		RefreshDuration: cfg.Auth.RefreshDuration,
 	}
@@ -91,7 +94,8 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	auth, err := auth.New(authCfg)
 
 	if err != nil {
-		return fmt.Errorf("api: error constructing auth: %w", err)
+		log.Err(err).Msg(ErrConatructAuth.Error())
+		return ErrConatructAuth
 	}
 
 	// -------------------------------------------------------------------------
@@ -108,7 +112,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 				DB:    db,
 			}),
 		); err != nil {
-			log.Err(err).Msgf("debug: error debug server on: %s", getHost(cfg.Debug.HostName, cfg.Debug.Port))
+			log.Err(err).Msgf(ErrRunDebug.Error())
 		}
 	}()
 
@@ -135,8 +139,8 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	}
 
 	if err := http2.ConfigureServer(api, &http2.Server{}); err != nil {
-		log.Err(err).Msg("Error starting http2 server:")
-		return err
+		log.Err(err).Msg(ErrStartServer.Error())
+		return ErrStartServer
 	}
 
 	serverErrors := make(chan error, 1)
@@ -150,7 +154,8 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	// Shutdown
 	select {
 	case err := <-serverErrors:
-		return fmt.Errorf("api: server error: %w", err)
+		log.Err(err).Msg(ErrRunServer.Error())
+		return ErrRunServer
 	case sig := <-shutdown:
 		log.Info().Msgf("api: shutting down on signal: %s", sig)
 		defer log.Info().Msgf("api: shutdown completed on signal: %s", sig)
@@ -159,7 +164,8 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 
 		if err := api.Shutdown(ctx); err != nil {
 			api.Close()
-			return fmt.Errorf("api: could not stop server gracefully: %w", err)
+			log.Err(err).Msg(ErrGracefulShutdown.Error())
+			return ErrGracefulShutdown
 		}
 	}
 

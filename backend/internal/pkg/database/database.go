@@ -74,8 +74,6 @@ func StatusCheck(ctx context.Context, db *sqlx.DB) error {
 		return ctx.Err()
 	}
 
-	// Run a simple query to determine connectivity.
-	// Running this query forces a round trip through the database.
 	const q = `SELECT true`
 	var tmp bool
 	return db.QueryRowContext(ctx, q).Scan(&tmp)

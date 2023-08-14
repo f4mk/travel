@@ -16,6 +16,7 @@ func Logger(log *zerolog.Logger) web.Middleware {
 			v, err := web.GetValues(ctx)
 
 			if err != nil {
+				log.Err(err).Msg("value missing from context")
 				return web.NewShutdownError("value missing from context")
 			}
 

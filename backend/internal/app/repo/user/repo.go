@@ -20,33 +20,25 @@ type Repo struct {
 }
 
 func NewRepo(l *zerolog.Logger, r *sqlx.DB) *Repo {
-
 	return &Repo{repo: r, log: l}
 }
 
 func (r *Repo) QueryAll(ctx context.Context) ([]user.User, error) {
-
 	res := []user.User{}
 	q := `SELECT * from users`
-
 	if err := r.repo.SelectContext(ctx, &res, q); err != nil {
-
 		return []user.User{}, err
 	}
-
 	return res, nil
 }
 
 func (r *Repo) Create(ctx context.Context, u user.User) error {
-
 	q := `INSERT INTO users(user_id, name, email, roles, password_hash, date_created, date_updated) 
 			VALUES(:user_id, :name, :email, :roles, :password_hash, :date_created, :date_updated);`
 	_, err := r.repo.NamedExecContext(ctx, q, u)
-
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -56,20 +48,16 @@ func (r *Repo) QueryByID(ctx context.Context, uID string) (user.User, error) {
 	if err := r.repo.GetContext(ctx, &res, q, uID); err != nil {
 		return user.User{}, err
 	}
-
 	return res, nil
 }
 
 func (r *Repo) Update(ctx context.Context, u user.User) error {
-
 	q := `UPDATE users SET name = :name, email = :email, roles = :roles, password_hash = :password_hash, date_updated = :date_updated
 			WHERE user_id = :user_id;`
-
 	_, err := r.repo.NamedExecContext(ctx, q, u)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 

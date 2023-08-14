@@ -4,14 +4,13 @@ import (
 	"context"
 	"crypto/rsa"
 	"encoding/json"
-	"errors"
-	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/redis/go-redis/v9"
+	"github.com/rs/zerolog"
 )
 
 type KeyLookup interface {
@@ -27,6 +26,7 @@ type Auth struct {
 	keyLookup       KeyLookup
 	cache           *redis.Client
 	db              *sqlx.DB
+	log             *zerolog.Logger
 	AuthDuration    time.Duration
 	RefreshDuration time.Duration
 }
@@ -36,6 +36,7 @@ type Config struct {
 	KeyLookup       KeyLookup
 	Cache           *redis.Client
 	DB              *sqlx.DB
+	Log             *zerolog.Logger
 	AuthDuration    time.Duration
 	RefreshDuration time.Duration
 }
@@ -45,7 +46,8 @@ func New(cfg Config) (*Auth, error) {
 	for _, activeKID := range cfg.ActiveKIDs {
 		_, err := cfg.KeyLookup.PrivateKey(activeKID)
 		if err != nil {
-			return nil, fmt.Errorf("cannot find active key: %w", err)
+			cfg.Log.Err(err).Msg(ErrMissingKey.Error())
+			return nil, ErrMissingKey
 		}
 	}
 
@@ -55,13 +57,15 @@ func New(cfg Config) (*Auth, error) {
 		kid, ok := t.Header["kid"]
 
 		if !ok {
-			return nil, fmt.Errorf("missing key ID in token header")
+			cfg.Log.Error().Msg(ErrMissingKID.Error())
+			return nil, ErrMissingKID
 		}
 
 		kidStr, ok := kid.(string)
 
 		if !ok {
-			return nil, fmt.Errorf("key ID must be of type string")
+			cfg.Log.Error().Msg(ErrKIDFormat.Error())
+			return nil, ErrKIDFormat
 		}
 
 		return cfg.KeyLookup.PublicKey(kidStr)
@@ -77,12 +81,14 @@ func New(cfg Config) (*Auth, error) {
 		activeKIDs:      cfg.ActiveKIDs,
 		cache:           cfg.Cache,
 		db:              cfg.DB,
+		log:             cfg.Log,
 		AuthDuration:    cfg.AuthDuration,
 		RefreshDuration: cfg.RefreshDuration,
 	}
 
 	if err := a.LoadRevokedTokensToCache(); err != nil {
-		return nil, err
+		a.log.Err(err).Msg(ErrLoadRevokedTokens.Error())
+		return nil, ErrLoadRevokedTokens
 	}
 
 	return &a, nil
@@ -101,13 +107,15 @@ func (a *Auth) GenerateToken(claims Claims, duration time.Duration) (string, err
 	token.Header["kid"] = currentKID
 	privateKey, err := a.keyLookup.PrivateKey(currentKID)
 	if err != nil {
-		return "", fmt.Errorf("no private key for key ID: %v", currentKID)
+		a.log.Err(err).Msg(ErrPrivateNotFound.Error())
+		return "", ErrPrivateNotFound
 	}
 
 	str, err := token.SignedString(privateKey)
 
 	if err != nil {
-		return "", fmt.Errorf("signing token: %w", err)
+		a.log.Err(err).Msg(ErrSigningToken.Error())
+		return "", ErrSigningToken
 	}
 
 	return str, nil
@@ -118,35 +126,41 @@ func (a *Auth) ValidateToken(tokenStr string) (Claims, error) {
 	token, err := a.parser.ParseWithClaims(tokenStr, &claims, a.keyFunc)
 
 	if err != nil {
-		return Claims{}, fmt.Errorf("cannot parse token: %w", err)
+		a.log.Err(err).Msg(ErrParseToken.Error())
+		return Claims{}, ErrParseToken
 	}
-
+	et, err := token.Claims.GetExpirationTime()
+	if err != nil {
+		a.log.Err(err).Msg(ErrValidateToken.Error())
+		return Claims{}, ErrValidateToken
+	}
+	if et.Time.Before(time.Now()) {
+		a.log.Error().Msg(ErrExpiredToken.Error())
+		return Claims{}, ErrExpiredToken
+	}
 	if !token.Valid {
-		return Claims{}, errors.New("token is invalid")
+		a.log.Error().Msg(ErrInvalidToken.Error())
+		return Claims{}, ErrInvalidToken
 	}
-
 	return claims, nil
 }
 
-// TODO: refactor this to check is token was revoked
 func (a *Auth) ValidateRefreshToken(ctx context.Context, tokenStr string) (Claims, error) {
-	var claims Claims
-	token, err := a.parser.ParseWithClaims(tokenStr, &claims, a.keyFunc)
 
+	claims, err := a.ValidateToken(tokenStr)
 	if err != nil {
-		return Claims{}, fmt.Errorf("cannot parse token: %w", err)
-	}
-
-	if !token.Valid {
-		return Claims{}, errors.New("token is invalid")
+		a.log.Err(err).Msg(ErrInvalidRefreshToken.Error())
+		return Claims{}, err
 	}
 
 	revoked, err := a.cache.Exists(ctx, claims.ID).Result()
 	if err != nil {
-		return Claims{}, fmt.Errorf("error checking token in cache: %w", err)
+		a.log.Err(err).Msg(ErrCheckCachedToken.Error())
+		return Claims{}, ErrCheckCachedToken
 	}
 	if revoked == 1 {
-		return Claims{}, errors.New("token has been revoked")
+		a.log.Error().Msg(ErrRevokedToken.Error())
+		return Claims{}, ErrRevokedToken
 	}
 
 	return claims, nil
@@ -155,7 +169,8 @@ func (a *Auth) ValidateRefreshToken(ctx context.Context, tokenStr string) (Claim
 func (a *Auth) MarkTokenAsRevoked(ctx context.Context, t TokenParams) error {
 	jsonData, err := json.Marshal(t)
 	if err != nil {
-		return fmt.Errorf("error setting token in cache: %w", err)
+		a.log.Err(err).Msg(ErrEncodeTokenForCache.Error())
+		return ErrEncodeTokenForCache
 	}
 	if err := a.cache.Set(
 		ctx,
@@ -163,7 +178,8 @@ func (a *Auth) MarkTokenAsRevoked(ctx context.Context, t TokenParams) error {
 		jsonData,
 		t.ExpiresAt.Sub(time.Now().UTC()),
 	).Err(); err != nil {
-		return fmt.Errorf("error setting token in cache: %w", err)
+		a.log.Err(err).Msg(ErrStoreCacheToken.Error())
+		return ErrStoreCacheToken
 	}
 	return nil
 }
@@ -172,14 +188,16 @@ func (a *Auth) LoadRevokedTokensToCache() error {
 	// Step 1: Query Database for Revoked Tokens
 	revokedTokens, err := a.getRevokedTokens()
 	if err != nil {
-		return fmt.Errorf("error fetching revoked tokens from database: %w", err)
+		a.log.Err(err).Msg(ErrReadTokensFromDB.Error())
+		return ErrReadTokensFromDB
 	}
 
 	// Step 2: Insert Revoked Tokens into Redis
 	for _, t := range revokedTokens {
 		jsonData, err := json.Marshal(t)
 		if err != nil {
-			return fmt.Errorf("error marshalling tokens in Redis: %w", err)
+			a.log.Err(err).Msg(ErrEncodeTokensForCache.Error())
+			return ErrEncodeTokensForCache
 		}
 
 		if err := a.cache.Set(
@@ -187,8 +205,8 @@ func (a *Auth) LoadRevokedTokensToCache() error {
 			t.TokenID,
 			jsonData,
 			t.ExpiresAt.Sub(time.Now().UTC())).Err(); err != nil {
-
-			return fmt.Errorf("error setting token in Redis: %w", err)
+			a.log.Err(err).Msg(ErrStoreCacheTokens.Error())
+			return ErrStoreCacheTokens
 		}
 	}
 
@@ -207,7 +225,8 @@ func (a *Auth) getRevokedTokens() ([]TokenParams, error) {
 	var tokens []TokenParams
 	err := a.db.Select(&tokens, "SELECT token_id, expires_at, issued_at, revoked_at, subject FROM revoked_tokens")
 	if err != nil {
-		return nil, fmt.Errorf("error fetching revoked tokens from database: %w", err)
+		a.log.Err(err).Msg(ErrReadTokenFromDB.Error())
+		return nil, ErrReadTokenFromDB
 	}
 	return tokens, nil
 }
