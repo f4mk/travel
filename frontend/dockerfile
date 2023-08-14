@@ -11,6 +11,9 @@ RUN npm run build:server
 
 FROM node:18.17-alpine
 
+RUN adduser -D user
+USER user
+
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/distServer ./distServer
 COPY --from=build /app/package.json ./package.json

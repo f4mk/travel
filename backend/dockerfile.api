@@ -22,6 +22,9 @@ RUN go build -o app \
 
 FROM alpine:3.18.2
 
+RUN adduser -D user
+USER user
+
 #prod container
 COPY --from=build_api /service/${CONFIG_PATH} /service/${CONFIG_PATH}
 COPY --from=build_api /service/${API_CERT_FILE} /service/${API_CERT_FILE}

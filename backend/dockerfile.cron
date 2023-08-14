@@ -16,6 +16,9 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o cronjob \
 
 FROM alpine:3.18.2
 
+RUN adduser -D user
+USER user
+
 COPY --from=build /service/cronjob .
 COPY --from=build /service/${CONFIG_PATH} /service/${CONFIG_PATH}
 
