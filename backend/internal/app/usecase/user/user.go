@@ -87,13 +87,6 @@ func (c *Core) Update(ctx context.Context, uID string, uu UpdateUser) (User, err
 	if uu.Email != nil {
 		u.Email = *uu.Email
 	}
-	if uu.Password != nil {
-		hash, err := bcrypt.GenerateFromPassword([]byte(*uu.Password), bcrypt.DefaultCost)
-		if err != nil {
-			return User{}, fmt.Errorf("generate password hash: %w", err)
-		}
-		u.PasswordHash = hash
-	}
 	u.DateUpdated = time.Now().UTC()
 	if err := c.storer.Update(ctx, u); err != nil {
 		return User{}, fmt.Errorf("update: %w", err)

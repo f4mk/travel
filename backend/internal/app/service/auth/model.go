@@ -7,6 +7,15 @@ import (
 	"time"
 )
 
+// ChangePassword defines model for ChangePassword.
+type ChangePassword struct {
+	// Password user password
+	Password string `json:"password" validate:"omitempty,gte=6"`
+
+	// PasswordConfirm user password confirm
+	PasswordConfirm string `json:"password_confirm" validate:"eqfield=Password"`
+}
+
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	// Error error message
@@ -40,6 +49,9 @@ type UserResponse struct {
 
 // PostAuthLogoutJSONBody defines parameters for PostAuthLogout.
 type PostAuthLogoutJSONBody = map[string]interface{}
+
+// PostAuthChangepassJSONRequestBody defines body for PostAuthChangepass for application/json ContentType.
+type PostAuthChangepassJSONRequestBody = ChangePassword
 
 // PostAuthLoginJSONRequestBody defines body for PostAuthLogin for application/json ContentType.
 type PostAuthLoginJSONRequestBody = LoginUser

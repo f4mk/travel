@@ -36,12 +36,6 @@ type UpdateUser struct {
 
 	// Name user name
 	Name *string `json:"name,omitempty" validate:"omitempty,gte=2"`
-
-	// Password user password
-	Password *string `json:"password,omitempty" validate:"omitempty,gte=6"`
-
-	// PasswordConfirm user password confirm
-	PasswordConfirm *string `json:"password_confirm,omitempty" validate:"eqfield=Password"`
 }
 
 // UserResponse defines model for UserResponse.

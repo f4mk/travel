@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/f4mk/api/internal/pkg/database"
 	"github.com/f4mk/api/pkg/web"
@@ -16,6 +17,7 @@ type Storer interface {
 	DeleteAllTokes(ctx context.Context, uID string) error
 	QueryByEmail(ctx context.Context, email string) (User, error)
 	QueryByID(ctx context.Context, uID string) (User, error)
+	Update(ctx context.Context, u User) error
 }
 
 type Core struct {
@@ -40,10 +42,10 @@ func (c *Core) Login(ctx context.Context, lu LoginUser) (AuthenticatedUser, erro
 		return AuthenticatedUser{}, fmt.Errorf("wrong credentials: %w", web.ErrAuthFailed)
 	}
 	au := AuthenticatedUser{
-		ID:    u.ID,
-		Email: u.Email,
-		Name:  u.Name,
-		Roles: u.Roles,
+		UserID: u.UserID,
+		Email:  u.Email,
+		Name:   u.Name,
+		Roles:  u.Roles,
 	}
 	return au, nil
 }
@@ -57,6 +59,26 @@ func (c *Core) Logout(ctx context.Context, dt DeleteToken) error {
 		return fmt.Errorf("delete token: %w", database.WrapBusinessError(err))
 	}
 	return nil
+}
+
+func (c *Core) ChangePassword(ctx context.Context, cp ChangePassword) (User, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(cp.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return User{}, fmt.Errorf("generate password hash: %w", err)
+	}
+	u, err := c.storer.QueryByID(ctx, cp.UserID)
+	if err != nil {
+		return User{}, fmt.Errorf("query user: %w", database.WrapBusinessError(err))
+	}
+	u.PasswordHash = hash
+	u.DateUpdated = time.Now().UTC()
+	if err := c.storer.Update(ctx, u); err != nil {
+		return User{}, fmt.Errorf("update: %w", database.WrapBusinessError(err))
+	}
+	if err := c.storer.DeleteAllTokes(ctx, cp.UserID); err != nil {
+		return User{}, fmt.Errorf("update: %w", database.WrapBusinessError(err))
+	}
+	return u, nil
 }
 
 //revive:disable

@@ -13,6 +13,7 @@ import (
 	"github.com/f4mk/api/internal/pkg/auth"
 	"github.com/f4mk/api/internal/pkg/database"
 	"github.com/f4mk/api/internal/pkg/keystore"
+	"github.com/f4mk/api/pkg/utils"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 	"golang.org/x/net/http2"
@@ -25,13 +26,13 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	// Initializing DB Connection
 	log.Info().Msgf(
 		"api: initializing database connection %s",
-		getHost(cfg.DB.HostName, cfg.DB.Port),
+		utils.GetHost(cfg.DB.HostName, cfg.DB.Port),
 	)
 
 	db, err := database.Open(database.Config{
 		User:        cfg.DB.User,
 		Password:    cfg.DB.Password,
-		Host:        getHost(cfg.DB.HostName, cfg.DB.Port),
+		Host:        utils.GetHost(cfg.DB.HostName, cfg.DB.Port),
 		Name:        cfg.DB.DBName,
 		DisableTLS:  cfg.DB.DisableTLS,
 		MaxIdleConn: cfg.DB.MaxIdleConn,
@@ -44,7 +45,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	}
 
 	defer func() {
-		log.Info().Msgf("api: closing db connection %s", getHost(cfg.DB.HostName, cfg.DB.Port))
+		log.Info().Msgf("api: closing db connection %s", utils.GetHost(cfg.DB.HostName, cfg.DB.Port))
 		db.Close()
 	}()
 
@@ -61,7 +62,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 
 	//creating cache
 	rdb := redis.NewClient(&redis.Options{
-		Addr:         getHost(cfg.Cache.HostName, cfg.Cache.Port),
+		Addr:         utils.GetHost(cfg.Cache.HostName, cfg.Cache.Port),
 		Password:     "",
 		DB:           cfg.Cache.DB,
 		PoolSize:     cfg.Cache.PoolSize,
@@ -77,7 +78,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	log.Info().Msgf("api: connected to redis: %s", pong)
 
 	defer func() {
-		log.Info().Msgf("api: closing rdc connection %s", getHost(cfg.Cache.HostName, cfg.Cache.Port))
+		log.Info().Msgf("api: closing rdc connection %s", utils.GetHost(cfg.Cache.HostName, cfg.Cache.Port))
 		rdb.Close()
 	}()
 
@@ -100,12 +101,12 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 
 	// -------------------------------------------------------------------------
 	// Start Debug Service
-	log.Info().Msgf("debug: initializing debug server: %s", getHost(cfg.Debug.HostName, cfg.Debug.Port))
+	log.Info().Msgf("debug: initializing debug server: %s", utils.GetHost(cfg.Debug.HostName, cfg.Debug.Port))
 
 	go func() {
-		log.Info().Msgf("debug: debug is listening on: %s", getHost(cfg.Debug.HostName, cfg.Debug.Port))
+		log.Info().Msgf("debug: debug is listening on: %s", utils.GetHost(cfg.Debug.HostName, cfg.Debug.Port))
 		if err := http.ListenAndServe(
-			getHost(cfg.Debug.HostName, cfg.Debug.Port),
+			utils.GetHost(cfg.Debug.HostName, cfg.Debug.Port),
 			debug.New(debug.Config{
 				Build: build,
 				Log:   log,
@@ -118,7 +119,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 
 	// -------------------------------------------------------------------------
 	// Start API Service
-	log.Info().Msgf("api: initializing API server: %s", getHost(cfg.API.HostName, cfg.API.Port))
+	log.Info().Msgf("api: initializing API server: %s", utils.GetHost(cfg.API.HostName, cfg.API.Port))
 
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
@@ -134,7 +135,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	h2s := &http2.Server{}
 
 	api := &http.Server{
-		Addr:    getHost(cfg.API.HostName, cfg.API.Port),
+		Addr:    utils.GetHost(cfg.API.HostName, cfg.API.Port),
 		Handler: h2c.NewHandler(api.New(apiCfg), h2s),
 	}
 
@@ -146,7 +147,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	serverErrors := make(chan error, 1)
 
 	go func() {
-		log.Info().Msgf("api: api is listening on: %s", getHost(cfg.API.HostName, cfg.API.Port))
+		log.Info().Msgf("api: api is listening on: %s", utils.GetHost(cfg.API.HostName, cfg.API.Port))
 		serverErrors <- api.ListenAndServe()
 	}()
 
@@ -170,9 +171,4 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	}
 
 	return nil
-}
-
-func getHost(hostName string, port string) string {
-
-	return hostName + ":" + port
 }

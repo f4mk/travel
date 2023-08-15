@@ -18,15 +18,12 @@ type User struct {
 }
 
 type NewUser struct {
-	Name            string
-	Email           string
-	Password        string
-	PasswordConfirm string
+	Name     string
+	Email    string
+	Password string
 }
 
 type UpdateUser struct {
-	Name            *string
-	Email           *string
-	Password        *string
-	PasswordConfirm *string
+	Name  *string
+	Email *string
 }

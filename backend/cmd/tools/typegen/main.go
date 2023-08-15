@@ -39,6 +39,7 @@ func main() {
 }
 
 func generateModel(specPath, modelName, outPath string) error {
+	fmt.Printf("oapi-codegen -package %s -generate types %s\n", modelName, specPath)
 	cmd := exec.Command(
 		"oapi-codegen",
 		"-package", modelName,

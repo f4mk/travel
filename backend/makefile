@@ -99,7 +99,7 @@ run:
 all: pull image image-cron up
 
 #RUN APP WITH REBUILD
-up: image image-cron compose-up
+up: docker-rmi image image-cron compose-up
 
 #RUN APP
 compose-up:

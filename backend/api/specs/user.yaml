@@ -174,16 +174,6 @@ components:
           description: "user email"
           x-oapi-codegen-extra-tags:
             validate: "omitempty,email"
-        password:
-          type: string
-          description: "user password"
-          x-oapi-codegen-extra-tags:
-            validate: "omitempty,gte=6"
-        password_confirm:
-          type: string
-          description: "user password confirm"
-          x-oapi-codegen-extra-tags:
-            validate: "eqfield=Password"
 
     UserResponse:
       type: object

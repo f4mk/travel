@@ -30,11 +30,12 @@ func NewService(l *zerolog.Logger, auth *auth.Auth, repo authUsecase.Storer) *Se
 	}
 }
 
-func (as *Service) Login(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+func (s *Service) Login(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 
 	lu := LoginUser{}
 
 	if err := web.Decode(r, &lu); err != nil {
+		s.log.Err(err).Msg(ErrLoginDecode.Error())
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
@@ -46,23 +47,26 @@ func (as *Service) Login(ctx context.Context, w http.ResponseWriter, r *http.Req
 		Password: lu.Password,
 	}
 
-	res, err := as.core.Login(ctx, au)
+	res, err := s.core.Login(ctx, au)
 
 	if err != nil {
+		s.log.Err(err).Msg(ErrLoginBusiness.Error())
 		return web.GetResponseErrorFromBusiness(err)
 	}
 
 	c := auth.Claims{}
-	c.Subject = res.ID
+	c.Subject = res.UserID
 	c.Roles = res.Roles
 
-	newAuthToken, err := as.auth.GenerateToken(c, as.auth.AuthDuration)
+	newAuthToken, err := s.auth.GenerateToken(c, s.auth.AuthDuration)
 	if err != nil {
+		s.log.Err(err).Msg(ErrLoginGenAuthToken.Error())
 		return fmt.Errorf("error generating token: %w", err)
 	}
 
-	newRefreshToken, err := as.auth.GenerateToken(c, as.auth.RefreshDuration)
+	newRefreshToken, err := s.auth.GenerateToken(c, s.auth.RefreshDuration)
 	if err != nil {
+		s.log.Err(err).Msg(ErrLoginGenRefreshToken.Error())
 		return fmt.Errorf("error generating token: %w", err)
 	}
 
@@ -77,7 +81,7 @@ func (as *Service) Login(ctx context.Context, w http.ResponseWriter, r *http.Req
 
 	u := UserResponse{
 		Name:        res.Name,
-		ID:          res.ID,
+		ID:          res.UserID,
 		Email:       res.Email,
 		DateCreated: res.DateCreated,
 	}
@@ -85,11 +89,12 @@ func (as *Service) Login(ctx context.Context, w http.ResponseWriter, r *http.Req
 	return web.Respond(ctx, w, u, http.StatusCreated)
 }
 
-func (as *Service) Logout(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+func (s *Service) Logout(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 
 	lu := struct{}{}
 
 	if err := web.Decode(r, &lu); err != nil {
+		s.log.Err(err).Msg(ErrLogoutDecode.Error())
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
@@ -98,21 +103,21 @@ func (as *Service) Logout(ctx context.Context, w http.ResponseWriter, r *http.Re
 
 	refreshToken, err := r.Cookie("refresh_token")
 	if err != nil {
+		s.log.Err(err).Msg(ErrLogoutReadRefreshToken.Error())
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
 		)
 	}
 
-	claims, err := as.auth.ValidateRefreshToken(ctx, refreshToken.Value)
+	claims, err := s.auth.ValidateRefreshToken(ctx, refreshToken.Value)
 	if err != nil {
+		s.log.Err(err).Msg(ErrLogoutValidateRefreshToken.Error())
 		return web.NewRequestError(
 			err,
 			http.StatusUnauthorized,
 		)
 	}
-
-	clearSession(w)
 
 	dt := authUsecase.DeleteToken{
 		TokenID:   claims.ID,
@@ -122,38 +127,98 @@ func (as *Service) Logout(ctx context.Context, w http.ResponseWriter, r *http.Re
 		RevokedAt: time.Now().UTC(),
 	}
 
-	if err := as.core.Logout(ctx, dt); err != nil {
+	if err := s.core.Logout(ctx, dt); err != nil {
+		s.log.Err(err).Msg(ErrLogoutBusiness.Error())
 		return web.GetResponseErrorFromBusiness(err)
 	}
 
-	//try to mark token as revoked
-	if err := as.auth.MarkTokenAsRevoked(ctx, auth.TokenParams{
+	clearSession(w)
+
+	if err := s.auth.MarkTokenAsRevoked(ctx, auth.TokenParams{
 		TokenID:   dt.TokenID,
 		Subject:   dt.Subject,
 		IssuedAt:  dt.IssuedAt,
 		ExpiresAt: dt.ExpiresAt,
 		RevokedAt: dt.RevokedAt,
 	}); err != nil {
-		return fmt.Errorf("error marking token as revoked: %w", err)
+		s.log.Err(err).Msg(ErrLogoutRevokeToken.Error())
+		return fmt.Errorf("error marking token s revoked: %w", err)
 	}
 
 	return web.Respond(ctx, w, struct{}{}, http.StatusOK)
 }
 
+func (s *Service) ChangePassword(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	p := ChangePassword{}
+	if err := web.Decode(r, &p); err != nil {
+		s.log.Err(err).Msg(ErrChangePassDecode.Error())
+		return web.NewRequestError(
+			err,
+			http.StatusBadRequest,
+		)
+	}
+
+	refreshToken, err := r.Cookie("refresh_token")
+	s.log.Err(err).Msg(ErrChangePassReadRefreshToken.Error())
+
+	if err != nil {
+		return web.NewRequestError(
+			err,
+			http.StatusBadRequest,
+		)
+	}
+
+	claims, err := s.auth.ValidateRefreshToken(ctx, refreshToken.Value)
+	if err != nil {
+		s.log.Err(err).Msg(ErrChangePassValidateRefreshToken.Error())
+		return web.NewRequestError(
+			err,
+			http.StatusUnauthorized,
+		)
+	}
+
+	clearSession(w)
+
+	cp := authUsecase.ChangePassword{
+		UserID:   claims.Subject,
+		Password: p.Password,
+	}
+
+	u, err := s.core.ChangePassword(ctx, cp)
+
+	if err != nil {
+		s.log.Err(err).Msg(ErrChangePassBusiness.Error())
+		return web.GetResponseErrorFromBusiness(err)
+	}
+
+	if err := s.auth.MarkTokenAsRevoked(ctx, auth.TokenParams{
+		TokenID:   claims.ID,
+		Subject:   claims.Subject,
+		IssuedAt:  claims.IssuedAt.Time,
+		ExpiresAt: claims.ExpiresAt.Time,
+		RevokedAt: time.Now().UTC(),
+	}); err != nil {
+		s.log.Err(err).Msg(ErrChangePassRevokeToken.Error())
+		return fmt.Errorf("error marking token s revoked: %w", err)
+	}
+
+	return web.Respond(ctx, w, u, http.StatusCreated)
+}
+
 // TODO: Implement
 //
 //revive:disable
-func (as *Service) Revoke(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+func (s *Service) Revoke(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
 // TODO: Implement
-func (as *Service) Refresh(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+func (s *Service) Refresh(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
 // TODO: Implement
-func (as *Service) PasswordReset(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+func (s *Service) PasswordReset(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 

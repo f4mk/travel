@@ -37,9 +37,10 @@ func NewService(l *zerolog.Logger, repo userUsecase.Storer) *Service {
 	}
 }
 
-func (us *Service) GetUsers(ctx context.Context, w http.ResponseWriter, _ *http.Request) error {
-	res, err := us.core.QueryAll(ctx)
+func (s *Service) GetUsers(ctx context.Context, w http.ResponseWriter, _ *http.Request) error {
+	res, err := s.core.QueryAll(ctx)
 	if err != nil {
+		s.log.Err(err).Msg(ErrGetUsersBusiness.Error())
 		return fmt.Errorf(
 			"cannot get users: %w",
 			web.GetResponseErrorFromBusiness(err),
@@ -48,16 +49,18 @@ func (us *Service) GetUsers(ctx context.Context, w http.ResponseWriter, _ *http.
 	return web.Respond(ctx, w, res, http.StatusOK)
 }
 
-func (us *Service) GetUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+func (s *Service) GetUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	id := web.Param(r, "id")
 	if err := web.ValidateUUID(id); err != nil {
+		s.log.Err(err).Msg(ErrValidateUserID.Error())
 		return web.NewRequestError(
 			fmt.Errorf("invalid id: %w", err),
 			http.StatusBadRequest,
 		)
 	}
-	res, err := us.core.QueryByID(ctx, id)
+	res, err := s.core.QueryByID(ctx, id)
 	if err != nil {
+		s.log.Err(err).Msg(ErrGetUserBusiness.Error())
 		return fmt.Errorf(
 			"cannot get user: %w",
 			web.GetResponseErrorFromBusiness(err),
@@ -66,22 +69,23 @@ func (us *Service) GetUser(ctx context.Context, w http.ResponseWriter, r *http.R
 	return web.Respond(ctx, w, res, http.StatusOK)
 }
 
-func (us *Service) CreateUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+func (s *Service) CreateUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	u := NewUser{}
 	if err := web.Decode(r, &u); err != nil {
+		s.log.Err(err).Msg(ErrCreateValidate.Error())
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
 		)
 	}
 	nu := userUsecase.NewUser{
-		Name:            u.Name,
-		Email:           u.Email,
-		Password:        u.Password,
-		PasswordConfirm: u.PasswordConfirm,
+		Name:     u.Name,
+		Email:    u.Email,
+		Password: u.Password,
 	}
-	res, err := us.core.Create(ctx, nu)
+	res, err := s.core.Create(ctx, nu)
 	if err != nil {
+		s.log.Err(err).Msg(ErrCreateBusiness.Error())
 		return fmt.Errorf(
 			"cannot create users: %w",
 			web.GetResponseErrorFromBusiness(err),
@@ -90,9 +94,10 @@ func (us *Service) CreateUser(ctx context.Context, w http.ResponseWriter, r *htt
 	return web.Respond(ctx, w, res, http.StatusCreated)
 }
 
-func (us *Service) UpdateUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+func (s *Service) UpdateUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	id := web.Param(r, "id")
 	if err := web.ValidateUUID(id); err != nil {
+		s.log.Err(err).Msg(ErrUpdateValidateUUID.Error())
 		return web.NewRequestError(
 			fmt.Errorf("invalid id: %w", err),
 			http.StatusBadRequest,
@@ -100,19 +105,19 @@ func (us *Service) UpdateUser(ctx context.Context, w http.ResponseWriter, r *htt
 	}
 	u := UpdateUser{}
 	if err := web.Decode(r, &u); err != nil {
+		s.log.Err(err).Msg(ErrUpdateValidate.Error())
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
 		)
 	}
 	uu := userUsecase.UpdateUser{
-		Name:            u.Name,
-		Email:           u.Email,
-		Password:        u.Password,
-		PasswordConfirm: u.PasswordConfirm,
+		Name:  u.Name,
+		Email: u.Email,
 	}
-	res, err := us.core.Update(ctx, id, uu)
+	res, err := s.core.Update(ctx, id, uu)
 	if err != nil {
+		s.log.Err(err).Msg(ErrUpdateBusiness.Error())
 		return fmt.Errorf(
 			"cannot update user: %w",
 			web.GetResponseErrorFromBusiness(err),
@@ -127,16 +132,18 @@ func (us *Service) UpdateUser(ctx context.Context, w http.ResponseWriter, r *htt
 	return web.Respond(ctx, w, ur, http.StatusOK)
 }
 
-func (us *Service) DeleteUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+func (s *Service) DeleteUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	id := web.Param(r, "id")
 	if err := web.ValidateUUID(id); err != nil {
+		s.log.Err(err).Msg(ErrDeleteValidateUUID.Error())
 		return web.NewRequestError(
 			fmt.Errorf("invalid id: %w", err),
 			http.StatusBadRequest,
 		)
 	}
-	err := us.core.Delete(ctx, id)
+	err := s.core.Delete(ctx, id)
 	if err != nil {
+		s.log.Err(err).Msg(ErrDeleteBusiness.Error())
 		return fmt.Errorf(
 			"cannot delete user: %w",
 			web.GetResponseErrorFromBusiness(err),

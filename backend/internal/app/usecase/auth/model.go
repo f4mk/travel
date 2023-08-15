@@ -7,7 +7,7 @@ import (
 )
 
 type User struct {
-	ID           string         `db:"user_id" json:"id"`
+	UserID       string         `db:"user_id" json:"id"`
 	Name         string         `db:"name" json:"name"`
 	Email        string         `db:"email" json:"email"`
 	Roles        pq.StringArray `db:"roles" json:"-"`
@@ -17,7 +17,7 @@ type User struct {
 }
 
 type AuthenticatedUser struct {
-	ID          string
+	UserID      string
 	Roles       []string
 	Email       string
 	Name        string
@@ -35,4 +35,9 @@ type DeleteToken struct {
 	IssuedAt  time.Time `db:"issued_at"`
 	ExpiresAt time.Time `db:"expires_at"`
 	RevokedAt time.Time `db:"revoked_at"`
+}
+
+type ChangePassword struct {
+	UserID   string
+	Password string
 }

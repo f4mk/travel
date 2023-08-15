@@ -43,6 +43,16 @@ func (r *Repo) QueryByID(_ context.Context, id string) (authUsecase.User, error)
 	return u, nil
 }
 
+func (r *Repo) Update(ctx context.Context, u authUsecase.User) error {
+	q := `UPDATE users SET name = :name, email = :email, roles = :roles, password_hash = :password_hash, date_updated = :date_updated
+			WHERE user_id = :user_id;`
+	_, err := r.repo.NamedExecContext(ctx, q, u)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // TODO: implement
 //
 //revive:disable

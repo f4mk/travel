@@ -80,6 +80,47 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /auth/changepass:
+    post:
+      tags: ["auth","post","change-password"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+      responses:
+        '201':
+          description: password is changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
  
 components:
   schemas:
@@ -100,19 +141,9 @@ components:
         - email
         - password
 
-    UpdateUser:
+    ChangePassword:
       type: object
       properties:
-        name:
-          type: string
-          description: "user name"
-          x-oapi-codegen-extra-tags:
-            validate: "omitempty,gte=2"
-        email:
-          type: string
-          description: "user email"
-          x-oapi-codegen-extra-tags:
-            validate: "omitempty,email"
         password:
           type: string
           description: "user password"
@@ -123,7 +154,9 @@ components:
           description: "user password confirm"
           x-oapi-codegen-extra-tags:
             validate: "eqfield=Password"
-
+      required:
+        - password
+        - password_confirm
     UserResponse:
       type: object
       properties:

@@ -8,6 +8,7 @@ import (
 
 	"github.com/f4mk/api/config"
 	"github.com/f4mk/api/internal/pkg/database"
+	"github.com/f4mk/api/pkg/utils"
 	"github.com/jmoiron/sqlx"
 
 	_ "github.com/lib/pq"
@@ -31,7 +32,7 @@ func main() {
 	db, err = database.Open(database.Config{
 		User:       cfg.DB.User,
 		Password:   cfg.DB.Password,
-		Host:       getHost(cfg.DB.HostName, cfg.DB.Port),
+		Host:       utils.GetHost(cfg.DB.HostName, cfg.DB.Port),
 		Name:       cfg.DB.DBName,
 		DisableTLS: cfg.DB.DisableTLS,
 	})
@@ -83,7 +84,4 @@ func removeExpiredRecords() {
 
 		time.Sleep(2 * time.Second)
 	}
-}
-func getHost(hostName string, port string) string {
-	return hostName + ":" + port
 }
