@@ -32,7 +32,7 @@ compose-up:
 
 .PHONY: compose-down
 compose-down:
-	docker-compose \
+	docker compose \
 		--env-file backend/${API_CONFIG_PATH} \
 		-f haproxy/docker-compose.yml \
 		-f backend/docker-compose.yml \
