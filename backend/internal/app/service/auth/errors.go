@@ -19,4 +19,8 @@ var (
 	ErrChangePassValidateRefreshToken = errors.New("error change password validating refresh token")
 	ErrChangePassBusiness             = errors.New("error change password from business layer")
 	ErrChangePassRevokeToken          = errors.New("error change password revoking token")
+
+	ErrRefreshValidateRefreshToken = errors.New("error refresh validating refresh token")
+	ErrRefreshReadRefreshToken     = errors.New("error refresh reading refresh token")
+	ErrRefreshGenAuthToken         = errors.New("error refresh renerating refresh token")
 )

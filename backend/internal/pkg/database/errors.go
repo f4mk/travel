@@ -14,7 +14,7 @@ const (
 	uniqueViolation = pq.ErrorCode("23505")
 )
 
-func WrapBusinessError(err error) error {
+func WrapStorerError(err error) error {
 	if errors.Is(err, sql.ErrNoRows) {
 		return web.ErrNotFound
 	}

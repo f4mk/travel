@@ -23,6 +23,5 @@ var (
 	ErrReadTokensFromDB     = errors.New("error loading tokens from db")
 	ErrReadTokenFromDB      = errors.New("error loading token from db")
 	// middleware
-	ErrAuthHeaderFormat    = errors.New("error auth header format")
-	ErrMissingRefreshToken = errors.New("error missing refresh token")
+	ErrAuthHeaderFormat = errors.New("error auth header format")
 )

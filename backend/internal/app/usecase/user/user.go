@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/f4mk/api/internal/pkg/auth"
@@ -42,13 +41,19 @@ func NewCore(s Storer, l *zerolog.Logger) *Core {
 }
 
 func (c *Core) QueryAll(ctx context.Context) ([]User, error) {
-	return c.storer.QueryAll(ctx)
+	us, err := c.storer.QueryAll(ctx)
+	if err != nil {
+		c.log.Err(err).Msgf("user: query all: %s", web.ErrQueryDB.Error())
+		return []User{}, database.WrapStorerError(err)
+	}
+	return us, nil
 }
 
 func (c *Core) Create(ctx context.Context, nu NewUser) (User, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(nu.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return User{}, fmt.Errorf("generate password hash: %w", err)
+		c.log.Err(err).Msgf("user: create: %s", web.ErrGenHash.Error())
+		return User{}, web.ErrGenHash
 	}
 	now := time.Now().UTC()
 	u := User{
@@ -62,7 +67,8 @@ func (c *Core) Create(ctx context.Context, nu NewUser) (User, error) {
 		DateUpdated: now,
 	}
 	if err := c.storer.Create(ctx, u); err != nil {
-		return User{}, fmt.Errorf("create: %w", database.WrapBusinessError(err))
+		c.log.Err(err).Msgf("user: create: %s", web.ErrQueryDB.Error())
+		return User{}, database.WrapStorerError(err)
 	}
 	return u, nil
 }
@@ -70,14 +76,21 @@ func (c *Core) Create(ctx context.Context, nu NewUser) (User, error) {
 func (c *Core) Update(ctx context.Context, uID string, uu UpdateUser) (User, error) {
 	u, err := c.storer.QueryByID(ctx, uID)
 	if err != nil {
-		return User{}, fmt.Errorf("query user: %w", database.WrapBusinessError(err))
+		c.log.Err(err).Msgf("user: update: %s", web.ErrQueryDB.Error())
+		return User{}, database.WrapStorerError(err)
 	}
+	if err := bcrypt.CompareHashAndPassword(u.PasswordHash, []byte(uu.Password)); err != nil {
+		c.log.Err(err).Msgf("user: update: %s", web.ErrAuthFailed.Error())
+		return User{}, web.ErrAuthFailed
+	}
+
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		return User{}, fmt.Errorf("get claims: %w", err)
+		c.log.Err(err).Msgf("user: update: %s", web.ErrGetClaims.Error())
+		return User{}, web.ErrGetClaims
 	}
-	// TODO: should check ID in JWT token
 	if !claims.Authorize(auth.RoleAdmin) && uID != u.ID {
+		c.log.Err(err).Msgf("user: update: %s", web.ErrForbidden.Error())
 		return User{}, web.ErrForbidden
 	}
 	//update user
@@ -89,7 +102,8 @@ func (c *Core) Update(ctx context.Context, uID string, uu UpdateUser) (User, err
 	}
 	u.DateUpdated = time.Now().UTC()
 	if err := c.storer.Update(ctx, u); err != nil {
-		return User{}, fmt.Errorf("update: %w", err)
+		c.log.Err(err).Msgf("user: update: %s", web.ErrQueryDB.Error())
+		return User{}, database.WrapStorerError(err)
 	}
 	return u, nil
 }
@@ -97,7 +111,8 @@ func (c *Core) Update(ctx context.Context, uID string, uu UpdateUser) (User, err
 func (c *Core) QueryByID(ctx context.Context, uID string) (User, error) {
 	u, err := c.storer.QueryByID(ctx, uID)
 	if err != nil {
-		return User{}, fmt.Errorf("query user: %w", database.WrapBusinessError(err))
+		c.log.Err(err).Msgf("user: query by id: %s", web.ErrQueryDB.Error())
+		return User{}, database.WrapStorerError(err)
 	}
 	return u, nil
 }
@@ -105,17 +120,21 @@ func (c *Core) QueryByID(ctx context.Context, uID string) (User, error) {
 func (c *Core) Delete(ctx context.Context, uID string) error {
 	_, err := c.storer.QueryByID(ctx, uID)
 	if err != nil {
-		return fmt.Errorf("query user: %w", database.WrapBusinessError(err))
+		c.log.Err(err).Msgf("user: delete: %s", web.ErrQueryDB.Error())
+		return database.WrapStorerError(err)
 	}
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		return fmt.Errorf("get claims: %w", err)
+		c.log.Err(err).Msgf("user: delete: %s", web.ErrGetClaims.Error())
+		return web.ErrGetClaims
 	}
 	if !claims.Authorize(auth.RoleAdmin) || claims.Subject != uID {
+		c.log.Err(err).Msgf("user: delete: %s", web.ErrForbidden.Error())
 		return web.ErrForbidden
 	}
 	if err := c.storer.Delete(ctx, uID); err != nil {
-		return fmt.Errorf("delete user: %w", database.WrapBusinessError(err))
+		c.log.Err(err).Msgf("user: delete: %s", web.ErrQueryDB.Error())
+		return database.WrapStorerError(err)
 	}
 	return nil
 }
