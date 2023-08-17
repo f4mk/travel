@@ -55,7 +55,11 @@ func RespondError(ctx context.Context, w http.ResponseWriter, err error) error {
 			}
 			status = reqErr.Status
 		}
-
+	case IsTimeoutError(err):
+		re = ResponseError{
+			Error: "request timeout",
+		}
+		status = http.StatusRequestTimeout
 	default:
 		re = ResponseError{
 			Error: http.StatusText(http.StatusInternalServerError),

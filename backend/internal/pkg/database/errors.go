@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 
@@ -11,7 +12,8 @@ import (
 // lib/pq errorCodeNames
 // https://github.com/lib/pq/blob/master/error.go#L178
 const (
-	uniqueViolation = pq.ErrorCode("23505")
+	uniqueViolation  = pq.ErrorCode("23505")
+	deadlineExceeded = pq.ErrorCode("57014")
 )
 
 func WrapStorerError(err error) error {
@@ -21,6 +23,12 @@ func WrapStorerError(err error) error {
 
 	if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == uniqueViolation {
 		return web.ErrAlreadyExists
+	}
+
+	if pqErr, ok := err.(*pq.Error); ok {
+		if pqErr.Code == deadlineExceeded {
+			return context.DeadlineExceeded
+		}
 	}
 
 	return err

@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 	"os"
+	"time"
 
 	authRepo "github.com/f4mk/api/internal/app/repo/auth"
 	userRepo "github.com/f4mk/api/internal/app/repo/user"
@@ -16,17 +17,20 @@ import (
 )
 
 type Config struct {
-	Build    string
-	Shutdown chan os.Signal
-	Log      *zerolog.Logger
-	Auth     *auth.Auth
-	DB       *sqlx.DB
+	Build          string
+	Shutdown       chan os.Signal
+	Log            *zerolog.Logger
+	Auth           *auth.Auth
+	DB             *sqlx.DB
+	RequestTimeout time.Duration
+	RateLimit      int
 }
 
 func New(cfg Config) *web.App {
 
 	app := web.New(
 		cfg.Shutdown,
+		cfg.RequestTimeout,
 		middleware.Logger(cfg.Log),
 		middleware.Errors(cfg.Log),
 		middleware.Metrics(),
@@ -39,18 +43,29 @@ func New(cfg Config) *web.App {
 	us := userService.NewService(cfg.Log, ur)
 	as := authService.NewService(cfg.Log, cfg.Auth, ar)
 
-	app.Handle(http.MethodPost, "/user", us.CreateUser)
-	app.Handle(http.MethodGet, "/user", us.GetUsers)
+	app.Handle(http.MethodPost, "/user", us.CreateUser, middleware.RateLimit(cfg.Log, cfg.RateLimit))
+	app.Handle(http.MethodGet, "/user", us.GetUsers, middleware.RateLimit(cfg.Log, cfg.RateLimit))
 	app.Handle(http.MethodGet, "/user/:id", us.GetUser)
-	app.Handle(http.MethodPut, "/user/:id", us.UpdateUser, middleware.Authenticate(cfg.Auth))
+	app.Handle(
+		http.MethodPut,
+		"/user/:id",
+		us.UpdateUser,
+		middleware.RateLimit(cfg.Log, cfg.RateLimit),
+		middleware.Authenticate(cfg.Auth),
+	)
 	app.Handle(http.MethodDelete, "/user/:id", us.DeleteUser, middleware.Authenticate(cfg.Auth))
 
 	app.Handle(http.MethodPost, "/auth/login", as.Login)
 	app.Handle(http.MethodPost, "/auth/logout", as.Logout, middleware.Authenticate(cfg.Auth))
 	app.Handle(http.MethodPost, "/auth/changepass", as.ChangePassword, middleware.Authenticate(cfg.Auth))
-	// TODO: think about permissions here
-	app.Handle(http.MethodPost, "/auth/refresh", as.Refresh)
-	app.Handle(http.MethodPost, "/auth/password/reset", as.PasswordReset)
+	app.Handle(http.MethodPost, "/auth/refresh", as.Refresh, middleware.RateLimit(cfg.Log, cfg.RateLimit))
+	// TODO:
+	app.Handle(
+		http.MethodPost,
+		"/auth/password/reset",
+		as.PasswordReset,
+		middleware.RateLimit(cfg.Log, cfg.RateLimit),
+	)
 
 	return app
 }

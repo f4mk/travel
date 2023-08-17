@@ -125,18 +125,22 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
 
 	apiCfg := api.Config{
-		Build:    build,
-		Shutdown: shutdown,
-		Log:      log,
-		Auth:     auth,
-		DB:       db,
+		Build:          build,
+		Shutdown:       shutdown,
+		Log:            log,
+		Auth:           auth,
+		DB:             db,
+		RequestTimeout: cfg.API.RequestTimeout,
+		RateLimit:      cfg.API.RateLimit,
 	}
 
 	h2s := &http2.Server{}
 
 	api := &http.Server{
-		Addr:    utils.GetHost(cfg.API.HostName, cfg.API.Port),
-		Handler: h2c.NewHandler(api.New(apiCfg), h2s),
+		Addr:         utils.GetHost(cfg.API.HostName, cfg.API.Port),
+		Handler:      h2c.NewHandler(api.New(apiCfg), h2s),
+		ReadTimeout:  cfg.API.ReadTimeout,
+		WriteTimeout: cfg.API.WriteTimeout,
 	}
 
 	if err := http2.ConfigureServer(api, &http2.Server{}); err != nil {

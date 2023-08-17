@@ -17,6 +17,7 @@ require (
 	github.com/rs/zerolog v1.30.0
 	golang.org/x/crypto v0.11.0
 	golang.org/x/net v0.12.0
+	golang.org/x/time v0.3.0
 )
 
 require (

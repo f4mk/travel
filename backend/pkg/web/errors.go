@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -124,6 +125,14 @@ func IsShutdown(err error) bool {
 	if _, ok := err.(*shutdown); ok {
 		return true
 	}
+	return false
+}
+
+func IsTimeoutError(err error) bool {
+	if errors.Is(err, context.DeadlineExceeded) {
+		return true
+	}
+
 	return false
 }
 

@@ -34,16 +34,15 @@ func New(cfg *config.Config) *zerolog.Logger {
 			return file + ":" + strconv.Itoa(line)
 		}
 
-		zerolog.TimeFieldFormat = time.RFC3339Nano
-		logger = zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr}).With().Timestamp().Caller().Logger()
+		zerolog.TimeFieldFormat = time.RFC3339
+		writer := zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339}
+		logger = zerolog.New(writer).With().Timestamp().Caller().Logger()
 		zerolog.SetGlobalLevel(intToLogLevel(cfg.Log.LogLevel))
 	}
-
 	return &logger
 }
 
 func intToLogLevel(level int) zerolog.Level {
-
 	switch level {
 	case 0:
 		return zerolog.DebugLevel

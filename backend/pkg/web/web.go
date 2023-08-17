@@ -14,15 +14,17 @@ import (
 type App struct {
 	*httptreemux.ContextMux
 	shutdown   chan os.Signal
+	timeout    time.Duration
 	middleware []Middleware
 }
 type Handler func(ctx context.Context, w http.ResponseWriter, r *http.Request) error
 
-func New(shutdown chan os.Signal, mw ...Middleware) *App {
+func New(shutdown chan os.Signal, timeout time.Duration, mw ...Middleware) *App {
 
 	app := App{
 		ContextMux: httptreemux.NewContextMux(),
 		shutdown:   shutdown,
+		timeout:    timeout,
 		middleware: mw,
 	}
 
@@ -32,7 +34,8 @@ func New(shutdown chan os.Signal, mw ...Middleware) *App {
 func (a App) Handle(method string, path string, handler Handler, mw ...Middleware) {
 
 	h := func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
+		ctx, cancel := context.WithTimeout(r.Context(), a.timeout)
+		defer cancel()
 		v := Values{
 			TraceID: uuid.New().String(),
 			Now:     time.Now().UTC(),
