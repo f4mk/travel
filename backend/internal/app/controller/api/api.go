@@ -11,6 +11,7 @@ import (
 	userService "github.com/f4mk/api/internal/app/service/user"
 	"github.com/f4mk/api/internal/pkg/auth"
 	"github.com/f4mk/api/internal/pkg/middleware"
+	"github.com/f4mk/api/internal/pkg/queue"
 	"github.com/f4mk/api/pkg/web"
 	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog"
@@ -22,10 +23,12 @@ type Config struct {
 	Log            *zerolog.Logger
 	Auth           *auth.Auth
 	DB             *sqlx.DB
+	MQ             *queue.Channel
 	RequestTimeout time.Duration
 	RateLimit      int
 }
 
+// TODO: add MQ usage
 func New(cfg Config) *web.App {
 
 	app := web.New(

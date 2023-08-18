@@ -41,6 +41,13 @@ type Cache struct {
 	MinIdleConns int    `env:"REDIS_MIN_IDLE_CONNS,required"`
 }
 
+type MessageBroker struct {
+	HostName string `env:"RABBIT_HOST_NAME,required"`
+	Port     string `env:"RABBIT_PORT,required"`
+	User     string `env:"RABBIT_NAME,required"`
+	Password string `env:"RABBIT_PASSWORD,required"`
+}
+
 type Log struct {
 	LogLevel int `env:"LOG_LEVEL,required"`
 }
@@ -64,15 +71,16 @@ type DB struct {
 }
 
 type Config struct {
-	Environment string `env:"ENVIRONMENT,required"`
-	Service     Service
-	Log         Log
-	API         API
-	Debug       Debug
-	Auth        Auth
-	DB          DB
-	Cache       Cache
-	Telemetry   Telemetry
+	Environment   string `env:"ENVIRONMENT,required"`
+	Service       Service
+	Log           Log
+	API           API
+	Debug         Debug
+	Auth          Auth
+	DB            DB
+	Cache         Cache
+	MessageBroker MessageBroker
+	Telemetry     Telemetry
 }
 
 func New(configPath string) (*Config, error) {

@@ -13,6 +13,7 @@ import (
 	"github.com/f4mk/api/internal/pkg/auth"
 	"github.com/f4mk/api/internal/pkg/database"
 	"github.com/f4mk/api/internal/pkg/keystore"
+	"github.com/f4mk/api/internal/pkg/queue"
 	"github.com/f4mk/api/pkg/utils"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
@@ -48,6 +49,28 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 		log.Info().Msgf("api: closing db connection %s", utils.GetHost(cfg.DB.HostName, cfg.DB.Port))
 		db.Close()
 	}()
+
+	// -------------------------------------------------------------------------
+	// Initializing message broker connection manager
+	cm, err := queue.NewManager(queue.ConnConfig{
+		User:     cfg.MessageBroker.User,
+		Password: cfg.MessageBroker.Password,
+		Host:     utils.GetHost(cfg.MessageBroker.HostName, cfg.MessageBroker.Port),
+		Log:      log,
+	})
+	if err != nil {
+		log.Err(err).Msg(ErrCreateBroker.Error())
+		return ErrCreateBroker
+	}
+
+	mq, err := cm.NewChannel(queue.ChConfig{
+		QName:   "resetPasswordLetter",
+		WithDLQ: true,
+	})
+	if err != nil {
+		log.Err(err).Msg(ErrCreateQueue.Error())
+		return ErrCreateQueue
+	}
 
 	// -------------------------------------------------------------------------
 	// Creating Auth
@@ -130,6 +153,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 		Log:            log,
 		Auth:           auth,
 		DB:             db,
+		MQ:             mq,
 		RequestTimeout: cfg.API.RequestTimeout,
 		RateLimit:      cfg.API.RateLimit,
 	}
