@@ -49,7 +49,9 @@ func (a App) Handle(method string, path string, handler Handler, mw ...Middlewar
 		hh = wrapMiddleware(a.middleware, hh)
 
 		if err := hh(ctx, w, r); err != nil {
-			a.SignalShutdown()
+			if validateShutdown(err) {
+				a.SignalShutdown()
+			}
 
 			return
 		}
