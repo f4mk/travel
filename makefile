@@ -20,6 +20,7 @@ docker-rmi:
 pull: 
 	$(MAKE) -C ./backend pull
 	docker pull node:18.17-alpine
+	docker pull rabbitmq:3.12:management
 
 .PHONY: compose-up
 compose-up:
@@ -28,6 +29,7 @@ compose-up:
 		-f haproxy/docker-compose.yml \
 		-f backend/docker-compose.yml \
 		-f frontend/docker-compose.yml \
+		-f rabbit/docker-compose.yml \
 		up
 
 .PHONY: compose-down
