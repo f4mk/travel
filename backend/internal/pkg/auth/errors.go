@@ -22,6 +22,7 @@ var (
 	ErrStoreCacheTokens     = errors.New("error storing tokens in cache")
 	ErrReadTokensFromDB     = errors.New("error loading tokens from db")
 	ErrReadTokenFromDB      = errors.New("error loading token from db")
-	// middleware
-	ErrAuthHeaderFormat = errors.New("error auth header format")
+	ErrGenHash              = errors.New("error generate hash")
+	ErrGetClaims            = errors.New("error get claims")
+	ErrAuthHeaderFormat     = errors.New("error auth header format")
 )

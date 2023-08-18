@@ -13,9 +13,6 @@ var (
 	ErrForbidden     = errors.New("error not allowed")
 	ErrAuthFailed    = errors.New("error authentication failed")
 	ErrAlreadyExists = errors.New("error already exists")
-	ErrGenHash       = errors.New("error generate hash")
-	ErrGetClaims     = errors.New("error get claims")
-	ErrQueryDB       = errors.New("error query db")
 	ErrCritical      = errors.New("error data integrity")
 )
 

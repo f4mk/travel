@@ -16,6 +16,8 @@ const (
 	deadlineExceeded = pq.ErrorCode("57014")
 )
 
+var ErrQueryDB = errors.New("error querying db")
+
 func WrapStorerError(err error) error {
 	if errors.Is(err, sql.ErrNoRows) {
 		return web.ErrNotFound
