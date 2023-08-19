@@ -11,7 +11,7 @@ import (
 	userService "github.com/f4mk/api/internal/app/service/user"
 	"github.com/f4mk/api/internal/pkg/auth"
 	"github.com/f4mk/api/internal/pkg/middleware"
-	"github.com/f4mk/api/pkg/queue"
+	"github.com/f4mk/api/pkg/mb"
 	"github.com/f4mk/api/pkg/web"
 	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog"
@@ -23,7 +23,7 @@ type Config struct {
 	Log            *zerolog.Logger
 	Auth           *auth.Auth
 	DB             *sqlx.DB
-	MQ             *queue.Channel
+	MQ             *mb.Channel
 	RequestTimeout time.Duration
 	RateLimit      int
 }

@@ -11,7 +11,7 @@ import (
 	"github.com/f4mk/api/internal/pkg/auth"
 	authPkg "github.com/f4mk/api/internal/pkg/auth"
 	"github.com/f4mk/api/internal/pkg/messages"
-	"github.com/f4mk/api/pkg/queue"
+	queue "github.com/f4mk/api/pkg/mb"
 	"github.com/f4mk/api/pkg/web"
 
 	"github.com/rs/zerolog"

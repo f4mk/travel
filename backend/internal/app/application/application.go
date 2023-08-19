@@ -13,7 +13,7 @@ import (
 	"github.com/f4mk/api/internal/pkg/auth"
 	"github.com/f4mk/api/internal/pkg/database"
 	"github.com/f4mk/api/internal/pkg/keystore"
-	"github.com/f4mk/api/pkg/queue"
+	"github.com/f4mk/api/pkg/mb"
 	"github.com/f4mk/api/pkg/utils"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
@@ -52,7 +52,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 
 	// -------------------------------------------------------------------------
 	// Initializing message broker connection manager
-	cm, err := queue.NewManager(queue.ConnConfig{
+	cm, err := mb.NewManager(mb.ConnConfig{
 		User:     cfg.MessageBroker.User,
 		Password: cfg.MessageBroker.Password,
 		Host:     utils.GetHost(cfg.MessageBroker.HostName, cfg.MessageBroker.Port),
@@ -62,8 +62,8 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 		log.Err(err).Msg(ErrCreateBroker.Error())
 		return ErrCreateBroker
 	}
-
-	mq, err := cm.NewChannel(queue.ChConfig{
+	// TODO: maybe move to controller or somewhere closer to consumers
+	mq, err := cm.NewChannel(mb.ChConfig{
 		QName:   "resetPasswordLetter",
 		WithDLQ: true,
 	})
