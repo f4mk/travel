@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rsa"
 	"encoding/json"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -94,12 +95,12 @@ func New(cfg Config) (*Auth, error) {
 	return &a, nil
 }
 
-func (a *Auth) GenerateToken(claims Claims, duration time.Duration) (string, error) {
+func (a *Auth) GenerateToken(ctx context.Context, claims Claims, duration time.Duration) (string, error) {
 	ia := time.Now().UTC()
 	ea := ia.Add(duration)
 	jti := uuid.New().String()
 	claims.ID = jti
-	tv, err := a.getLastTokenVersion(claims)
+	tv, err := a.getLastTokenVersion(ctx, claims)
 	if err != nil {
 		a.log.Err(err).Msg(ErrGetClaims.Error())
 		return "", ErrGetClaims
@@ -153,7 +154,7 @@ func (a *Auth) ValidateToken(ctx context.Context, t string) (Claims, error) {
 		a.log.Error().Msg(ErrExpiredToken.Error())
 		return Claims{}, ErrExpiredToken
 	}
-	tv, err := a.getLastTokenVersion(claims)
+	tv, err := a.getLastTokenVersion(ctx, claims)
 	if err != nil {
 		a.log.Err(err).Msg(ErrValidateToken.Error())
 		return Claims{}, ErrValidateToken
@@ -167,6 +168,19 @@ func (a *Auth) ValidateToken(ctx context.Context, t string) (Claims, error) {
 		return Claims{}, ErrInvalidToken
 	}
 	return claims, nil
+}
+
+func (a *Auth) StoreUserTokenVersion(ctx context.Context, uID string, tv int32) error {
+	if err := a.cache.Set(
+		ctx,
+		uID,
+		strconv.Itoa(int(tv)),
+		0,
+	).Err(); err != nil {
+		a.log.Err(err).Msg(ErrStoreCacheTokenVersion.Error())
+		return ErrStoreCacheTokenVersion
+	}
+	return nil
 }
 
 func (a *Auth) MarkTokenAsRevoked(ctx context.Context, t TokenParams) error {
@@ -239,13 +253,29 @@ type user struct {
 	TokenVersion int32 `db:"token_version"`
 }
 
-func (a *Auth) getLastTokenVersion(c Claims) (int32, error) {
-	u := user{}
-	q := "SELECT token_version FROM users WHERE user_id = $1;"
-	err := a.db.Get(&u, q, c.Subject)
+func (a *Auth) getLastTokenVersion(ctx context.Context, c Claims) (int32, error) {
+
+	res, err := a.cache.Get(ctx, c.Subject).Result()
 	if err != nil {
-		a.log.Err(err).Msg(ErrReadUserFromDB.Error())
-		return 0, ErrReadUserFromDB
+		a.log.Warn().Msg(ErrCheckCachedTokenVersion.Error())
+
+		u := user{}
+		q := "SELECT token_version FROM users WHERE user_id = $1;"
+		if err := a.db.Get(&u, q, c.Subject); err != nil {
+			a.log.Err(err).Msg(ErrReadUserFromDB.Error())
+			return 0, ErrReadUserFromDB
+		}
+		a.cache.Set(ctx, c.Subject, u.TokenVersion, 0)
+		return u.TokenVersion, nil
 	}
-	return u.TokenVersion, nil
+
+	valInt64, err := strconv.ParseInt(res, 10, 32)
+	if err != nil {
+		a.log.Err(err).Msg(ErrParseCachedTokenVersion.Error())
+		return 0, ErrParseCachedTokenVersion
+	}
+
+	valInt32 := int32(valInt64)
+
+	return valInt32, nil
 }

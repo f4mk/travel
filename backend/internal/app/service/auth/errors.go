@@ -3,10 +3,11 @@ package auth
 import "errors"
 
 var (
-	ErrLoginDecode          = errors.New("error login parsing user input")
-	ErrLoginBusiness        = errors.New("error login from business layer")
-	ErrLoginGenAuthToken    = errors.New("error login generating auth token")
-	ErrLoginGenRefreshToken = errors.New("error login generating refresh token")
+	ErrLoginDecode            = errors.New("error login parsing user input")
+	ErrLoginBusiness          = errors.New("error login from business layer")
+	ErrLoginGenAuthToken      = errors.New("error login generating auth token")
+	ErrLoginGenRefreshToken   = errors.New("error login generating refresh token")
+	ErrLoginStoreTokenVersion = errors.New("error login storing token version")
 
 	ErrLogoutDecode               = errors.New("error logout parsing user input")
 	ErrLogoutReadRefreshToken     = errors.New("error logout reading refresh token")

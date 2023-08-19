@@ -48,27 +48,28 @@ func (c *Core) Login(ctx context.Context, lu LoginUser) (AuthenticatedUser, erro
 		return AuthenticatedUser{}, web.ErrAuthFailed
 	}
 	au := AuthenticatedUser{
-		UserID: u.UserID,
-		Email:  u.Email,
-		Name:   u.Name,
-		Roles:  u.Roles,
+		UserID:       u.UserID,
+		Email:        u.Email,
+		Name:         u.Name,
+		TokenVersion: u.TokenVersion,
+		Roles:        u.Roles,
 	}
 	return au, nil
 }
 
-func (c *Core) Logout(ctx context.Context, dt DeleteToken) error {
+func (c *Core) Logout(ctx context.Context, dt DeleteToken) (int32, error) {
 	u, err := c.storer.QueryByID(ctx, dt.Subject)
 	if err != nil {
 		c.log.Err(err).Msgf("auth: logout: %s", database.ErrQueryDB.Error())
-		return database.WrapStorerError(err)
+		return 0, database.WrapStorerError(err)
 	}
 	u.DateUpdated = time.Now().UTC()
 	u.TokenVersion = u.TokenVersion + 1
 	if err := c.storer.Update(ctx, u); err != nil {
 		c.log.Err(err).Msgf("auth: logout: %s", database.ErrQueryDB.Error())
-		return database.WrapStorerError(err)
+		return 0, database.WrapStorerError(err)
 	}
-	return nil
+	return u.TokenVersion, nil
 }
 
 func (c *Core) ChangePassword(ctx context.Context, cp ChangePassword) (User, error) {
@@ -147,30 +148,30 @@ func (c *Core) ResetPasswordRequest(ctx context.Context, email string) (ResetPas
 	return rp, nil
 }
 
-func (c *Core) ResetPasswordSubmit(ctx context.Context, sp SubmitPassword) error {
+func (c *Core) ResetPasswordSubmit(ctx context.Context, sp SubmitPassword) (User, error) {
 	rt, err := c.storer.QueryResetTokenByID(ctx, sp.ResetToken)
 	if err != nil {
 		c.log.Err(err).Msgf("auth: reset password validate: %s", database.ErrQueryDB.Error())
-		return database.WrapStorerError(err)
+		return User{}, database.WrapStorerError(err)
 	}
 	if rt.ExpiresAt.Before(time.Now().UTC()) {
 		c.log.Error().Msgf("auth: reset password validate: %s", auth.ErrValidateResetToken.Error())
-		return auth.ErrValidateResetToken
+		return User{}, auth.ErrValidateResetToken
 	}
 	// delete all tokens
 	if err := c.storer.DeleteResetTokensByUserID(ctx, rt.UserID); err != nil {
 		c.log.Err(err).Msgf("auth: reset password validate: %s", database.ErrQueryDB.Error())
-		return database.WrapStorerError(err)
+		return User{}, database.WrapStorerError(err)
 	}
 	u, err := c.storer.QueryByEmail(ctx, rt.Email)
 	if err != nil {
 		c.log.Err(err).Msgf("auth: reset password validate: %s", database.ErrQueryDB.Error())
-		return database.WrapStorerError(err)
+		return User{}, database.WrapStorerError(err)
 	}
 	hash, err := bcrypt.GenerateFromPassword([]byte(sp.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.log.Err(err).Msgf("auth: reset password submit: %s", auth.ErrGenHash.Error())
-		return auth.ErrGenHash
+		return User{}, auth.ErrGenHash
 	}
 	// update user with new password and token version
 	u.PasswordHash = hash
@@ -178,9 +179,9 @@ func (c *Core) ResetPasswordSubmit(ctx context.Context, sp SubmitPassword) error
 	u.TokenVersion = u.TokenVersion + 1
 	if err := c.storer.Update(ctx, u); err != nil {
 		c.log.Err(err).Msgf("auth: reset password submit: %s", database.ErrQueryDB.Error())
-		return database.WrapStorerError(err)
+		return User{}, database.WrapStorerError(err)
 	}
-	return nil
+	return u, nil
 }
 
 //revive:disable

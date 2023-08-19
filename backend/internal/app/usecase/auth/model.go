@@ -18,11 +18,12 @@ type User struct {
 }
 
 type AuthenticatedUser struct {
-	UserID      string
-	Roles       []string
-	Email       string
-	Name        string
-	DateCreated time.Time
+	UserID       string
+	Roles        []string
+	Email        string
+	Name         string
+	TokenVersion int32
+	DateCreated  time.Time
 }
 
 type LoginUser struct {

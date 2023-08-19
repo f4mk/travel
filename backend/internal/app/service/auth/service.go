@@ -59,15 +59,19 @@ func (s *Service) Login(ctx context.Context, w http.ResponseWriter, r *http.Requ
 		s.log.Err(err).Msg(ErrLoginBusiness.Error())
 		return web.GetResponseErrorFromBusiness(err)
 	}
+	if err := s.auth.StoreUserTokenVersion(ctx, res.UserID, res.TokenVersion); err != nil {
+		s.log.Err(err).Msg(ErrLoginStoreTokenVersion.Error())
+		return ErrLoginStoreTokenVersion
+	}
 	c := authPkg.Claims{}
 	c.Subject = res.UserID
 	c.Roles = res.Roles
-	newAuthToken, err := s.auth.GenerateToken(c, s.auth.AuthDuration)
+	newAuthToken, err := s.auth.GenerateToken(ctx, c, s.auth.AuthDuration)
 	if err != nil {
 		s.log.Err(err).Msg(ErrLoginGenAuthToken.Error())
 		return ErrLoginGenAuthToken
 	}
-	newRefreshToken, err := s.auth.GenerateToken(c, s.auth.RefreshDuration)
+	newRefreshToken, err := s.auth.GenerateToken(ctx, c, s.auth.RefreshDuration)
 	if err != nil {
 		s.log.Err(err).Msg(ErrLoginGenRefreshToken.Error())
 		return ErrLoginGenRefreshToken
@@ -112,9 +116,14 @@ func (s *Service) Logout(ctx context.Context, w http.ResponseWriter, r *http.Req
 		ExpiresAt:    c.ExpiresAt.UTC(),
 		RevokedAt:    time.Now().UTC(),
 	}
-	if err := s.core.Logout(ctx, dt); err != nil {
+	tl, err := s.core.Logout(ctx, dt)
+	if err != nil {
 		s.log.Err(err).Msg(ErrLogoutBusiness.Error())
 		return web.GetResponseErrorFromBusiness(err)
+	}
+	if err := s.auth.StoreUserTokenVersion(ctx, c.Subject, tl); err != nil {
+		s.log.Err(err).Msg(ErrLoginStoreTokenVersion.Error())
+		return ErrLoginStoreTokenVersion
 	}
 	clearSession(w)
 	if err := s.auth.MarkTokenAsRevoked(ctx, authPkg.TokenParams{
@@ -140,13 +149,11 @@ func (s *Service) ChangePassword(ctx context.Context, w http.ResponseWriter, r *
 			http.StatusBadRequest,
 		)
 	}
-
 	c, err := auth.GetClaims(ctx)
 	if err != nil {
 		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
-
 	cp := authUsecase.ChangePassword{
 		UserID:      c.Subject,
 		Password:    p.Password,
@@ -157,6 +164,11 @@ func (s *Service) ChangePassword(ctx context.Context, w http.ResponseWriter, r *
 		s.log.Err(err).Msg(ErrChangePassBusiness.Error())
 		return web.GetResponseErrorFromBusiness(err)
 	}
+	if err := s.auth.StoreUserTokenVersion(ctx, u.UserID, u.TokenVersion); err != nil {
+		s.log.Err(err).Msg(ErrLoginStoreTokenVersion.Error())
+		return ErrLoginStoreTokenVersion
+	}
+	// marking auth token as revoked for immediate effect
 	if err := s.auth.MarkTokenAsRevoked(ctx, authPkg.TokenParams{
 		TokenID:      c.ID,
 		Subject:      c.Subject,
@@ -196,7 +208,7 @@ func (s *Service) Refresh(ctx context.Context, w http.ResponseWriter, r *http.Re
 			http.StatusUnauthorized,
 		)
 	}
-	newAuthToken, err := s.auth.GenerateToken(newClaims, s.auth.AuthDuration)
+	newAuthToken, err := s.auth.GenerateToken(ctx, newClaims, s.auth.AuthDuration)
 	if err != nil {
 		s.log.Err(err).Msg(ErrRefreshGenAuthToken.Error())
 		return ErrRefreshGenAuthToken
@@ -258,7 +270,8 @@ func (s *Service) PasswordResetSubmit(ctx context.Context, w http.ResponseWriter
 		ResetToken: srp.Token,
 		Password:   srp.Password,
 	}
-	if err := s.core.ResetPasswordSubmit(ctx, sp); err != nil {
+	u, err := s.core.ResetPasswordSubmit(ctx, sp)
+	if err != nil {
 		s.log.Err(err).Msg(ErrValidateResetPassword.Error())
 		if errors.Is(err, web.ErrNotFound) || errors.Is(err, auth.ErrValidateResetToken) {
 			//return forbidden to not spoil if token even exists
@@ -268,6 +281,10 @@ func (s *Service) PasswordResetSubmit(ctx context.Context, w http.ResponseWriter
 			)
 		}
 		return fmt.Errorf("cannot update password: %w", err)
+	}
+	if err := s.auth.StoreUserTokenVersion(ctx, u.UserID, u.TokenVersion); err != nil {
+		s.log.Err(err).Msg(ErrLoginStoreTokenVersion.Error())
+		return ErrLoginStoreTokenVersion
 	}
 	return web.Respond(ctx, w, struct{}{}, http.StatusCreated)
 }
