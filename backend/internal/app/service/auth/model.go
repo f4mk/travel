@@ -10,7 +10,7 @@ import (
 // ChangePassword defines model for ChangePassword.
 type ChangePassword struct {
 	// Password user password
-	Password string `json:"password" validate:"omitempty,gte=6"`
+	Password string `json:"password" validate:"required,gte=8"`
 
 	// PasswordConfirm user password confirm
 	PasswordConfirm string `json:"password_confirm" validate:"eqfield=Password"`
@@ -32,6 +32,30 @@ type LoginUser struct {
 	Password string `json:"password" validate:"required"`
 }
 
+// ResetPassword defines model for ResetPassword.
+type ResetPassword struct {
+	// Email user email
+	Email string `json:"email" validate:"required,email"`
+}
+
+// ResetToken defines model for ResetToken.
+type ResetToken struct {
+	// Token password reset secret token
+	Token string `json:"token" validate:"required"`
+}
+
+// SubmitResetPassword defines model for SubmitResetPassword.
+type SubmitResetPassword struct {
+	// Password user password
+	Password string `json:"password" validate:"required,gte=8"`
+
+	// PasswordConfirm user password confirm
+	PasswordConfirm string `json:"password_confirm" validate:"eqfield=Password"`
+
+	// Token password reset secret token
+	Token string `json:"token" validate:"required"`
+}
+
 // UserResponse defines model for UserResponse.
 type UserResponse struct {
 	// DateCreated date created
@@ -50,11 +74,17 @@ type UserResponse struct {
 // PostAuthLogoutJSONBody defines parameters for PostAuthLogout.
 type PostAuthLogoutJSONBody = map[string]interface{}
 
-// PostAuthChangepassJSONRequestBody defines body for PostAuthChangepass for application/json ContentType.
-type PostAuthChangepassJSONRequestBody = ChangePassword
-
 // PostAuthLoginJSONRequestBody defines body for PostAuthLogin for application/json ContentType.
 type PostAuthLoginJSONRequestBody = LoginUser
 
 // PostAuthLogoutJSONRequestBody defines body for PostAuthLogout for application/json ContentType.
 type PostAuthLogoutJSONRequestBody = PostAuthLogoutJSONBody
+
+// PostAuthPasswordChangeJSONRequestBody defines body for PostAuthPasswordChange for application/json ContentType.
+type PostAuthPasswordChangeJSONRequestBody = ChangePassword
+
+// PostAuthPasswordResetJSONRequestBody defines body for PostAuthPasswordReset for application/json ContentType.
+type PostAuthPasswordResetJSONRequestBody = ResetPassword
+
+// PostAuthPasswordResetSubmitJSONRequestBody defines body for PostAuthPasswordResetSubmit for application/json ContentType.
+type PostAuthPasswordResetSubmitJSONRequestBody = SubmitResetPassword

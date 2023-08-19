@@ -13,7 +13,7 @@ import (
 	"github.com/f4mk/api/internal/pkg/auth"
 	"github.com/f4mk/api/internal/pkg/database"
 	"github.com/f4mk/api/internal/pkg/keystore"
-	"github.com/f4mk/api/internal/pkg/queue"
+	"github.com/f4mk/api/pkg/queue"
 	"github.com/f4mk/api/pkg/utils"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"

@@ -41,3 +41,22 @@ type ChangePassword struct {
 	UserID   string
 	Password string
 }
+
+type ResetPassword struct {
+	Email      string
+	Name       string
+	ResetToken string
+}
+
+type ResetToken struct {
+	TokenID   string    `db:"token_id"`
+	Email     string    `db:"email"`
+	ExpiresAt time.Time `db:"expires_at"`
+	IssuedAt  time.Time `db:"issued_at"`
+	Used      bool      `db:"used"`
+}
+
+type SubmitPassword struct {
+	ResetToken string
+	Password   string
+}

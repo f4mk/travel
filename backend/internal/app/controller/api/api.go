@@ -11,7 +11,7 @@ import (
 	userService "github.com/f4mk/api/internal/app/service/user"
 	"github.com/f4mk/api/internal/pkg/auth"
 	"github.com/f4mk/api/internal/pkg/middleware"
-	"github.com/f4mk/api/internal/pkg/queue"
+	"github.com/f4mk/api/pkg/queue"
 	"github.com/f4mk/api/pkg/web"
 	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog"
@@ -44,7 +44,7 @@ func New(cfg Config) *web.App {
 	ar := authRepo.NewRepo(cfg.Log, cfg.DB)
 
 	us := userService.NewService(cfg.Log, ur)
-	as := authService.NewService(cfg.Log, cfg.Auth, ar)
+	as := authService.NewService(cfg.Log, cfg.Auth, ar, cfg.MQ)
 
 	app.Handle(http.MethodPost, "/user", us.CreateUser, middleware.RateLimit(cfg.Log, cfg.RateLimit))
 	app.Handle(http.MethodGet, "/user", us.GetUsers, middleware.RateLimit(cfg.Log, cfg.RateLimit))
@@ -60,13 +60,19 @@ func New(cfg Config) *web.App {
 
 	app.Handle(http.MethodPost, "/auth/login", as.Login)
 	app.Handle(http.MethodPost, "/auth/logout", as.Logout, middleware.Authenticate(cfg.Auth))
-	app.Handle(http.MethodPost, "/auth/changepass", as.ChangePassword, middleware.Authenticate(cfg.Auth))
 	app.Handle(http.MethodPost, "/auth/refresh", as.Refresh, middleware.RateLimit(cfg.Log, cfg.RateLimit))
+	app.Handle(http.MethodPost, "/auth/password/change", as.ChangePassword, middleware.Authenticate(cfg.Auth))
 	// TODO:
 	app.Handle(
 		http.MethodPost,
 		"/auth/password/reset",
 		as.PasswordReset,
+		middleware.RateLimit(cfg.Log, cfg.RateLimit),
+	)
+	app.Handle(
+		http.MethodPost,
+		"/auth/password/reset/submit",
+		as.PasswordResetSubmit,
 		middleware.RateLimit(cfg.Log, cfg.RateLimit),
 	)
 

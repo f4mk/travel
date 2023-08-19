@@ -2,11 +2,16 @@ package auth
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
 	authUsecase "github.com/f4mk/api/internal/app/usecase/auth"
+	"github.com/f4mk/api/internal/pkg/auth"
 	authPkg "github.com/f4mk/api/internal/pkg/auth"
+	"github.com/f4mk/api/internal/pkg/messages"
+	"github.com/f4mk/api/pkg/queue"
 	"github.com/f4mk/api/pkg/web"
 
 	"github.com/rs/zerolog"
@@ -16,9 +21,15 @@ type Service struct {
 	log  *zerolog.Logger
 	auth *authPkg.Auth
 	core *authUsecase.Core
+	mq   *queue.Channel
 }
 
-func NewService(l *zerolog.Logger, auth *authPkg.Auth, repo authUsecase.Storer) *Service {
+func NewService(
+	l *zerolog.Logger,
+	auth *authPkg.Auth,
+	repo authUsecase.Storer,
+	mq *queue.Channel,
+) *Service {
 
 	core := authUsecase.NewCore(repo, l)
 
@@ -26,6 +37,7 @@ func NewService(l *zerolog.Logger, auth *authPkg.Auth, repo authUsecase.Storer) 
 		log:  l,
 		auth: auth,
 		core: core,
+		mq:   mq,
 	}
 }
 
@@ -209,15 +221,72 @@ func (s *Service) Refresh(ctx context.Context, w http.ResponseWriter, r *http.Re
 	return web.Respond(ctx, w, struct{}{}, http.StatusCreated)
 }
 
+func (s *Service) PasswordReset(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	rp := ResetPassword{}
+	if err := web.Decode(r, &rp); err != nil {
+		s.log.Err(err).Msg(ErrResetPasswordDecode.Error())
+		return web.NewRequestError(
+			err,
+			http.StatusBadRequest,
+		)
+	}
+	res, err := s.core.ResetPasswordRequest(ctx, rp.Email)
+	if err != nil {
+		s.log.Err(err).Msg(ErrResetPasswordBusiness.Error())
+		//return success to not spoil if the user exists
+		if errors.Is(web.ErrNotFound, err) {
+			return web.Respond(ctx, w, struct{}{}, http.StatusCreated)
+		}
+		return fmt.Errorf(
+			"cannot reset password: %w",
+			web.GetResponseErrorFromBusiness(err),
+		)
+	}
+	m := messages.ResetEmail{
+		Email:      res.Email,
+		Name:       res.Name,
+		ResetToken: res.ResetToken,
+	}
+	err = s.mq.Publish(ctx, m)
+	if err != nil {
+		s.log.Err(err).Msg(ErrResetPasswordSendMessage.Error())
+		return fmt.Errorf("cannot send message: %w", err)
+	}
+	return web.Respond(ctx, w, struct{}{}, http.StatusCreated)
+}
+
+// TODO: Implement
+func (s *Service) PasswordResetSubmit(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	srp := SubmitResetPassword{}
+	if err := web.Decode(r, &srp); err != nil {
+		s.log.Err(err).Msg(ErrValidateResetPasswordDecode.Error())
+		return web.NewRequestError(
+			err,
+			http.StatusBadRequest,
+		)
+	}
+	sp := authUsecase.SubmitPassword{
+		ResetToken: srp.Token,
+		Password:   srp.Password,
+	}
+	if err := s.core.ResetPasswordSubmit(ctx, sp); err != nil {
+		s.log.Err(err).Msg(ErrValidateResetPassword.Error())
+		if errors.Is(err, web.ErrNotFound) || errors.Is(err, auth.ErrValidateResetToken) {
+			//return forbidden to not spoil if token even exists
+			return web.NewRequestError(
+				web.ErrForbidden,
+				http.StatusForbidden,
+			)
+		}
+		return fmt.Errorf("cannot update password: %w", err)
+	}
+	return web.Respond(ctx, w, struct{}{}, http.StatusCreated)
+}
+
 // TODO: Implement
 //
 //revive:disable
 func (s *Service) Revoke(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	return nil
-}
-
-// TODO: Implement
-func (s *Service) PasswordReset(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 

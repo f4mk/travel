@@ -2,6 +2,8 @@ package auth
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"time"
 
 	"github.com/f4mk/api/internal/pkg/auth"
@@ -13,6 +15,9 @@ import (
 
 type Storer interface {
 	DeleteToken(ctx context.Context, dt DeleteToken) error
+	StoreResetToken(ctx context.Context, rt ResetToken) error
+	UpdateResetToken(ctx context.Context, rt ResetToken) error
+	RetrieveResetToken(ctx context.Context, token string) (ResetToken, error)
 	DeleteAllTokes(ctx context.Context, uID string) error
 	QueryByEmail(ctx context.Context, email string) (User, error)
 	QueryByID(ctx context.Context, uID string) (User, error)
@@ -88,6 +93,79 @@ func (c *Core) ChangePassword(ctx context.Context, cp ChangePassword) (User, err
 	return u, nil
 }
 
+func (c *Core) ResetPasswordRequest(ctx context.Context, email string) (ResetPassword, error) {
+	u, err := c.storer.QueryByEmail(ctx, email)
+	if err != nil {
+		c.log.Err(err).Msgf("auth: reset password request: %s", database.ErrQueryDB.Error())
+		return ResetPassword{}, database.WrapStorerError(err)
+	}
+	token := make([]byte, 32)
+	_, err = rand.Read(token)
+	if err != nil {
+		c.log.Err(err).Msgf("auth: reset password request: %s", auth.ErrGenResetToken.Error())
+		return ResetPassword{}, auth.ErrGenResetToken
+	}
+	et := hex.EncodeToString(token)
+	rt := ResetToken{
+		TokenID:   et,
+		Email:     u.Email,
+		ExpiresAt: time.Now().UTC().Add(24 * time.Hour),
+		IssuedAt:  time.Now().UTC(),
+		Used:      false,
+	}
+	err = c.storer.StoreResetToken(ctx, rt)
+	if err != nil {
+		c.log.Err(err).Msgf("auth: reset password request: %s", database.ErrQueryDB.Error())
+		return ResetPassword{}, database.WrapStorerError(err)
+	}
+	rp := ResetPassword{
+		Email:      u.Email,
+		Name:       u.Name,
+		ResetToken: et,
+	}
+	return rp, nil
+}
+
+func (c *Core) ResetPasswordSubmit(ctx context.Context, sp SubmitPassword) error {
+	rt, err := c.storer.RetrieveResetToken(ctx, sp.ResetToken)
+	if err != nil {
+		c.log.Err(err).Msgf("auth: reset password validate: %s", database.ErrQueryDB.Error())
+		return database.WrapStorerError(err)
+	}
+	if rt.ExpiresAt.Before(time.Now().UTC()) {
+		c.log.Error().Msgf("auth: reset password validate: %s", auth.ErrValidateResetToken.Error())
+		return auth.ErrValidateResetToken
+	}
+	// mark token as used
+	rt.Used = true
+	if err := c.storer.UpdateResetToken(ctx, rt); err != nil {
+		c.log.Err(err).Msgf("auth: reset password validate: %s", database.ErrQueryDB.Error())
+		return database.WrapStorerError(err)
+	}
+	u, err := c.storer.QueryByEmail(ctx, rt.Email)
+	if err != nil {
+		c.log.Err(err).Msgf("auth: reset password validate: %s", database.ErrQueryDB.Error())
+		return database.WrapStorerError(err)
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(sp.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.log.Err(err).Msgf("auth: reset password submit: %s", auth.ErrGenHash.Error())
+		return auth.ErrGenHash
+	}
+	// update user with new password
+	u.PasswordHash = hash
+	u.DateUpdated = time.Now().UTC()
+	if err := c.storer.Update(ctx, u); err != nil {
+		c.log.Err(err).Msgf("auth: reset password submit: %s", database.ErrQueryDB.Error())
+		return database.WrapStorerError(err)
+	}
+	if err := c.storer.DeleteAllTokes(ctx, u.UserID); err != nil {
+		c.log.Err(err).Msgf("auth: reset password submit: %s", database.ErrQueryDB.Error())
+		return database.WrapStorerError(err)
+	}
+	return nil
+}
+
 //revive:disable
 func (c *Core) LogoutAll(ctx context.Context, email string) error {
 	// TODO: delete all tokens from tokens table for that user
@@ -106,11 +184,6 @@ func (c *Core) RevokeTokens(ctx context.Context, email string) error {
 
 func (c *Core) RefreshToken(ctx context.Context, email string, t string) error {
 	// TODO: find token in tokes, update the token with a new one
-	return nil
-}
-
-func (c *Core) ResetPassword(ctx context.Context, email string) error {
-	// TODO: send email with reset link
 	return nil
 }
 

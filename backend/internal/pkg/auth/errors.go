@@ -23,6 +23,8 @@ var (
 	ErrReadTokensFromDB     = errors.New("error loading tokens from db")
 	ErrReadTokenFromDB      = errors.New("error loading token from db")
 	ErrGenHash              = errors.New("error generate hash")
+	ErrGenResetToken        = errors.New("error generate reset token")
+	ErrValidateResetToken   = errors.New("error validate reset token")
 	ErrGetClaims            = errors.New("error get claims")
 	ErrAuthHeaderFormat     = errors.New("error auth header format")
 )

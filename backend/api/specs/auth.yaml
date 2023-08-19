@@ -80,7 +80,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /auth/changepass:
+  /auth/password/change:
     post:
       tags: ["auth","post","change-password"]
       requestBody:
@@ -120,7 +120,68 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-
+  /auth/password/reset:
+    post:
+      tags: ["auth","post","reset-password"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPassword'
+      responses:
+        '201':
+          description: password reset request was handled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+        '400':
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /auth/password/reset/submit:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitResetPassword'
+      responses:
+        '201':
+          description: password is changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
  
 components:
   schemas:
@@ -148,7 +209,7 @@ components:
           type: string
           description: "user password"
           x-oapi-codegen-extra-tags:
-            validate: "omitempty,gte=6"
+            validate: "required,gte=8"
         password_confirm:
           type: string
           description: "user password confirm"
@@ -157,6 +218,7 @@ components:
       required:
         - password
         - password_confirm
+
     UserResponse:
       type: object
       properties:
@@ -179,6 +241,18 @@ components:
         - name
         - email
         - date_created
+
+    ResetPassword:
+      type: object
+      properties:
+        email:
+          type: string
+          description: "user email"
+          x-oapi-codegen-extra-tags:
+            validate: "required,email"
+      required:
+        - email
+
     ErrorResponse:
       type: object
       properties:
@@ -191,4 +265,19 @@ components:
             type: string
       required:
         - error
+    
+    ResetToken:
+      type: object
+      properties:
+        token:
+          type: string
+          description: password reset secret token
+          x-oapi-codegen-extra-tags:
+            validate: "required"
+      required:
+        - token
 
+    SubmitResetPassword:
+      allOf:
+        - $ref: '#/components/schemas/ResetToken'
+        - $ref: '#/components/schemas/ChangePassword'

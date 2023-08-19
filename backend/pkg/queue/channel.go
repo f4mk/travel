@@ -23,6 +23,12 @@ type ChConfig struct {
 	WithDLQ bool
 }
 
+// TODO: add extra fields when needed
+type Message struct {
+	Body []byte
+	Type string
+}
+
 func (cm *ConnManager) NewChannel(cfg ChConfig) (*Channel, error) {
 
 	ch, err := cm.conn.Channel()
@@ -122,15 +128,15 @@ func (c *Channel) Publish(ctx context.Context, body any) error {
 		})
 }
 
-func (c *Channel) Consume() (<-chan amqp.Delivery, error) {
+func (c *Channel) Consume() (<-chan Message, error) {
 
 	if c.isConsuming {
 		e := errors.New("consumer has already been registered for this channel")
-		c.log.Error().Msg(e.Error())
+		c.log.Err(e).Msg("error register consumer for queue")
 		return nil, e
 	}
 
-	return c.ch.Consume(
+	msgs, err := c.ch.Consume(
 		c.QueueName,
 		"",    // Consumer
 		true,  // Auto-Ack
@@ -139,6 +145,25 @@ func (c *Channel) Consume() (<-chan amqp.Delivery, error) {
 		false, // No-Wait
 		nil,   // Args
 	)
+	if err != nil {
+		c.log.Err(err).Msg("error initializing read channel for queue")
+		return nil, err
+	}
+
+	out := make(chan Message)
+
+	go func() {
+		defer close(out)
+
+		for d := range msgs {
+			data := Message{
+				Body: d.Body,
+				Type: "application/json",
+			}
+			out <- data
+		}
+	}()
+	return out, nil
 }
 
 func (c *Channel) Close() {
