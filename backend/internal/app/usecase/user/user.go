@@ -60,6 +60,7 @@ func (c *Core) Create(ctx context.Context, nu NewUser) (User, error) {
 		ID:           uuid.New().String(),
 		Name:         nu.Name,
 		Email:        nu.Email,
+		TokenVersion: 0,
 		PasswordHash: hash,
 		// TODO: may be find a better place
 		Roles:       []string{auth.RoleUser},
@@ -89,7 +90,7 @@ func (c *Core) Update(ctx context.Context, uID string, uu UpdateUser) (User, err
 		c.log.Err(err).Msgf("user: update: %s", auth.ErrGetClaims.Error())
 		return User{}, auth.ErrGetClaims
 	}
-	if !claims.Authorize(auth.RoleAdmin) && uID != u.ID {
+	if !claims.Authorize(auth.RoleAdmin) && uID != claims.Subject {
 		c.log.Err(err).Msgf("user: update: %s", web.ErrForbidden.Error())
 		return User{}, web.ErrForbidden
 	}
@@ -128,7 +129,7 @@ func (c *Core) Delete(ctx context.Context, uID string) error {
 		c.log.Err(err).Msgf("user: delete: %s", auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
-	if !claims.Authorize(auth.RoleAdmin) || claims.Subject != uID {
+	if !claims.Authorize(auth.RoleAdmin) && claims.Subject != uID {
 		c.log.Err(err).Msgf("user: delete: %s", web.ErrForbidden.Error())
 		return web.ErrForbidden
 	}

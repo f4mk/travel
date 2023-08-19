@@ -9,11 +9,14 @@ import (
 
 // ChangePassword defines model for ChangePassword.
 type ChangePassword struct {
-	// Password user password
+	// Password user new password
 	Password string `json:"password" validate:"required,gte=8"`
 
-	// PasswordConfirm user password confirm
+	// PasswordConfirm user new password confirm
 	PasswordConfirm string `json:"password_confirm" validate:"eqfield=Password"`
+
+	// PasswordOld user new password
+	PasswordOld string `json:"password_old" validate:"required"`
 }
 
 // ErrorResponse defines model for ErrorResponse.
@@ -32,6 +35,21 @@ type LoginUser struct {
 	Password string `json:"password" validate:"required"`
 }
 
+// NewPassword defines model for NewPassword.
+type NewPassword struct {
+	// Password user new password
+	Password string `json:"password" validate:"required,gte=8"`
+
+	// PasswordConfirm user new password confirm
+	PasswordConfirm string `json:"password_confirm" validate:"eqfield=Password"`
+}
+
+// OldPassword defines model for OldPassword.
+type OldPassword struct {
+	// PasswordOld user new password
+	PasswordOld string `json:"password_old" validate:"required"`
+}
+
 // ResetPassword defines model for ResetPassword.
 type ResetPassword struct {
 	// Email user email
@@ -46,10 +64,10 @@ type ResetToken struct {
 
 // SubmitResetPassword defines model for SubmitResetPassword.
 type SubmitResetPassword struct {
-	// Password user password
+	// Password user new password
 	Password string `json:"password" validate:"required,gte=8"`
 
-	// PasswordConfirm user password confirm
+	// PasswordConfirm user new password confirm
 	PasswordConfirm string `json:"password_confirm" validate:"eqfield=Password"`
 
 	// Token password reset secret token

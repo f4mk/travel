@@ -5,6 +5,7 @@ CREATE TABLE users (
 	name          TEXT        NOT NULL,
 	email         TEXT UNIQUE NOT NULL,
 	roles         TEXT[]      NOT NULL,
+	token_version INTEGER   	NOT NULL,
 	password_hash TEXT        NOT NULL,
 	date_created  TIMESTAMP   NOT NULL,
 	date_updated  TIMESTAMP   NOT NULL,
@@ -13,40 +14,13 @@ CREATE TABLE users (
 );
 
 -- Version: 1.02
--- Description: Create table products
-CREATE TABLE products (
-	product_id   UUID           NOT NULL,
-    user_id      UUID           NOT NULL,
-	name         TEXT           NOT NULL,
-	cost         NUMERIC(10, 2) NOT NULL,
-	quantity     INT            NOT NULL,
-	date_created TIMESTAMP      NOT NULL,
-	date_updated TIMESTAMP      NOT NULL,
+-- Description: Create table reset_tokens
 
-	PRIMARY KEY (product_id),
+CREATE TABLE reset_tokens (
+	token_id  		TEXT UNIQUE PRIMARY KEY,
+	user_id 			UUID	NOT NULL,
+	email 				TEXT NOT NULL, 
+	issued_at 		TIMESTAMP NOT NULL,
+	expires_at 		TIMESTAMP NOT NULL,
 	FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-);
-
--- Version: 1.03
--- Description: Add user_summary view.
-CREATE OR REPLACE VIEW user_summary AS
-SELECT
-    u.user_id   AS user_id,
-	u.name      AS user_name,
-    COUNT(p.*)  AS total_count,
-    SUM(p.cost) AS total_cost
-FROM
-    users AS u
-JOIN
-    products AS p ON p.user_id = u.user_id
-GROUP BY
-    u.user_id;
-
-CREATE TABLE revoked_tokens (
-    token_id UUID PRIMARY KEY,
-    subject UUID NOT NULL, 
-		issued_at TIMESTAMP NOT NULL,
-    expires_at TIMESTAMP NOT NULL,
-    revoked_at TIMESTAMP NOT NULL,
-    FOREIGN KEY (subject) REFERENCES users(user_id)
 );

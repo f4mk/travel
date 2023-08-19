@@ -10,6 +10,7 @@ type User struct {
 	UserID       string         `db:"user_id" json:"id"`
 	Name         string         `db:"name" json:"name"`
 	Email        string         `db:"email" json:"email"`
+	TokenVersion int32          `db:"token_version" json:"-"`
 	Roles        pq.StringArray `db:"roles" json:"-"`
 	PasswordHash []byte         `db:"password_hash" json:"-"`
 	DateCreated  time.Time      `db:"date_created" json:"date_created"`
@@ -30,16 +31,18 @@ type LoginUser struct {
 }
 
 type DeleteToken struct {
-	TokenID   string    `db:"token_id"`
-	Subject   string    `db:"subject"`
-	IssuedAt  time.Time `db:"issued_at"`
-	ExpiresAt time.Time `db:"expires_at"`
-	RevokedAt time.Time `db:"revoked_at"`
+	TokenID      string    `db:"token_id"`
+	Subject      string    `db:"subject"`
+	TokenVersion int32     `db:"token_version"`
+	IssuedAt     time.Time `db:"issued_at"`
+	ExpiresAt    time.Time `db:"expires_at"`
+	RevokedAt    time.Time `db:"revoked_at"`
 }
 
 type ChangePassword struct {
-	UserID   string
-	Password string
+	UserID      string
+	Password    string
+	PasswordOld string
 }
 
 type ResetPassword struct {
@@ -50,10 +53,10 @@ type ResetPassword struct {
 
 type ResetToken struct {
 	TokenID   string    `db:"token_id"`
+	UserID    string    `db:"user_id"`
 	Email     string    `db:"email"`
 	ExpiresAt time.Time `db:"expires_at"`
 	IssuedAt  time.Time `db:"issued_at"`
-	Used      bool      `db:"used"`
 }
 
 type SubmitPassword struct {

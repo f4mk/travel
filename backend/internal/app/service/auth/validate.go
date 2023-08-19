@@ -9,3 +9,11 @@ func (u LoginUser) Validate() error {
 func (cp ChangePassword) Validate() error {
 	return web.Check(cp)
 }
+
+func (cp ResetPassword) Validate() error {
+	return web.Check(cp)
+}
+
+func (cp SubmitResetPassword) Validate() error {
+	return web.Check(cp)
+}

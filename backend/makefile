@@ -52,21 +52,17 @@ image:
 		.
 
 #CREATE CRON IMAGE
-image-cron:
-	docker rmi travel-api-cron:latest || true
-	docker build \
-		-f ./dockerfile.cron \
-		-t travel-api-cron \
-		--build-arg CONFIG_PATH=${CONFIG_PATH} \
+# image-cron:
+# 	docker rmi travel-api-cron:latest || true
+# 	docker build \
+# 		-f ./dockerfile.cron \
+# 		-t travel-api-cron \
+# 		--build-arg CONFIG_PATH=${CONFIG_PATH} \
 		.
 
 #DELETE ALL DOCKER DANGLING IMAGES
 docker-rmi:
 	docker rmi `docker images -f dangling=true -q`
-
-#RUN DOCKER IMAGE
-run-docker:
-	docker run -p ${HOST_PORT}:${API_PORT} app
 
 #PULL DOCKER IMAGES
 pull: 
@@ -83,23 +79,31 @@ pull:
 tidy:
 	go mod tidy
 
-#BUILD SERVICE
-build:
-	go build ${GO_PROVIDE_CONFIG} -o app ./cmd/app/main.go
+#BUILD API SERVICE
+build-api:
+	go build ${GO_PROVIDE_CONFIG} -o app ./cmd/app/api/main.go
 
-#RUN SERVICE LOCALLY
-run:
-	go run ${GO_PROVIDE_CONFIG} ./cmd/app/main.go
+#RUN API SERVICE LOCALLY
+run-api:
+	go run ${GO_PROVIDE_CONFIG} ./cmd/app/api/main.go
+
+#BUILD MAILER SERVICE
+build-mailer:
+	go build ${GO_PROVIDE_CONFIG} -o app ./cmd/app/mailer/main.go
+
+#RUN MAILER SERVICE LOCALLY
+run-mailer:
+	go run ${GO_PROVIDE_CONFIG} ./cmd/app/mailer/main.go
 
 ###########################################
 
 ################### APP ###################
 
 #START APP FROM SCRATCH
-all: pull image image-cron up
+all: pull image up
 
 #RUN APP WITH REBUILD
-up: docker-rmi image image-cron compose-up
+up: docker-rmi image compose-up
 
 #RUN APP
 compose-up:

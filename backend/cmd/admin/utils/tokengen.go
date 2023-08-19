@@ -80,7 +80,8 @@ func GenerateAllTokens(cfg *config.Config, roles []string) ([]map[string]string,
 
 		claims := struct {
 			jwt.RegisteredClaims
-			Roles []string
+			Roles        []string
+			TokenVersion int32
 		}{
 			RegisteredClaims: jwt.RegisteredClaims{
 				// TODO: change this to a real subject
@@ -89,7 +90,8 @@ func GenerateAllTokens(cfg *config.Config, roles []string) ([]map[string]string,
 				ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(365 * time.Hour * 24)),
 				IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
 			},
-			Roles: []string{role},
+			Roles:        []string{role},
+			TokenVersion: 0,
 		}
 
 		for key, privateKey := range keys {
@@ -147,7 +149,8 @@ func GenerateToken(cfg *config.Config, kid string, roles []string) (map[string]s
 
 		claims := struct {
 			jwt.RegisteredClaims
-			Roles []string
+			Roles        []string
+			TokenVersion int32
 		}{
 			RegisteredClaims: jwt.RegisteredClaims{
 				// TODO: change this to a real subject
@@ -156,7 +159,8 @@ func GenerateToken(cfg *config.Config, kid string, roles []string) (map[string]s
 				ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(365 * time.Hour * 24)),
 				IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
 			},
-			Roles: []string{role},
+			Roles:        []string{role},
+			TokenVersion: 0,
 		}
 
 		method := jwt.GetSigningMethod("RS256")

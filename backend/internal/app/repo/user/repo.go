@@ -33,8 +33,8 @@ func (r *Repo) QueryAll(ctx context.Context) ([]user.User, error) {
 }
 
 func (r *Repo) Create(ctx context.Context, u user.User) error {
-	q := `INSERT INTO users(user_id, name, email, roles, password_hash, date_created, date_updated) 
-			VALUES(:user_id, :name, :email, :roles, :password_hash, :date_created, :date_updated);`
+	q := `INSERT INTO users(user_id, name, email, token_version, roles, password_hash, date_created, date_updated) 
+			VALUES(:user_id, :name, :email, :token_version, :roles, :password_hash, :date_created, :date_updated);`
 	_, err := r.repo.NamedExecContext(ctx, q, u)
 	if err != nil {
 		return err

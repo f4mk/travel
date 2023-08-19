@@ -21,7 +21,7 @@ func Authenticate(a *auth.Auth) web.Middleware {
 				return web.NewRequestError(err, http.StatusUnauthorized)
 			}
 			token := parts[1]
-			claims, err := a.ValidateToken(token)
+			claims, err := a.ValidateToken(ctx, token)
 			if err != nil {
 				return web.NewRequestError(
 					err,

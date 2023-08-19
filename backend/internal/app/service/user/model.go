@@ -23,7 +23,7 @@ type NewUser struct {
 	Name string `json:"name" validate:"required,gte=2"`
 
 	// Password user password
-	Password string `json:"password" validate:"required,gte=6"`
+	Password string `json:"password" validate:"required,gte=8"`
 
 	// PasswordConfirm user password confirm
 	PasswordConfirm string `json:"password_confirm" validate:"eqfield=Password"`

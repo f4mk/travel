@@ -112,8 +112,9 @@ func (s *Service) UpdateUser(ctx context.Context, w http.ResponseWriter, r *http
 		)
 	}
 	uu := userUsecase.UpdateUser{
-		Name:  u.Name,
-		Email: u.Email,
+		Name:     u.Name,
+		Email:    u.Email,
+		Password: u.Password,
 	}
 	res, err := s.core.Update(ctx, id, uu)
 	if err != nil {

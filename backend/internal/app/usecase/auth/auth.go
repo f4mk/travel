@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"time"
 
 	"github.com/f4mk/api/internal/pkg/auth"
@@ -14,11 +15,10 @@ import (
 )
 
 type Storer interface {
-	DeleteToken(ctx context.Context, dt DeleteToken) error
 	StoreResetToken(ctx context.Context, rt ResetToken) error
-	UpdateResetToken(ctx context.Context, rt ResetToken) error
-	RetrieveResetToken(ctx context.Context, token string) (ResetToken, error)
-	DeleteAllTokes(ctx context.Context, uID string) error
+	DeleteResetTokensByUserID(ctx context.Context, uID string) error
+	QueryResetTokenByID(ctx context.Context, token string) (ResetToken, error)
+	QueryLastResetTokenByUserID(ctx context.Context, uID string) (*ResetToken, error)
 	QueryByEmail(ctx context.Context, email string) (User, error)
 	QueryByID(ctx context.Context, uID string) (User, error)
 	Update(ctx context.Context, u User) error
@@ -57,12 +57,14 @@ func (c *Core) Login(ctx context.Context, lu LoginUser) (AuthenticatedUser, erro
 }
 
 func (c *Core) Logout(ctx context.Context, dt DeleteToken) error {
-	_, err := c.storer.QueryByID(ctx, dt.Subject)
+	u, err := c.storer.QueryByID(ctx, dt.Subject)
 	if err != nil {
 		c.log.Err(err).Msgf("auth: logout: %s", database.ErrQueryDB.Error())
 		return database.WrapStorerError(err)
 	}
-	if err := c.storer.DeleteToken(ctx, dt); err != nil {
+	u.DateUpdated = time.Now().UTC()
+	u.TokenVersion = u.TokenVersion + 1
+	if err := c.storer.Update(ctx, u); err != nil {
 		c.log.Err(err).Msgf("auth: logout: %s", database.ErrQueryDB.Error())
 		return database.WrapStorerError(err)
 	}
@@ -70,23 +72,26 @@ func (c *Core) Logout(ctx context.Context, dt DeleteToken) error {
 }
 
 func (c *Core) ChangePassword(ctx context.Context, cp ChangePassword) (User, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(cp.Password), bcrypt.DefaultCost)
-	if err != nil {
-		c.log.Err(err).Msgf("auth: change password: %s", auth.ErrGenHash.Error())
-		return User{}, auth.ErrGenHash
-	}
 	u, err := c.storer.QueryByID(ctx, cp.UserID)
 	if err != nil {
 		c.log.Err(err).Msgf("auth: change password: %s", database.ErrQueryDB.Error())
 		return User{}, database.WrapStorerError(err)
 	}
+	if err := bcrypt.CompareHashAndPassword(u.PasswordHash, []byte(cp.PasswordOld)); err != nil {
+		c.log.Err(err).Msgf("auth: login: %s", web.ErrAuthFailed.Error())
+		return User{}, web.ErrAuthFailed
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(cp.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.log.Err(err).Msgf("auth: change password: %s", auth.ErrGenHash.Error())
+		return User{}, auth.ErrGenHash
+	}
+
+	// update user with new password and token version
 	u.PasswordHash = hash
 	u.DateUpdated = time.Now().UTC()
+	u.TokenVersion = u.TokenVersion + 1
 	if err := c.storer.Update(ctx, u); err != nil {
-		c.log.Err(err).Msgf("auth: change password: %s", database.ErrQueryDB.Error())
-		return User{}, database.WrapStorerError(err)
-	}
-	if err := c.storer.DeleteAllTokes(ctx, cp.UserID); err != nil {
 		c.log.Err(err).Msgf("auth: change password: %s", database.ErrQueryDB.Error())
 		return User{}, database.WrapStorerError(err)
 	}
@@ -99,6 +104,22 @@ func (c *Core) ResetPasswordRequest(ctx context.Context, email string) (ResetPas
 		c.log.Err(err).Msgf("auth: reset password request: %s", database.ErrQueryDB.Error())
 		return ResetPassword{}, database.WrapStorerError(err)
 	}
+	lt, err := c.storer.QueryLastResetTokenByUserID(ctx, u.UserID)
+	if err != nil {
+		//handle all errors but 404(no token - no problems)
+		if !errors.Is(database.WrapStorerError(err), web.ErrNotFound) {
+			c.log.Err(err).Msgf("auth: reset password request: %s", database.ErrQueryDB.Error())
+			return ResetPassword{}, database.WrapStorerError(err)
+		}
+	}
+	if lt != nil {
+		// allow new token once every 10min
+		if lt.IssuedAt.After(time.Now().Add(-10 * time.Minute)) {
+			c.log.Warn().Msg("auth: reset password request: requested token too soon")
+			return ResetPassword{}, auth.ErrResetTokenReqLimit
+		}
+	}
+
 	token := make([]byte, 32)
 	_, err = rand.Read(token)
 	if err != nil {
@@ -108,10 +129,10 @@ func (c *Core) ResetPasswordRequest(ctx context.Context, email string) (ResetPas
 	et := hex.EncodeToString(token)
 	rt := ResetToken{
 		TokenID:   et,
+		UserID:    u.UserID,
 		Email:     u.Email,
 		ExpiresAt: time.Now().UTC().Add(24 * time.Hour),
 		IssuedAt:  time.Now().UTC(),
-		Used:      false,
 	}
 	err = c.storer.StoreResetToken(ctx, rt)
 	if err != nil {
@@ -127,7 +148,7 @@ func (c *Core) ResetPasswordRequest(ctx context.Context, email string) (ResetPas
 }
 
 func (c *Core) ResetPasswordSubmit(ctx context.Context, sp SubmitPassword) error {
-	rt, err := c.storer.RetrieveResetToken(ctx, sp.ResetToken)
+	rt, err := c.storer.QueryResetTokenByID(ctx, sp.ResetToken)
 	if err != nil {
 		c.log.Err(err).Msgf("auth: reset password validate: %s", database.ErrQueryDB.Error())
 		return database.WrapStorerError(err)
@@ -136,9 +157,8 @@ func (c *Core) ResetPasswordSubmit(ctx context.Context, sp SubmitPassword) error
 		c.log.Error().Msgf("auth: reset password validate: %s", auth.ErrValidateResetToken.Error())
 		return auth.ErrValidateResetToken
 	}
-	// mark token as used
-	rt.Used = true
-	if err := c.storer.UpdateResetToken(ctx, rt); err != nil {
+	// delete all tokens
+	if err := c.storer.DeleteResetTokensByUserID(ctx, rt.UserID); err != nil {
 		c.log.Err(err).Msgf("auth: reset password validate: %s", database.ErrQueryDB.Error())
 		return database.WrapStorerError(err)
 	}
@@ -152,14 +172,11 @@ func (c *Core) ResetPasswordSubmit(ctx context.Context, sp SubmitPassword) error
 		c.log.Err(err).Msgf("auth: reset password submit: %s", auth.ErrGenHash.Error())
 		return auth.ErrGenHash
 	}
-	// update user with new password
+	// update user with new password and token version
 	u.PasswordHash = hash
 	u.DateUpdated = time.Now().UTC()
+	u.TokenVersion = u.TokenVersion + 1
 	if err := c.storer.Update(ctx, u); err != nil {
-		c.log.Err(err).Msgf("auth: reset password submit: %s", database.ErrQueryDB.Error())
-		return database.WrapStorerError(err)
-	}
-	if err := c.storer.DeleteAllTokes(ctx, u.UserID); err != nil {
 		c.log.Err(err).Msgf("auth: reset password submit: %s", database.ErrQueryDB.Error())
 		return database.WrapStorerError(err)
 	}

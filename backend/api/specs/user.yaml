@@ -149,7 +149,7 @@ components:
           type: string
           description: "user password"
           x-oapi-codegen-extra-tags:
-            validate: "required,gte=6"
+            validate: "required,gte=8"
         password_confirm:
           type: string
           description: "user password confirm"

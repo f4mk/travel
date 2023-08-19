@@ -2,6 +2,7 @@ version: '3'
 services:
   haproxy:
     image: haproxy:2.8
+    container_name: haproxy
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
       - ./cert.pem:/etc/haproxy/certs/cert.pem
@@ -11,6 +12,7 @@ services:
       - 443:443
     depends_on:
       - travel-api
+      - travel-static
     restart: always
     networks:
       - local

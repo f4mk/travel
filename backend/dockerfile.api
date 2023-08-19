@@ -18,12 +18,9 @@ RUN go build -o app \
   -ldflags="-X 'main.build=${BUILD_REF}' \
   -X 'main.date=${BUILD_DATE}' \
   -X 'main.configPath=${CONFIG_PATH}'" \
-  /service/cmd/app/main.go 
+  /service/cmd/app/api/main.go 
 
 FROM alpine:3.18.2
-
-RUN adduser -D user
-USER user
 
 #prod container
 COPY --from=build_api /service/${CONFIG_PATH} /service/${CONFIG_PATH}
@@ -32,6 +29,14 @@ COPY --from=build_api /service/${API_KEY_FILE} /service/${API_KEY_FILE}
 COPY --from=build_api /service/${AUTH_KEY_PATH}/ /service/${AUTH_KEY_PATH}/
 COPY --from=build_api /service/app /service/app
 WORKDIR /service
+
+RUN apk add --no-cache bash
+COPY ./scripts/wait-for-it.sh /wait-for-it.sh
+RUN chmod +x /wait-for-it.sh
+
+RUN adduser -D user
+USER user
+
 CMD ["./app"]
 
 LABEL org.opencontainers.image.created="${BUILD_DATE}" \

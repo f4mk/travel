@@ -202,23 +202,6 @@ components:
         - email
         - password
 
-    ChangePassword:
-      type: object
-      properties:
-        password:
-          type: string
-          description: "user password"
-          x-oapi-codegen-extra-tags:
-            validate: "required,gte=8"
-        password_confirm:
-          type: string
-          description: "user password confirm"
-          x-oapi-codegen-extra-tags:
-            validate: "eqfield=Password"
-      required:
-        - password
-        - password_confirm
-
     UserResponse:
       type: object
       properties:
@@ -266,6 +249,44 @@ components:
       required:
         - error
     
+    SubmitResetPassword:
+      allOf:
+        - $ref: '#/components/schemas/ResetToken'
+        - $ref: '#/components/schemas/NewPassword'
+    
+    ChangePassword:
+      allOf:
+        - $ref: '#/components/schemas/OldPassword'
+        - $ref: '#/components/schemas/NewPassword'
+
+    OldPassword:
+      type: object
+      properties:
+        password_old:
+          type: string
+          description: "user new password"
+          x-oapi-codegen-extra-tags:
+            validate: "required"
+      required:
+        - password_old
+
+    NewPassword:
+      type: object
+      properties:
+        password:
+          type: string
+          description: "user new password"
+          x-oapi-codegen-extra-tags:
+            validate: "required,gte=8"
+        password_confirm:
+          type: string
+          description: "user new password confirm"
+          x-oapi-codegen-extra-tags:
+            validate: "eqfield=Password"
+      required:
+        - password
+        - password_confirm
+
     ResetToken:
       type: object
       properties:
@@ -276,8 +297,3 @@ components:
             validate: "required"
       required:
         - token
-
-    SubmitResetPassword:
-      allOf:
-        - $ref: '#/components/schemas/ResetToken'
-        - $ref: '#/components/schemas/ChangePassword'

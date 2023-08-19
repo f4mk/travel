@@ -13,11 +13,14 @@ services:
       - ${AUX_PORT}:${DEBUG_PORT}
     networks: 
       - local
+    command: ["/wait-for-it.sh", "${RABBIT_HOST_NAME}:${RABBIT_PORT}", "--", "./app"]
 
   postgres:
     image: postgres:15.3
     container_name: travel-api-db
     restart: always
+    volumes:
+      - travel-api-db-volume:/var/lib/postgresql/data
     ports:
       - ${DB_PORT}:${PG_PORT}
     environment:
@@ -38,13 +41,8 @@ services:
     networks: 
       - local
 
-  cron:
-    image: travel-api-cron:latest
-    container_name: travel-api-cron
-    depends_on:
-      - postgres
-    networks:
-      - local
-
 networks:
   local:
+
+volumes:
+  travel-api-db-volume:

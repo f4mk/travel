@@ -11,6 +11,7 @@ type User struct {
 	ID           string         `db:"user_id" json:"id"`
 	Name         string         `db:"name" json:"name"`
 	Email        string         `db:"email" json:"email"`
+	TokenVersion int32          `db:"token_version" json:"-"`
 	Roles        pq.StringArray `db:"roles" json:"-"`
 	PasswordHash []byte         `db:"password_hash" json:"-"`
 	DateCreated  time.Time      `db:"date_created" json:"date_created"`

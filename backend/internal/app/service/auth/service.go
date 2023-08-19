@@ -98,28 +98,19 @@ func (s *Service) Logout(ctx context.Context, w http.ResponseWriter, r *http.Req
 			http.StatusBadRequest,
 		)
 	}
-	refreshToken, err := r.Cookie("refresh_token")
+
+	c, err := auth.GetClaims(ctx)
 	if err != nil {
-		s.log.Err(err).Msg(ErrLogoutReadRefreshToken.Error())
-		return web.NewRequestError(
-			web.ErrAuthFailed,
-			http.StatusUnauthorized,
-		)
-	}
-	claims, err := s.auth.ValidateRefreshToken(ctx, refreshToken.Value)
-	if err != nil {
-		s.log.Err(err).Msg(ErrLogoutValidateRefreshToken.Error())
-		return web.NewRequestError(
-			web.ErrAuthFailed,
-			http.StatusUnauthorized,
-		)
+		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		return auth.ErrGetClaims
 	}
 	dt := authUsecase.DeleteToken{
-		TokenID:   claims.ID,
-		Subject:   claims.Subject,
-		IssuedAt:  claims.IssuedAt.UTC(),
-		ExpiresAt: claims.ExpiresAt.UTC(),
-		RevokedAt: time.Now().UTC(),
+		TokenID:      c.ID,
+		Subject:      c.Subject,
+		TokenVersion: c.TokenVersion,
+		IssuedAt:     c.IssuedAt.UTC(),
+		ExpiresAt:    c.ExpiresAt.UTC(),
+		RevokedAt:    time.Now().UTC(),
 	}
 	if err := s.core.Logout(ctx, dt); err != nil {
 		s.log.Err(err).Msg(ErrLogoutBusiness.Error())
@@ -127,11 +118,12 @@ func (s *Service) Logout(ctx context.Context, w http.ResponseWriter, r *http.Req
 	}
 	clearSession(w)
 	if err := s.auth.MarkTokenAsRevoked(ctx, authPkg.TokenParams{
-		TokenID:   dt.TokenID,
-		Subject:   dt.Subject,
-		IssuedAt:  dt.IssuedAt,
-		ExpiresAt: dt.ExpiresAt,
-		RevokedAt: dt.RevokedAt,
+		TokenID:      dt.TokenID,
+		Subject:      dt.Subject,
+		TokenVersion: dt.TokenVersion,
+		IssuedAt:     dt.IssuedAt,
+		ExpiresAt:    dt.ExpiresAt,
+		RevokedAt:    dt.RevokedAt,
 	}); err != nil {
 		s.log.Err(err).Msg(ErrLogoutRevokeToken.Error())
 		return ErrLogoutRevokeToken
@@ -148,26 +140,17 @@ func (s *Service) ChangePassword(ctx context.Context, w http.ResponseWriter, r *
 			http.StatusBadRequest,
 		)
 	}
-	refreshToken, err := r.Cookie("refresh_token")
+
+	c, err := auth.GetClaims(ctx)
 	if err != nil {
-		s.log.Err(err).Msg(ErrChangePassReadRefreshToken.Error())
-		return web.NewRequestError(
-			web.ErrAuthFailed,
-			http.StatusUnauthorized,
-		)
+		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		return auth.ErrGetClaims
 	}
-	claims, err := s.auth.ValidateRefreshToken(ctx, refreshToken.Value)
-	if err != nil {
-		s.log.Err(err).Msg(ErrRefreshValidateRefreshToken.Error())
-		return web.NewRequestError(
-			web.ErrAuthFailed,
-			http.StatusUnauthorized,
-		)
-	}
-	clearSession(w)
+
 	cp := authUsecase.ChangePassword{
-		UserID:   claims.Subject,
-		Password: p.Password,
+		UserID:      c.Subject,
+		Password:    p.Password,
+		PasswordOld: p.PasswordOld,
 	}
 	u, err := s.core.ChangePassword(ctx, cp)
 	if err != nil {
@@ -175,11 +158,12 @@ func (s *Service) ChangePassword(ctx context.Context, w http.ResponseWriter, r *
 		return web.GetResponseErrorFromBusiness(err)
 	}
 	if err := s.auth.MarkTokenAsRevoked(ctx, authPkg.TokenParams{
-		TokenID:   claims.ID,
-		Subject:   claims.Subject,
-		IssuedAt:  claims.IssuedAt.Time,
-		ExpiresAt: claims.ExpiresAt.Time,
-		RevokedAt: time.Now().UTC(),
+		TokenID:      c.ID,
+		Subject:      c.Subject,
+		TokenVersion: c.TokenVersion,
+		IssuedAt:     c.IssuedAt.Time,
+		ExpiresAt:    c.ExpiresAt.Time,
+		RevokedAt:    time.Now().UTC(),
 	}); err != nil {
 		s.log.Err(err).Msg(ErrChangePassRevokeToken.Error())
 		return ErrChangePassRevokeToken
@@ -204,7 +188,7 @@ func (s *Service) Refresh(ctx context.Context, w http.ResponseWriter, r *http.Re
 			http.StatusUnauthorized,
 		)
 	}
-	newClaims, err := s.auth.ValidateRefreshToken(ctx, refreshToken.Value)
+	newClaims, err := s.auth.ValidateToken(ctx, refreshToken.Value)
 	if err != nil {
 		s.log.Err(err).Msg(ErrRefreshValidateRefreshToken.Error())
 		return web.NewRequestError(
@@ -232,6 +216,12 @@ func (s *Service) PasswordReset(ctx context.Context, w http.ResponseWriter, r *h
 	}
 	res, err := s.core.ResetPasswordRequest(ctx, rp.Email)
 	if err != nil {
+		if errors.Is(err, auth.ErrResetTokenReqLimit) {
+			return web.NewRequestError(
+				err,
+				http.StatusTooManyRequests,
+			)
+		}
 		s.log.Err(err).Msg(ErrResetPasswordBusiness.Error())
 		//return success to not spoil if the user exists
 		if errors.Is(web.ErrNotFound, err) {
@@ -255,7 +245,6 @@ func (s *Service) PasswordReset(ctx context.Context, w http.ResponseWriter, r *h
 	return web.Respond(ctx, w, struct{}{}, http.StatusCreated)
 }
 
-// TODO: Implement
 func (s *Service) PasswordResetSubmit(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	srp := SubmitResetPassword{}
 	if err := web.Decode(r, &srp); err != nil {

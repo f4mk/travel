@@ -99,6 +99,12 @@ func (a *Auth) GenerateToken(claims Claims, duration time.Duration) (string, err
 	ea := ia.Add(duration)
 	jti := uuid.New().String()
 	claims.ID = jti
+	tv, err := a.getLastTokenVersion(claims)
+	if err != nil {
+		a.log.Err(err).Msg(ErrGetClaims.Error())
+		return "", ErrGetClaims
+	}
+	claims.TokenVersion = tv
 	claims.IssuedAt = &jwt.NumericDate{Time: ia}
 	claims.ExpiresAt = &jwt.NumericDate{Time: ea}
 	token := jwt.NewWithClaims(a.method, claims)
@@ -121,13 +127,22 @@ func (a *Auth) GenerateToken(claims Claims, duration time.Duration) (string, err
 	return str, nil
 }
 
-func (a *Auth) ValidateToken(tokenStr string) (Claims, error) {
+func (a *Auth) ValidateToken(ctx context.Context, t string) (Claims, error) {
 	var claims Claims
-	token, err := a.parser.ParseWithClaims(tokenStr, &claims, a.keyFunc)
+	token, err := a.parser.ParseWithClaims(t, &claims, a.keyFunc)
 
 	if err != nil {
 		a.log.Err(err).Msg(ErrParseToken.Error())
 		return Claims{}, ErrParseToken
+	}
+	revoked, err := a.cache.Exists(ctx, claims.ID).Result()
+	if err != nil {
+		a.log.Err(err).Msg(ErrCheckCachedToken.Error())
+		return Claims{}, ErrCheckCachedToken
+	}
+	if revoked == 1 {
+		a.log.Error().Msg(ErrRevokedToken.Error())
+		return Claims{}, ErrRevokedToken
 	}
 	et, err := token.Claims.GetExpirationTime()
 	if err != nil {
@@ -138,31 +153,19 @@ func (a *Auth) ValidateToken(tokenStr string) (Claims, error) {
 		a.log.Error().Msg(ErrExpiredToken.Error())
 		return Claims{}, ErrExpiredToken
 	}
+	tv, err := a.getLastTokenVersion(claims)
+	if err != nil {
+		a.log.Err(err).Msg(ErrValidateToken.Error())
+		return Claims{}, ErrValidateToken
+	}
+	if claims.TokenVersion != tv {
+		a.log.Error().Msg(ErrValidateTokenVersion.Error())
+		return Claims{}, ErrValidateTokenVersion
+	}
 	if !token.Valid {
 		a.log.Error().Msg(ErrInvalidToken.Error())
 		return Claims{}, ErrInvalidToken
 	}
-	return claims, nil
-}
-
-func (a *Auth) ValidateRefreshToken(ctx context.Context, tokenStr string) (Claims, error) {
-
-	claims, err := a.ValidateToken(tokenStr)
-	if err != nil {
-		a.log.Err(err).Msg(ErrInvalidRefreshToken.Error())
-		return Claims{}, err
-	}
-
-	revoked, err := a.cache.Exists(ctx, claims.ID).Result()
-	if err != nil {
-		a.log.Err(err).Msg(ErrCheckCachedToken.Error())
-		return Claims{}, ErrCheckCachedToken
-	}
-	if revoked == 1 {
-		a.log.Error().Msg(ErrRevokedToken.Error())
-		return Claims{}, ErrRevokedToken
-	}
-
 	return claims, nil
 }
 
@@ -214,19 +217,35 @@ func (a *Auth) LoadRevokedTokensToCache() error {
 }
 
 type TokenParams struct {
-	TokenID   string    `db:"token_id" json:"token_id"`
-	ExpiresAt time.Time `db:"expires_at" json:"expires_at"`
-	IssuedAt  time.Time `db:"issued_at" json:"issued_at"`
-	RevokedAt time.Time `db:"revoked_at" json:"revoked_at"`
-	Subject   string    `db:"subject" json:"subject"`
+	TokenID      string    `db:"token_id" json:"token_id"`
+	Subject      string    `db:"subject" json:"subject"`
+	TokenVersion int32     `db:"token_version" json:"token_version"`
+	ExpiresAt    time.Time `db:"expires_at" json:"expires_at"`
+	IssuedAt     time.Time `db:"issued_at" json:"issued_at"`
+	RevokedAt    time.Time `db:"revoked_at" json:"revoked_at"`
 }
 
 func (a *Auth) getRevokedTokens() ([]TokenParams, error) {
 	var tokens []TokenParams
-	err := a.db.Select(&tokens, "SELECT token_id, expires_at, issued_at, revoked_at, subject FROM revoked_tokens")
+	err := a.db.Select(&tokens, "SELECT token_id, subject, token_version, expires_at, issued_at, revoked_at  FROM revoked_tokens")
 	if err != nil {
 		a.log.Err(err).Msg(ErrReadTokenFromDB.Error())
 		return nil, ErrReadTokenFromDB
 	}
 	return tokens, nil
+}
+
+type user struct {
+	TokenVersion int32 `db:"token_version"`
+}
+
+func (a *Auth) getLastTokenVersion(c Claims) (int32, error) {
+	u := user{}
+	q := "SELECT token_version FROM users WHERE user_id = $1;"
+	err := a.db.Get(&u, q, c.Subject)
+	if err != nil {
+		a.log.Err(err).Msg(ErrReadUserFromDB.Error())
+		return 0, ErrReadUserFromDB
+	}
+	return u.TokenVersion, nil
 }
