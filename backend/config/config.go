@@ -1,6 +1,8 @@
 package config
 
 import (
+	"fmt"
+	"os"
 	"time"
 
 	"github.com/caarlos0/env/v9"
@@ -48,6 +50,11 @@ type MessageBroker struct {
 	Password string `env:"RABBIT_PASSWORD,required"`
 }
 
+type MailService struct {
+	PrivateKey string `env:"MAIL_PRIVATE_KEY_PATH,required"`
+	PublicKey  string `env:"MAIL_PUBLIC_KEY_PATH,required"`
+}
+
 type Log struct {
 	LogLevel int `env:"LOG_LEVEL,required"`
 }
@@ -80,6 +87,7 @@ type Config struct {
 	DB            DB
 	Cache         Cache
 	MessageBroker MessageBroker
+	MailService   MailService
 	Telemetry     Telemetry
 }
 
@@ -94,6 +102,22 @@ func New(configPath string) (*Config, error) {
 	if err := env.Parse(&cfg); err != nil {
 		return nil, err
 	}
+
+	// TODO: refactor this
+	privateKeyContent, err := os.ReadFile(cfg.MailService.PrivateKey)
+	if err != nil {
+		fmt.Printf("Error reading private key: %v\n", err)
+		os.Exit(1)
+	}
+
+	publicKeyContent, err := os.ReadFile(cfg.MailService.PublicKey)
+	if err != nil {
+		fmt.Printf("Error reading public key: %v\n", err)
+		os.Exit(1)
+	}
+
+	cfg.MailService.PrivateKey = string(privateKeyContent)
+	cfg.MailService.PublicKey = string(publicKeyContent)
 
 	return &cfg, nil
 }

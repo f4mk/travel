@@ -14,6 +14,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+const emailCooldown = 10
+
 type Storer interface {
 	StoreResetToken(ctx context.Context, rt ResetToken) error
 	DeleteResetTokensByUserID(ctx context.Context, uID string) error
@@ -114,8 +116,8 @@ func (c *Core) ResetPasswordRequest(ctx context.Context, email string) (ResetPas
 		}
 	}
 	if lt != nil {
-		// allow new token once every 10min
-		if lt.IssuedAt.After(time.Now().Add(-10 * time.Minute)) {
+		// allow new token once every Xmin
+		if lt.IssuedAt.After(time.Now().Add(-emailCooldown * time.Minute)) {
 			c.log.Warn().Msg("auth: reset password request: requested token too soon")
 			return ResetPassword{}, auth.ErrResetTokenReqLimit
 		}

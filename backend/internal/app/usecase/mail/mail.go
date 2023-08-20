@@ -1,14 +1,13 @@
 package mail
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/rs/zerolog"
 )
 
 type Sender interface {
-	Send(ctx context.Context, l Letter) error
+	Send(l Letter) error
 }
 
 type Core struct {
@@ -23,7 +22,7 @@ func NewCore(l *zerolog.Logger, s Sender) *Core {
 	}
 }
 
-func (c *Core) SendMessage(ctx context.Context, m Message) error {
+func (c *Core) SendMessage(m Message) error {
 
 	sub := "Password reset"
 	head := fmt.Sprintf("Hello %s", m.Name)
@@ -34,10 +33,11 @@ func (c *Core) SendMessage(ctx context.Context, m Message) error {
 
 	l := Letter{
 		To:      m.Email,
+		Name:    m.Name,
 		Subject: sub,
 		Header:  head,
 		Link:    m.ResetToken,
 		Body:    body,
 	}
-	return c.sender.Send(ctx, l)
+	return c.sender.Send(l)
 }

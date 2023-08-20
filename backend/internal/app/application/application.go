@@ -76,7 +76,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	defer mq.Close()
 	// -------------------------------------------------------------------------
 	// Starting Mail service
-	mail, err := mail.New(log, mq)
+	mail, err := mail.New(log, mq, cfg.MailService.PublicKey, cfg.MailService.PrivateKey)
 	if err != nil {
 		log.Err(err).Msg(ErrCreateMailServer.Error())
 		return ErrCreateMailServer

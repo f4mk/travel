@@ -45,8 +45,8 @@ image:
 		--build-arg BUILD_REF=`git rev-parse HEAD` \
 		--build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
 		--build-arg CONFIG_PATH=${CONFIG_PATH} \
-		--build-arg API_CERT_FILE=${API_CERT_FILE} \
-		--build-arg API_KEY_FILE=${API_KEY_FILE} \
+		--build-arg MAIL_PRIVATE_KEY_PATH=${MAIL_PRIVATE_KEY_PATH} \
+		--build-arg MAIL_PUBLIC_KEY_PATH=${MAIL_PUBLIC_KEY_PATH} \
 		--build-arg AUTH_PRIVATE_KEY_FILE=${AUTH_PRIVATE_KEY_FILE} \
 		--build-arg AUTH_PUBLIC_KEY_FILE=${AUTH_PUBLIC_KEY_FILE} \
 		.

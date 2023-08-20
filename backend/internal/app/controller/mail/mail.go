@@ -16,10 +16,11 @@ type Config struct {
 
 type Agent struct {
 	service  *mail.Service
+	log      *zerolog.Logger
 	shutdown context.CancelFunc
 }
 
-func New(l *zerolog.Logger, mb *mb.Channel) (*Agent, error) {
+func New(l *zerolog.Logger, mb *mb.Channel, pb string, pr string) (*Agent, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	r, err := mb.Consume()
 	if err != nil {
@@ -27,12 +28,13 @@ func New(l *zerolog.Logger, mb *mb.Channel) (*Agent, error) {
 		return nil, err
 	}
 
-	mr := mailSender.NewSender(l)
+	mr := mailSender.NewSender(l, pb, pr)
 
 	ms := mail.NewService(l, mr)
 
 	ma := &Agent{
 		service:  ms,
+		log:      l,
 		shutdown: cancel,
 	}
 
@@ -49,10 +51,15 @@ func New(l *zerolog.Logger, mb *mb.Channel) (*Agent, error) {
 
 func (ma *Agent) Shutdown(ctx context.Context) {
 	ma.shutdown()
-	// wait either external timeout or service stop
+	doneCh := make(chan struct{})
+	go func() {
+		<-ma.service.Stop()
+		close(doneCh)
+	}()
+
 	select {
-	case <-ma.service.Stop():
-		return
+	case <-doneCh:
 	case <-ctx.Done():
+		ma.log.Error().Msg("error graceful shutdown mail service")
 	}
 }
