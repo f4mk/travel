@@ -10,6 +10,7 @@ import (
 	"github.com/f4mk/api/config"
 	"github.com/f4mk/api/internal/app/controller/api"
 	"github.com/f4mk/api/internal/app/controller/debug"
+	"github.com/f4mk/api/internal/app/controller/mail"
 	"github.com/f4mk/api/internal/pkg/auth"
 	"github.com/f4mk/api/internal/pkg/database"
 	"github.com/f4mk/api/internal/pkg/keystore"
@@ -62,7 +63,8 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 		log.Err(err).Msg(ErrCreateBroker.Error())
 		return ErrCreateBroker
 	}
-	// TODO: maybe move to controller or somewhere closer to consumers
+	defer cm.Close()
+
 	mq, err := cm.NewChannel(mb.ChConfig{
 		QName:   "resetPasswordLetter",
 		WithDLQ: true,
@@ -70,6 +72,14 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	if err != nil {
 		log.Err(err).Msg(ErrCreateQueue.Error())
 		return ErrCreateQueue
+	}
+	defer mq.Close()
+	// -------------------------------------------------------------------------
+	// Starting Mail service
+	mail, err := mail.New(log, mq)
+	if err != nil {
+		log.Err(err).Msg(ErrCreateMailServer.Error())
+		return ErrCreateMailServer
 	}
 
 	// -------------------------------------------------------------------------
@@ -190,6 +200,8 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 		defer log.Info().Msgf("api: shutdown completed on signal: %s", sig)
 		ctx, cancel := context.WithTimeout(context.Background(), cfg.API.ShutdownTimeout)
 		defer cancel()
+
+		mail.Shutdown(ctx)
 
 		if err := api.Shutdown(ctx); err != nil {
 			api.Close()

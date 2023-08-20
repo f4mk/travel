@@ -23,10 +23,11 @@ type ChConfig struct {
 	WithDLQ bool
 }
 
-// TODO: add extra fields when needed
 type Message struct {
-	Body []byte
-	Type string
+	delivery *amqp.Delivery
+	Body     []byte
+	Type     string
+	Headers  amqp.Table
 }
 
 func (cm *ConnManager) NewChannel(cfg ChConfig) (*Channel, error) {
@@ -139,7 +140,7 @@ func (c *Channel) Consume() (<-chan Message, error) {
 	msgs, err := c.ch.Consume(
 		c.QueueName,
 		"",    // Consumer
-		true,  // Auto-Ack
+		false, // Auto-Ack
 		false, // Exclusive
 		false, // No-local
 		false, // No-Wait
@@ -157,13 +158,27 @@ func (c *Channel) Consume() (<-chan Message, error) {
 
 		for d := range msgs {
 			data := Message{
-				Body: d.Body,
-				Type: "application/json",
+				delivery: &d,
+				Body:     d.Body,
+				Type:     "application/json",
+				Headers:  d.Headers,
 			}
 			out <- data
 		}
 	}()
 	return out, nil
+}
+
+func (m *Message) Ack(multiple bool) error {
+	return m.delivery.Ack(multiple)
+}
+
+func (m *Message) Nack(multiple bool, requeue bool) error {
+	return m.delivery.Nack(multiple, requeue)
+}
+
+func (m *Message) Reject(requeue bool) error {
+	return m.delivery.Reject(requeue)
 }
 
 func (c *Channel) Close() {

@@ -7,6 +7,7 @@ var (
 	ErrCreateKeyStore   = errors.New("api: error creating keystore")
 	ErrCreateBroker     = errors.New("api: error creating message broker")
 	ErrCreateQueue      = errors.New("api: error creating message queue")
+	ErrCreateMailServer = errors.New("api: error creating mail server")
 	ErrConnRedis        = errors.New("api: error connecting to redis")
 	ErrConatructAuth    = errors.New("api: error constructing auth")
 	ErrRunDebug         = errors.New("debug: error running debug server")
