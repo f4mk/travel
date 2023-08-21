@@ -3,7 +3,7 @@ package mail
 import (
 	"context"
 
-	mailSender "github.com/f4mk/api/internal/app/repo/mail"
+	mailSender "github.com/f4mk/api/internal/app/provider/mail"
 	"github.com/f4mk/api/internal/app/service/mail"
 	"github.com/f4mk/api/pkg/mb"
 	"github.com/rs/zerolog"
@@ -20,7 +20,7 @@ type Agent struct {
 	shutdown context.CancelFunc
 }
 
-func New(l *zerolog.Logger, mb *mb.Channel, pb string, pr string) (*Agent, error) {
+func New(l *zerolog.Logger, mb *mb.Channel, pb string, pr string, dn string) (*Agent, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	r, err := mb.Consume()
 	if err != nil {
@@ -28,7 +28,7 @@ func New(l *zerolog.Logger, mb *mb.Channel, pb string, pr string) (*Agent, error
 		return nil, err
 	}
 
-	mr := mailSender.NewSender(l, pb, pr)
+	mr := mailSender.NewSender(l, pb, pr, dn)
 
 	ms := mail.NewService(l, mr)
 

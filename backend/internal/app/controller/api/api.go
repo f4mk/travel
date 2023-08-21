@@ -5,8 +5,8 @@ import (
 	"os"
 	"time"
 
-	authRepo "github.com/f4mk/api/internal/app/repo/auth"
-	userRepo "github.com/f4mk/api/internal/app/repo/user"
+	authRepo "github.com/f4mk/api/internal/app/provider/auth"
+	userRepo "github.com/f4mk/api/internal/app/provider/user"
 	authService "github.com/f4mk/api/internal/app/service/auth"
 	userService "github.com/f4mk/api/internal/app/service/user"
 	"github.com/f4mk/api/internal/pkg/auth"
@@ -28,7 +28,6 @@ type Config struct {
 	RateLimit      int
 }
 
-// TODO: add MQ usage
 func New(cfg Config) *web.App {
 
 	app := web.New(
@@ -47,7 +46,7 @@ func New(cfg Config) *web.App {
 	as := authService.NewService(cfg.Log, cfg.Auth, ar, cfg.MQ)
 
 	app.Handle(http.MethodPost, "/user", us.CreateUser, middleware.RateLimit(cfg.Log, cfg.RateLimit))
-	app.Handle(http.MethodGet, "/user", us.GetUsers, middleware.RateLimit(cfg.Log, cfg.RateLimit))
+	app.Handle(http.MethodGet, "/user", us.GetUsers)
 	app.Handle(http.MethodGet, "/user/:id", us.GetUser)
 	app.Handle(
 		http.MethodPut,
@@ -58,11 +57,11 @@ func New(cfg Config) *web.App {
 	)
 	app.Handle(http.MethodDelete, "/user/:id", us.DeleteUser, middleware.Authenticate(cfg.Auth))
 
+	// TODO: login takes too long, need to do smth
 	app.Handle(http.MethodPost, "/auth/login", as.Login)
 	app.Handle(http.MethodPost, "/auth/logout", as.Logout, middleware.Authenticate(cfg.Auth))
 	app.Handle(http.MethodPost, "/auth/refresh", as.Refresh, middleware.RateLimit(cfg.Log, cfg.RateLimit))
 	app.Handle(http.MethodPost, "/auth/password/change", as.ChangePassword, middleware.Authenticate(cfg.Auth))
-	// TODO:
 	app.Handle(
 		http.MethodPost,
 		"/auth/password/reset",

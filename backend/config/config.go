@@ -22,6 +22,7 @@ type API struct {
 
 type Service struct {
 	ServiceName string `env:"SERVICE_NAME,required"`
+	DomainName  string `env:"DOMAIN_NAME,required"`
 }
 
 type Debug struct {

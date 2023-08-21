@@ -55,6 +55,7 @@ func (c *Core) Login(ctx context.Context, lu LoginUser) (AuthenticatedUser, erro
 		Name:         u.Name,
 		TokenVersion: u.TokenVersion,
 		Roles:        u.Roles,
+		DateCreated:  u.DateCreated,
 	}
 	return au, nil
 }

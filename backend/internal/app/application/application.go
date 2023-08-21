@@ -76,7 +76,13 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	defer mq.Close()
 	// -------------------------------------------------------------------------
 	// Starting Mail service
-	mail, err := mail.New(log, mq, cfg.MailService.PublicKey, cfg.MailService.PrivateKey)
+	mail, err := mail.New(
+		log,
+		mq,
+		cfg.MailService.PublicKey,
+		cfg.MailService.PrivateKey,
+		cfg.Service.DomainName,
+	)
 	if err != nil {
 		log.Err(err).Msg(ErrCreateMailServer.Error())
 		return ErrCreateMailServer
@@ -94,7 +100,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	activeKids := ks.CollectKeyIDs()
 
 	//creating cache
-	rdb := redis.NewClient(&redis.Options{
+	redis := redis.NewClient(&redis.Options{
 		Addr:         utils.GetHost(cfg.Cache.HostName, cfg.Cache.Port),
 		Password:     "",
 		DB:           cfg.Cache.DB,
@@ -102,7 +108,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 		MinIdleConns: cfg.Cache.MinIdleConns,
 	})
 
-	pong, err := rdb.Ping(context.TODO()).Result()
+	pong, err := redis.Ping(context.TODO()).Result()
 	if err != nil {
 		log.Err(err).Msgf(ErrConnRedis.Error())
 		return ErrConnRedis
@@ -112,13 +118,13 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 
 	defer func() {
 		log.Info().Msgf("api: closing rdc connection %s", utils.GetHost(cfg.Cache.HostName, cfg.Cache.Port))
-		rdb.Close()
+		redis.Close()
 	}()
 
 	authCfg := auth.Config{
 		ActiveKIDs:      activeKids,
 		KeyLookup:       ks,
-		Cache:           rdb,
+		Cache:           redis,
 		DB:              db,
 		Log:             log,
 		AuthDuration:    cfg.Auth.AuthDuration,

@@ -6,7 +6,7 @@ type Letter struct {
 	Subject string
 	Header  string
 	Body    string
-	Link    string
+	Token   string
 }
 
 type Message struct {

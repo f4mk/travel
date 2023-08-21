@@ -36,7 +36,7 @@ func (c *Core) SendMessage(m Message) error {
 		Name:    m.Name,
 		Subject: sub,
 		Header:  head,
-		Link:    m.ResetToken,
+		Token:   m.ResetToken,
 		Body:    body,
 	}
 	return c.sender.Send(l)

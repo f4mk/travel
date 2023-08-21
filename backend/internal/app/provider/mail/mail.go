@@ -15,12 +15,13 @@ var content embed.FS
 
 type Sender struct {
 	log        *zerolog.Logger
+	dName      string
 	publicKey  string
 	privateKey string
 }
 
-func NewSender(l *zerolog.Logger, pb string, pr string) *Sender {
-	return &Sender{log: l, publicKey: pb, privateKey: pr}
+func NewSender(l *zerolog.Logger, pb string, pr string, dn string) *Sender {
+	return &Sender{log: l, dName: dn, publicKey: pb, privateKey: pr}
 }
 
 func (s *Sender) Send(l mailUsecase.Letter) error {
@@ -30,8 +31,27 @@ func (s *Sender) Send(l mailUsecase.Letter) error {
 		s.log.Err(err).Msg("error parsing letter template from file")
 	}
 
+	// TODO: refactor this
+	link := "https://" + s.dName + "/password/reset?token=" + l.Token
+	letter := struct {
+		To      string
+		Name    string
+		Subject string
+		Header  string
+		Body    string
+		Link    string
+		Domain  string
+	}{
+		To:      l.To,
+		Name:    l.Name,
+		Subject: l.Subject,
+		Header:  l.Header,
+		Body:    l.Body,
+		Link:    link,
+	}
+
 	var buf bytes.Buffer
-	if err := tmpl.Execute(&buf, l); err != nil {
+	if err := tmpl.Execute(&buf, letter); err != nil {
 		panic(err)
 	}
 
@@ -48,7 +68,7 @@ func (s *Sender) Send(l mailUsecase.Letter) error {
 		FromEmail:  "noreply@traillyst.com",
 		FromName:   "CoolApp",
 		Subject:    l.Subject,
-		TextPart:   l.Header + "\n" + l.Body + "\n" + l.Link,
+		TextPart:   l.Header + "\n" + l.Body + "\n" + link,
 		HTMLPart:   buf.String(),
 		Recipients: recipients,
 	}

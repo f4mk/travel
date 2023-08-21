@@ -29,8 +29,8 @@ type Service struct {
 	log  *zerolog.Logger
 }
 
-func NewService(l *zerolog.Logger, repo userUsecase.Storer) *Service {
-	core := userUsecase.NewCore(repo, l)
+func NewService(l *zerolog.Logger, storer userUsecase.Storer) *Service {
+	core := userUsecase.NewCore(storer, l)
 	return &Service{
 		core: core,
 		log:  l,

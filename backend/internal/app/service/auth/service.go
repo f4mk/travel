@@ -27,11 +27,11 @@ type Service struct {
 func NewService(
 	l *zerolog.Logger,
 	auth *authPkg.Auth,
-	repo authUsecase.Storer,
+	storer authUsecase.Storer,
 	mq *queue.Channel,
 ) *Service {
 
-	core := authUsecase.NewCore(repo, l)
+	core := authUsecase.NewCore(storer, l)
 
 	return &Service{
 		log:  l,
