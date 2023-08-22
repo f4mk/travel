@@ -4,7 +4,9 @@ import (
 	"context"
 	"crypto/rsa"
 	"encoding/json"
+	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -168,6 +170,21 @@ func (a *Auth) ValidateToken(ctx context.Context, t string) (Claims, error) {
 		return Claims{}, ErrInvalidToken
 	}
 	return claims, nil
+}
+
+func (a *Auth) ParseClaimsFromHeader(r *http.Request) *Claims {
+	var claims Claims
+	authHeader := r.Header.Get("Authorization")
+	parts := strings.Split(authHeader, " ")
+	if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
+		return nil
+	}
+	t := parts[1]
+	_, err := a.parser.ParseWithClaims(t, &claims, a.keyFunc)
+	if err != nil {
+		return nil
+	}
+	return &claims
 }
 
 func (a *Auth) StoreUserTokenVersion(ctx context.Context, uID string, tv int32) error {
