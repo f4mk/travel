@@ -8,6 +8,7 @@ var (
 	ErrKIDFormat               = errors.New("key id must be string")
 	ErrPrivateNotFound         = errors.New("missing private key for id")
 	ErrSigningToken            = errors.New("error signing token")
+	ErrLoadRevokedTokens       = errors.New("error loading revoked tokens")
 	ErrParseToken              = errors.New("error parsing token")
 	ErrValidateToken           = errors.New("error validating token")
 	ErrValidateTokenVersion    = errors.New("error validating token version")

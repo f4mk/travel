@@ -60,6 +60,7 @@ func New(cfg Config) *web.App {
 	// TODO: login takes too long, need to do smth
 	app.Handle(http.MethodPost, "/auth/login", as.Login)
 	app.Handle(http.MethodPost, "/auth/logout", as.Logout, middleware.Authenticate(cfg.Auth))
+	app.Handle(http.MethodPost, "/auth/logout/all", as.LogoutAll, middleware.Authenticate(cfg.Auth))
 	app.Handle(http.MethodPost, "/auth/refresh", as.Refresh, middleware.RateLimit(cfg.Log, cfg.RateLimit))
 	app.Handle(http.MethodPost, "/auth/password/change", as.ChangePassword, middleware.Authenticate(cfg.Auth))
 	app.Handle(

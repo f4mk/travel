@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"embed"
 	"html/template"
+	"net/url"
 
 	mailUsecase "github.com/f4mk/api/internal/app/usecase/mail"
 	"github.com/mailjet/mailjet-apiv3-go/v3"
@@ -31,8 +32,17 @@ func (s *Sender) Send(l mailUsecase.Letter) error {
 		s.log.Err(err).Msg("error parsing letter template from file")
 	}
 
-	// TODO: refactor this
-	link := "https://" + s.dName + "/password/reset?token=" + l.Token
+	q := make(url.Values)
+	q.Set("token", l.Token)
+
+	u := &url.URL{
+		Scheme:   "https",
+		Host:     s.dName,
+		Path:     "/password/reset",
+		RawQuery: q.Encode(),
+	}
+
+	link := u.String()
 	letter := struct {
 		To      string
 		Name    string

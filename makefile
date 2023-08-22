@@ -5,6 +5,8 @@ API_CONFIG_PATH := $(shell cd ./backend && $(MAKE) -s config-path)
 backend-image:
 	$(MAKE) -C ./backend image
 
+backend-image-cron:
+	$(MAKE) -C ./backend image-cron
 
 front-image:
 	$(MAKE) -C ./frontend image
@@ -40,10 +42,10 @@ compose-down:
 		up
 
 #START APP FROM SCRATCH
-all: pull backend-image front-image compose-up
+all: pull backend-image backend-image-cron front-image compose-up
 
 #RUN APP WITH REBUILD
-up: backend-image front-image compose-up
+up: backend-image backend-image-cron front-image compose-up
 
 #GENERATE SSL CERTIFICATE FOR HTTPS
 cert:

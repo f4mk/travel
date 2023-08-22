@@ -19,7 +19,6 @@ var (
 	ErrChangePassReadRefreshToken     = errors.New("error change password reading refresh token")
 	ErrChangePassValidateRefreshToken = errors.New("error change password validating refresh token")
 	ErrChangePassBusiness             = errors.New("error change password from business layer")
-	ErrChangePassRevokeToken          = errors.New("error change password revoking token")
 
 	ErrResetPasswordDecode      = errors.New("error reset password parsing user input")
 	ErrResetPasswordBusiness    = errors.New("error reset password from business layer")

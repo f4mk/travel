@@ -34,6 +34,8 @@ services:
     image: redis:6.2-alpine
     container_name: travel-api-redis
     restart: always
+    volumes:
+      - travel-api-cache-volume:/data
     depends_on:
       - postgres
     ports:
@@ -41,8 +43,17 @@ services:
     networks: 
       - local
 
+  cron:
+    image: travel-api-cron:latest
+    container_name: travel-api-cron
+    depends_on:
+      - postgres
+    networks:
+      - local
+
 networks:
   local:
 
 volumes:
   travel-api-db-volume:
+  travel-api-cache-volume:

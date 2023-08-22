@@ -78,3 +78,10 @@ func (r *Repo) QueryLastResetTokenByUserID(ctx context.Context, uID string) (*au
 	}
 	return &rt, nil
 }
+
+func (r *Repo) DeleteToken(ctx context.Context, t authUsecase.DeleteToken) error {
+	q := `INSERT INTO revoked_tokens (token_id, subject, token_version, issued_at, expires_at, revoked_at) 
+	VALUES (:token_id, :subject, :token_version, :issued_at, :expires_at, :revoked_at)`
+	_, err := r.repo.NamedExecContext(ctx, q, t)
+	return err
+}

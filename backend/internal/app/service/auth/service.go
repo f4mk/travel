@@ -116,12 +116,11 @@ func (s *Service) Logout(ctx context.Context, w http.ResponseWriter, r *http.Req
 		ExpiresAt:    c.ExpiresAt.UTC(),
 		RevokedAt:    time.Now().UTC(),
 	}
-	tl, err := s.core.Logout(ctx, dt)
-	if err != nil {
+	if err := s.core.Logout(ctx, dt); err != nil {
 		s.log.Err(err).Msg(ErrLogoutBusiness.Error())
 		return web.GetResponseErrorFromBusiness(err)
 	}
-	if err := s.auth.StoreUserTokenVersion(ctx, c.Subject, tl); err != nil {
+	if err := s.auth.StoreUserTokenVersion(ctx, c.Subject, c.TokenVersion); err != nil {
 		s.log.Err(err).Msg(ErrLoginStoreTokenVersion.Error())
 		return ErrLoginStoreTokenVersion
 	}
@@ -168,18 +167,7 @@ func (s *Service) ChangePassword(ctx context.Context, w http.ResponseWriter, r *
 		s.log.Err(err).Msg(ErrLoginStoreTokenVersion.Error())
 		return ErrLoginStoreTokenVersion
 	}
-	// marking auth token as revoked for immediate effect
-	if err := s.auth.MarkTokenAsRevoked(ctx, authPkg.TokenParams{
-		TokenID:      c.ID,
-		Subject:      c.Subject,
-		TokenVersion: c.TokenVersion,
-		IssuedAt:     c.IssuedAt.Time,
-		ExpiresAt:    c.ExpiresAt.Time,
-		RevokedAt:    time.Now().UTC(),
-	}); err != nil {
-		s.log.Err(err).Msg(ErrChangePassRevokeToken.Error())
-		return ErrChangePassRevokeToken
-	}
+
 	return web.Respond(ctx, w, u, http.StatusCreated)
 }
 
@@ -289,14 +277,41 @@ func (s *Service) PasswordResetSubmit(ctx context.Context, w http.ResponseWriter
 	return web.Respond(ctx, w, struct{}{}, http.StatusCreated)
 }
 
-// TODO: Implement
-//
-//revive:disable
-func (s *Service) Revoke(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	return nil
-}
+func (s *Service) LogoutAll(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	lu := struct{}{}
+	if err := web.Decode(r, &lu); err != nil {
+		s.log.Err(err).Msg(ErrLogoutDecode.Error())
+		return web.NewRequestError(
+			err,
+			http.StatusBadRequest,
+		)
+	}
 
-//revive:enable
+	c, err := auth.GetClaims(ctx)
+	if err != nil {
+		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		return auth.ErrGetClaims
+	}
+	dt := authUsecase.DeleteToken{
+		TokenID:      c.ID,
+		Subject:      c.Subject,
+		TokenVersion: c.TokenVersion,
+		IssuedAt:     c.IssuedAt.UTC(),
+		ExpiresAt:    c.ExpiresAt.UTC(),
+		RevokedAt:    time.Now().UTC(),
+	}
+	tv, err := s.core.LogoutAll(ctx, dt)
+	if err != nil {
+		s.log.Err(err).Msg(ErrLogoutBusiness.Error())
+		return web.GetResponseErrorFromBusiness(err)
+	}
+	if err := s.auth.StoreUserTokenVersion(ctx, c.Subject, tv); err != nil {
+		s.log.Err(err).Msg(ErrLoginStoreTokenVersion.Error())
+		return ErrLoginStoreTokenVersion
+	}
+
+	return web.Respond(ctx, w, struct{}{}, http.StatusOK)
+}
 
 func clearSession(w http.ResponseWriter) {
 	w.Header().Del("Authorization")

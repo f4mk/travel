@@ -87,6 +87,11 @@ func New(cfg Config) (*Auth, error) {
 		RefreshDuration: cfg.RefreshDuration,
 	}
 
+	if err := a.LoadRevokedTokensToCache(); err != nil {
+		a.log.Err(err).Msg(ErrLoadRevokedTokens.Error())
+		return nil, ErrLoadRevokedTokens
+	}
+
 	return &a, nil
 }
 
@@ -196,6 +201,40 @@ func (a *Auth) MarkTokenAsRevoked(ctx context.Context, t TokenParams) error {
 	return nil
 }
 
+func (a *Auth) LoadRevokedTokensToCache() error {
+	// Step 1: Query Database for Revoked Tokens
+	revokedTokens, err := a.getRevokedTokens()
+	if err != nil {
+		a.log.Err(err).Msg(ErrReadTokensFromDB.Error())
+		return ErrReadTokensFromDB
+	}
+
+	// Step 2: Insert Revoked Tokens into Redis
+	for _, t := range revokedTokens {
+		jsonData, err := json.Marshal(t)
+		if err != nil {
+			a.log.Err(err).Msg(ErrEncodeTokensForCache.Error())
+			return ErrEncodeTokensForCache
+		}
+
+		duration := t.ExpiresAt.Sub(time.Now().UTC())
+		if duration < 0 {
+			continue
+		}
+
+		if err := a.cache.Set(
+			context.TODO(),
+			t.TokenID,
+			jsonData,
+			duration).Err(); err != nil {
+			a.log.Err(err).Msg(ErrStoreCacheTokens.Error())
+			return ErrStoreCacheTokens
+		}
+	}
+
+	return nil
+}
+
 type TokenParams struct {
 	TokenID      string    `db:"token_id" json:"token_id"`
 	Subject      string    `db:"subject" json:"subject"`
@@ -203,6 +242,16 @@ type TokenParams struct {
 	ExpiresAt    time.Time `db:"expires_at" json:"expires_at"`
 	IssuedAt     time.Time `db:"issued_at" json:"issued_at"`
 	RevokedAt    time.Time `db:"revoked_at" json:"revoked_at"`
+}
+
+func (a *Auth) getRevokedTokens() ([]TokenParams, error) {
+	var tokens []TokenParams
+	err := a.db.Select(&tokens, "SELECT token_id, subject, token_version, expires_at, issued_at, revoked_at  FROM revoked_tokens")
+	if err != nil {
+		a.log.Err(err).Msg(ErrReadTokenFromDB.Error())
+		return nil, ErrReadTokenFromDB
+	}
+	return tokens, nil
 }
 
 type user struct {

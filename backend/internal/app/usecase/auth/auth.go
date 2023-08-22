@@ -17,6 +17,7 @@ import (
 const emailCooldown = 10
 
 type Storer interface {
+	DeleteToken(ctx context.Context, dt DeleteToken) error
 	StoreResetToken(ctx context.Context, rt ResetToken) error
 	DeleteResetTokensByUserID(ctx context.Context, uID string) error
 	QueryResetTokenByID(ctx context.Context, token string) (ResetToken, error)
@@ -60,19 +61,18 @@ func (c *Core) Login(ctx context.Context, lu LoginUser) (AuthenticatedUser, erro
 	return au, nil
 }
 
-func (c *Core) Logout(ctx context.Context, dt DeleteToken) (int32, error) {
-	u, err := c.storer.QueryByID(ctx, dt.Subject)
+func (c *Core) Logout(ctx context.Context, dt DeleteToken) error {
+	_, err := c.storer.QueryByID(ctx, dt.Subject)
 	if err != nil {
 		c.log.Err(err).Msgf("auth: logout: %s", database.ErrQueryDB.Error())
-		return 0, database.WrapStorerError(err)
+		return database.WrapStorerError(err)
 	}
-	u.DateUpdated = time.Now().UTC()
-	u.TokenVersion = u.TokenVersion + 1
-	if err := c.storer.Update(ctx, u); err != nil {
+	if err := c.storer.DeleteToken(ctx, dt); err != nil {
 		c.log.Err(err).Msgf("auth: logout: %s", database.ErrQueryDB.Error())
-		return 0, database.WrapStorerError(err)
+		return database.WrapStorerError(err)
 	}
-	return u.TokenVersion, nil
+
+	return nil
 }
 
 func (c *Core) ChangePassword(ctx context.Context, cp ChangePassword) (User, error) {
@@ -90,7 +90,6 @@ func (c *Core) ChangePassword(ctx context.Context, cp ChangePassword) (User, err
 		c.log.Err(err).Msgf("auth: change password: %s", auth.ErrGenHash.Error())
 		return User{}, auth.ErrGenHash
 	}
-
 	// update user with new password and token version
 	u.PasswordHash = hash
 	u.DateUpdated = time.Now().UTC()
@@ -188,19 +187,19 @@ func (c *Core) ResetPasswordSubmit(ctx context.Context, sp SubmitPassword) (User
 }
 
 //revive:disable
-func (c *Core) LogoutAll(ctx context.Context, email string) error {
-	// TODO: delete all tokens from tokens table for that user
-	return nil
-}
-
-func (c *Core) RevokeToken(ctx context.Context, email string, t string) error {
-	// TODO: delete this token from tokens table
-	return nil
-}
-
-func (c *Core) RevokeTokens(ctx context.Context, email string) error {
-	// TODO: delete all tokens from tokens table for that user
-	return nil
+func (c *Core) LogoutAll(ctx context.Context, dt DeleteToken) (int32, error) {
+	u, err := c.storer.QueryByID(ctx, dt.Subject)
+	if err != nil {
+		c.log.Err(err).Msgf("auth: logout all: %s", database.ErrQueryDB.Error())
+		return 0, database.WrapStorerError(err)
+	}
+	u.DateUpdated = time.Now().UTC()
+	u.TokenVersion = u.TokenVersion + 1
+	if err := c.storer.Update(ctx, u); err != nil {
+		c.log.Err(err).Msgf("auth: logout all: %s", database.ErrQueryDB.Error())
+		return 0, database.WrapStorerError(err)
+	}
+	return u.TokenVersion, nil
 }
 
 func (c *Core) RefreshToken(ctx context.Context, email string, t string) error {

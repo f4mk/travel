@@ -52,12 +52,12 @@ image:
 		.
 
 #CREATE CRON IMAGE
-# image-cron:
-# 	docker rmi travel-api-cron:latest || true
-# 	docker build \
-# 		-f ./dockerfile.cron \
-# 		-t travel-api-cron \
-# 		--build-arg CONFIG_PATH=${CONFIG_PATH} \
+image-cron:
+	docker rmi travel-api-cron:latest || true
+	docker build \
+		-f ./dockerfile.cron \
+		-t travel-api-cron \
+		--build-arg CONFIG_PATH=${CONFIG_PATH} \
 		.
 
 #DELETE ALL DOCKER DANGLING IMAGES
@@ -100,10 +100,11 @@ run-mailer:
 ################### APP ###################
 
 #START APP FROM SCRATCH
-all: pull image up
+all: pull image image-cron up
+
 
 #RUN APP WITH REBUILD
-up: docker-rmi image compose-up
+up: docker-rmi image image-cron compose-up
 
 #RUN APP
 compose-up:
