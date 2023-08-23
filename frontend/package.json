@@ -13,7 +13,7 @@
     "types": "npm run generate-types && npm run lint --fix ./src/types/external && npm run prettier --write ./src/types/external",
     "generate-types": "openapi-typescript \"../backend/api/specs/**/*.yaml\" --output ./src/types/external/",
     "lint": "eslint --fix",
-    "prettier":"prettier --write",
+    "prettier": "prettier --write",
     "extract": "formatjs extract",
     "compile": "formatjs compile"
   },

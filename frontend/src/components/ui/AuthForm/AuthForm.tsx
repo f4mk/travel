@@ -39,9 +39,9 @@ export const AuthForm = ({ onClose }: Props) => {
         {...form.getInputProps('email')}
       />
       <PasswordInput
-        placeholder="******"
+        placeholder="********"
         label={message({
-          description: 'Auth form password lable',
+          description: 'Auth form password label',
           defaultMessage: 'Password',
           id: '06sNqJ'
         })}

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { FormattedMessage } from 'react-intl'
 import { Modal, Tabs } from '@mantine/core'
 import FocusTrap from 'focus-trap-react'
@@ -11,6 +12,21 @@ import { RegisterForm } from '../RegisterForm'
 import { Props } from './types'
 
 export const Auth = ({ opened, activeTab, setActiveTab, onClose }: Props) => {
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      const clickedElement = event.target as HTMLElement
+      if (ref.current && !ref.current.contains(clickedElement)) {
+        onClose()
+      }
+    }
+
+    document.addEventListener('pointerdown', handleOutsideClick)
+
+    return () => {
+      document.removeEventListener('pointerdown', handleOutsideClick)
+    }
+  })
   return (
     <Modal
       opened={opened}
@@ -20,7 +36,12 @@ export const Auth = ({ opened, activeTab, setActiveTab, onClose }: Props) => {
     >
       {/* NOTE: Focus trap by mantine doesnt work here */}
       <FocusTrap>
-        <Tabs variant="outline" value={activeTab} onTabChange={setActiveTab}>
+        <Tabs
+          variant="outline"
+          value={activeTab}
+          onTabChange={setActiveTab}
+          ref={ref}
+        >
           <Tabs.List>
             <Tabs.Tab value={EFormView.SIGN_IN} icon={<LogIn />}>
               <FormattedMessage

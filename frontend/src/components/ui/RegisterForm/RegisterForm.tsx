@@ -21,18 +21,18 @@ export const RegisterForm = ({ onClose }: Props) => {
     validate: (values) => {
       return {
         username:
-          values.username.trim().length < 6
+          values.username.trim().length < 2
             ? message({
                 description: 'Register form username error message',
-                defaultMessage: 'Username must include at least 6 characters',
+                defaultMessage: 'Username must include at least  characters',
                 id: 'v3oysd'
               })
             : null,
         password:
-          values.password.length < 6
+          values.password.length < 8
             ? message({
                 description: 'Register form password error message',
-                defaultMessage: 'Password must include at least 6 characters',
+                defaultMessage: 'Password must include at least 8 characters',
                 id: 'JtqjO1'
               })
             : null,
@@ -42,14 +42,6 @@ export const RegisterForm = ({ onClose }: Props) => {
                 description: 'Register form password repeat error message',
                 defaultMessage: 'Field should be equal to password',
                 id: 'MPtkD8'
-              })
-            : null,
-        name:
-          values.name.trim().length < 2
-            ? message({
-                description: 'Register form name error message',
-                defaultMessage: 'Name must include at least 2 characters',
-                id: 'sHDcWI'
               })
             : null,
         email: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(values.email)
@@ -85,34 +77,6 @@ export const RegisterForm = ({ onClose }: Props) => {
         withAsterisk
         {...form.getInputProps('username')}
       />
-
-      <TextInput
-        placeholder={message({
-          description: 'Register form name field placeholder',
-          defaultMessage: 'John',
-          id: 'zw4spD'
-        })}
-        label={message({
-          description: 'Register form name field label',
-          defaultMessage: 'First name',
-          id: 'iZRk5H'
-        })}
-        withAsterisk
-        {...form.getInputProps('name')}
-      />
-      <TextInput
-        placeholder={message({
-          description: 'Register form last name field placeholder',
-          defaultMessage: 'Username',
-          id: '5V6R/N'
-        })}
-        label={message({
-          description: 'Register form last name field label',
-          defaultMessage: 'Last name',
-          id: 'mp6K2g'
-        })}
-        {...form.getInputProps('lastname')}
-      />
       <TextInput
         placeholder={message({
           description: 'Register form email field placeholder',
@@ -128,7 +92,7 @@ export const RegisterForm = ({ onClose }: Props) => {
         {...form.getInputProps('email')}
       />
       <PasswordInput
-        placeholder="******"
+        placeholder="********"
         label={message({
           description: 'Register form password field label',
           defaultMessage: 'Password',
@@ -138,7 +102,7 @@ export const RegisterForm = ({ onClose }: Props) => {
         {...form.getInputProps('password')}
       />
       <PasswordInput
-        placeholder="******"
+        placeholder="********"
         label={message({
           description: 'Register form password repeat field label',
           defaultMessage: 'Repeat password',
