@@ -11,6 +11,10 @@ import (
 	"github.com/f4mk/api/internal/app/controller/api"
 	"github.com/f4mk/api/internal/app/controller/debug"
 	"github.com/f4mk/api/internal/app/controller/mail"
+	authRepo "github.com/f4mk/api/internal/app/provider/auth"
+	userRepo "github.com/f4mk/api/internal/app/provider/user"
+	authService "github.com/f4mk/api/internal/app/service/auth"
+	userService "github.com/f4mk/api/internal/app/service/user"
 	"github.com/f4mk/api/internal/pkg/auth"
 	"github.com/f4mk/api/internal/pkg/database"
 	"github.com/f4mk/api/internal/pkg/keystore"
@@ -163,15 +167,20 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
 
+	ur := userRepo.NewRepo(log, db)
+	ar := authRepo.NewRepo(log, db)
+
+	us := userService.NewService(log, ur)
+	as := authService.NewService(log, auth, ar, mq)
+
 	apiCfg := api.Config{
-		Build:          build,
 		Shutdown:       shutdown,
 		Log:            log,
 		Auth:           auth,
-		DB:             db,
-		MQ:             mq,
 		RequestTimeout: cfg.API.RequestTimeout,
 		RateLimit:      cfg.API.RateLimit,
+		AuthService:    as,
+		UserService:    us,
 	}
 
 	h2s := &http2.Server{}

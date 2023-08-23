@@ -172,19 +172,26 @@ func (a *Auth) ValidateToken(ctx context.Context, t string) (Claims, error) {
 	return claims, nil
 }
 
-func (a *Auth) ParseClaimsFromHeader(r *http.Request) *Claims {
+func (a *Auth) ParseClaimsFromHeader(r *http.Request) (Claims, error) {
 	var claims Claims
-	authHeader := r.Header.Get("Authorization")
-	parts := strings.Split(authHeader, " ")
+	t, err := a.ExtractTokenFromHeader(r.Header.Get("Authorization"))
+	if err != nil {
+		return Claims{}, err
+	}
+	_, err = a.parser.ParseWithClaims(t, &claims, a.keyFunc)
+	if err != nil {
+		return Claims{}, err
+	}
+	return claims, nil
+}
+
+func (a *Auth) ExtractTokenFromHeader(ah string) (string, error) {
+	parts := strings.Split(ah, " ")
 	if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-		return nil
+		return "", ErrAuthHeaderFormat
 	}
 	t := parts[1]
-	_, err := a.parser.ParseWithClaims(t, &claims, a.keyFunc)
-	if err != nil {
-		return nil
-	}
-	return &claims
+	return t, nil
 }
 
 func (a *Auth) StoreUserTokenVersion(ctx context.Context, uID string, tv int32) error {

@@ -201,20 +201,27 @@ func (s *Service) Refresh(ctx context.Context, w http.ResponseWriter, r *http.Re
 		s.log.Err(err).Msg(ErrRefreshGenAuthToken.Error())
 		return ErrRefreshGenAuthToken
 	}
-	oc := s.auth.ParseClaimsFromHeader(r)
-
-	if oc != nil {
-		if err := s.auth.MarkTokenAsRevoked(ctx, authPkg.TokenParams{
-			TokenID:      oc.ID,
-			Subject:      oc.Subject,
-			TokenVersion: oc.TokenVersion,
-			IssuedAt:     oc.IssuedAt.Time,
-			ExpiresAt:    oc.ExpiresAt.Time,
-			RevokedAt:    time.Now().UTC(),
-		}); err != nil {
-			s.log.Err(err).Msg(ErrLogoutRevokeToken.Error())
-			return ErrLogoutRevokeToken
+	// trying to revoke old token in case its still valid
+	oc, err := s.auth.ParseClaimsFromHeader(r)
+	if err != nil {
+		s.log.Info().Msg("auth: refresh: previous token not found")
+	}
+	if oc.ExpiresAt != nil {
+		duration := oc.ExpiresAt.Sub(time.Now().UTC())
+		if duration > 0 {
+			if err := s.auth.MarkTokenAsRevoked(ctx, authPkg.TokenParams{
+				TokenID:      oc.ID,
+				Subject:      oc.Subject,
+				TokenVersion: oc.TokenVersion,
+				IssuedAt:     oc.IssuedAt.Time,
+				ExpiresAt:    oc.ExpiresAt.Time,
+				RevokedAt:    time.Now().UTC(),
+			}); err != nil {
+				s.log.Err(err).Msg(ErrLogoutRevokeToken.Error())
+				return ErrLogoutRevokeToken
+			}
 		}
+
 	}
 	w.Header().Set("Authorization", "Bearer "+newAuthToken)
 	return web.Respond(ctx, w, struct{}{}, http.StatusCreated)

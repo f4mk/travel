@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/f4mk/api/internal/pkg/auth"
 	"github.com/f4mk/api/pkg/web"
@@ -14,13 +13,10 @@ import (
 func Authenticate(a *auth.Auth) web.Middleware {
 	m := func(handler web.Handler) web.Handler {
 		h := func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-			authHeader := r.Header.Get("Authorization")
-			parts := strings.Split(authHeader, " ")
-			if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-				err := auth.ErrAuthHeaderFormat
+			token, err := a.ExtractTokenFromHeader(r.Header.Get("Authorization"))
+			if err != nil {
 				return web.NewRequestError(err, http.StatusUnauthorized)
 			}
-			token := parts[1]
 			claims, err := a.ValidateToken(ctx, token)
 			if err != nil {
 				return web.NewRequestError(
