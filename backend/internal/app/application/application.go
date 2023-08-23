@@ -12,8 +12,10 @@ import (
 	"github.com/f4mk/api/internal/app/controller/debug"
 	"github.com/f4mk/api/internal/app/controller/mail"
 	authRepo "github.com/f4mk/api/internal/app/provider/auth"
+	mailSender "github.com/f4mk/api/internal/app/provider/mail"
 	userRepo "github.com/f4mk/api/internal/app/provider/user"
 	authService "github.com/f4mk/api/internal/app/service/auth"
+	mailService "github.com/f4mk/api/internal/app/service/mail"
 	userService "github.com/f4mk/api/internal/app/service/user"
 	"github.com/f4mk/api/internal/pkg/auth"
 	"github.com/f4mk/api/internal/pkg/database"
@@ -80,13 +82,20 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	defer mq.Close()
 	// -------------------------------------------------------------------------
 	// Starting Mail service
-	mail, err := mail.New(
+
+	mr := mailSender.NewSender(
 		log,
-		mq,
 		cfg.MailService.PublicKey,
 		cfg.MailService.PrivateKey,
 		cfg.Service.DomainName,
 	)
+
+	ms := mailService.NewService(log, mr, mq)
+
+	mailAgent, err := mail.New(mail.Config{
+		Log:         log,
+		MailService: ms,
+	})
 	if err != nil {
 		log.Err(err).Msg(ErrCreateMailServer.Error())
 		return ErrCreateMailServer
@@ -94,7 +103,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 
 	// -------------------------------------------------------------------------
 	// Creating Auth
-	//loading keys
+	// loading keys
 	ks, err := keystore.NewFS(os.DirFS(cfg.Auth.KeyPath))
 	if err != nil {
 		log.Err(err).Msg(ErrCreateKeyStore.Error())
@@ -103,7 +112,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 
 	activeKids := ks.CollectKeyIDs()
 
-	//creating cache
+	// creating cache
 	redis := redis.NewClient(&redis.Options{
 		Addr:         utils.GetHost(cfg.Cache.HostName, cfg.Cache.Port),
 		Password:     "",
@@ -216,7 +225,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 		ctx, cancel := context.WithTimeout(context.Background(), cfg.API.ShutdownTimeout)
 		defer cancel()
 
-		mail.Shutdown(ctx)
+		mailAgent.Shutdown(ctx)
 
 		if err := api.Shutdown(ctx); err != nil {
 			api.Close()

@@ -3,15 +3,13 @@ package mail
 import (
 	"context"
 
-	mailSender "github.com/f4mk/api/internal/app/provider/mail"
 	"github.com/f4mk/api/internal/app/service/mail"
-	"github.com/f4mk/api/pkg/mb"
 	"github.com/rs/zerolog"
 )
 
 type Config struct {
-	Log *zerolog.Logger
-	MQ  *mb.Channel
+	Log         *zerolog.Logger
+	MailService *mail.Service
 }
 
 type Agent struct {
@@ -20,33 +18,32 @@ type Agent struct {
 	shutdown context.CancelFunc
 }
 
-func New(l *zerolog.Logger, mb *mb.Channel, pb string, pr string, dn string) (*Agent, error) {
+func New(cfg Config) (*Agent, error) {
 	ctx, cancel := context.WithCancel(context.Background())
-	r, err := mb.Consume()
-	if err != nil {
-		cancel()
-		return nil, err
-	}
 
-	mr := mailSender.NewSender(l, pb, pr, dn)
-
-	ms := mail.NewService(l, mr)
-
-	ma := &Agent{
-		service:  ms,
-		log:      l,
+	ma := Agent{
+		service:  cfg.MailService,
+		log:      cfg.Log,
 		shutdown: cancel,
 	}
 
-	errCh := make(chan mail.ServeError, 1)
-	go ms.Serve(ctx, r, errCh)
+	errMsgCh := make(chan mail.ServeError, 1)
+	errServiceCh := make(chan error)
+	go ma.service.Serve(ctx, errMsgCh, errServiceCh)
 
 	go func() {
-		for errMsg := range errCh {
-			l.Err(errMsg.Error).Msg("error processing message in mail agent")
+		for errMsg := range errMsgCh {
+			ma.log.Err(errMsg.Error).Msg("error processing message in mail agent")
 		}
 	}()
-	return ma, nil
+	err, ok := <-errServiceCh
+	if ok {
+		if err != nil {
+			cancel()
+			return nil, err
+		}
+	}
+	return &ma, nil
 }
 
 func (ma *Agent) Shutdown(ctx context.Context) {

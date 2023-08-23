@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	mailUsecase "github.com/f4mk/api/internal/app/usecase/mail"
-	"github.com/f4mk/api/pkg/mb"
+	queue "github.com/f4mk/api/pkg/mb"
 	"github.com/rs/zerolog"
 )
 
@@ -15,22 +15,33 @@ type Service struct {
 	core   *mailUsecase.Core
 	log    *zerolog.Logger
 	doneCh chan struct{}
+	mq     *queue.Channel
 }
 
-func NewService(l *zerolog.Logger, s mailUsecase.Sender) *Service {
+func NewService(l *zerolog.Logger, sender mailUsecase.Sender, mq *queue.Channel) *Service {
 	return &Service{
-		core:   mailUsecase.NewCore(l, s),
+		core:   mailUsecase.NewCore(l, sender),
 		log:    l,
 		doneCh: make(chan struct{}),
+		mq:     mq,
 	}
 }
 
-func (s *Service) Serve(ctx context.Context, rx <-chan mb.Message, errCh chan ServeError) {
+func (s *Service) Serve(ctx context.Context, errMsgCh chan<- ServeError, errServiceCh chan<- error) {
+	rx, err := s.mq.Consume()
+	if err != nil {
+		errServiceCh <- err
+		return
+	}
+	// init complete
+	close(errServiceCh)
+
 	for {
 		select {
 		case msg, ok := <-rx:
 			if !ok {
 				close(s.doneCh)
+				s.log.Warn().Msg("rx channel got closed, returning from service")
 				return
 			}
 
@@ -44,7 +55,7 @@ func (s *Service) Serve(ctx context.Context, rx <-chan mb.Message, errCh chan Se
 					s.log.Err(err).Msg(ErrNackReqMessage.Error())
 				}
 				// send error outside
-				err = sendError(errCh, fmt.Errorf(ErrNackReqMessage.Error(), err), msg.Body)
+				err = sendError(errMsgCh, fmt.Errorf(ErrNackReqMessage.Error(), err), msg.Body)
 				if err != nil {
 					s.log.Warn().Msg(ErrChanFull.Error())
 				}
@@ -60,7 +71,7 @@ func (s *Service) Serve(ctx context.Context, rx <-chan mb.Message, errCh chan Se
 				if err := msg.Nack(false, false); err != nil {
 					s.log.Err(err).Msg(ErrNackMessage.Error())
 				}
-				err = sendError(errCh, fmt.Errorf(ErrNackReqMessage.Error(), err), msg.Body)
+				err = sendError(errMsgCh, fmt.Errorf(ErrNackReqMessage.Error(), err), msg.Body)
 				if err != nil {
 					s.log.Warn().Msg(ErrChanFull.Error())
 				}

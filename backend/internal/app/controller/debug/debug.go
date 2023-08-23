@@ -23,7 +23,6 @@ type Mux struct {
 }
 
 func (m *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-
 	r.URL.Path = strings.TrimSuffix(r.URL.Path, "/")
 	m.ServeMux.ServeHTTP(w, r)
 }
