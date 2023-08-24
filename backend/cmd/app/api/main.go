@@ -10,8 +10,6 @@ import (
 	"github.com/f4mk/api/config"
 	"github.com/f4mk/api/internal/app/application"
 	"github.com/f4mk/api/internal/pkg/logger"
-	// FIXME
-	//add expvarmon
 )
 
 var build = "dev"
