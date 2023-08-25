@@ -52,3 +52,22 @@ cert:
 	mkdir -p certs
 	openssl genrsa -out ${API_KEY_FILE} 4096
 	openssl req -new -x509 -days 1825 -key ${API_KEY_FILE} -out ${API_CERT_FILE}
+
+# KIND
+kind-load-all:
+	kind load docker-image haproxy:2.8 && \
+	kind load docker-image rabbitmq:3.12-management && \
+	kind load docker-image travel-static:latest && \
+	kind load docker-image travel-api:latest && \
+	kind load docker-image postgres:15.3 && \
+	kind load docker-image redis:6.2-alpine && \
+	kind load docker-image travel-api-cron:latest
+
+kind-create:
+	kind create cluster --config ./k8s/kind-config.yaml --name kind
+
+kind-delete:
+	kind delete cluster --name kind
+
+kube-apply:
+	kubectl apply -k ./k8s

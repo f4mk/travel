@@ -37,11 +37,11 @@ type Auth struct {
 }
 
 type Cache struct {
-	HostName     string `env:"REDIS_HOST_NAME,required"`
-	Port         string `env:"REDIS_PORT,required"`
-	DB           int    `env:"REDIS_DB,required"`
-	PoolSize     int    `env:"REDIS_POOL_SIZE,required"`
-	MinIdleConns int    `env:"REDIS_MIN_IDLE_CONNS,required"`
+	HostName     string `env:"RD_HOST_NAME,required"`
+	Port         string `env:"RD_PORT,required"`
+	DB           int    `env:"RD_DB,required"`
+	PoolSize     int    `env:"RD_POOL_SIZE,required"`
+	MinIdleConns int    `env:"RD_MIN_IDLE_CONNS,required"`
 }
 
 type MessageBroker struct {

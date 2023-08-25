@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: travel
+    component: travel-api-db
+  name: postgres
+spec:
+  ports:
+    - name: "postgres"
+      port: 5432
+      targetPort: 5432
+  selector:
+    app: travel
+    component: travel-api-db

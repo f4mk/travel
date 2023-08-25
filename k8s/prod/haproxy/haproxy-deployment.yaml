@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: travel
+    component: haproxy
+  name: haproxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: travel
+      component: haproxy
+  template:
+    metadata:
+      labels:
+        app: travel
+        component: haproxy
+    spec:
+      containers:
+        - image: haproxy:2.8
+          name: haproxy
+          ports:
+            - containerPort: 80
+              hostPort: 80
+            - containerPort: 443
+              hostPort: 443
+          volumeMounts:
+            - name: haproxy-config-volume
+              mountPath: /usr/local/etc/haproxy/haproxy.cfg
+              subPath: haproxy.cfg
+            - name: haproxy-certs-volume
+              mountPath: /etc/haproxy/certs/
+          resources: {}
+          imagePullPolicy: IfNotPresent
+      volumes:
+        - name: haproxy-config-volume
+          persistentVolumeClaim:
+            claimName: haproxy-config-volume
+        - name: haproxy-certs-volume
+          persistentVolumeClaim:
+            claimName: haproxy-certs-volume
+      restartPolicy: Always

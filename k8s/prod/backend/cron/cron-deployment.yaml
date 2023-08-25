@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: travel
+    component: travel-api-cron
+  name: cron
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: travel
+      component: travel-api-cron
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: travel
+        component: travel-api-cron
+    spec:
+      containers:
+        - image: travel-api-cron:latest
+          name: travel-api-cron
+          resources: {}
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always

@@ -1,0 +1,30 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  extraPortMappings:
+  # travel-api service
+  - containerPort: 8080
+    hostPort: 8080
+  # travel-api debug
+  - containerPort: 8081
+    hostPort: 8081
+  # travel-static
+  - containerPort: 3000
+    hostPort: 3000
+  # travel-api-db (postgres)
+  - containerPort: 5432
+    hostPort: 5432
+  # travel-api-cache (redis)
+  - containerPort: 6379
+    hostPort: 6379
+  # travel-api-mq
+  - containerPort: 5672
+    hostPort: 5672
+  - containerPort: 15672
+    hostPort: 15672
+  # haproxy
+  - containerPort: 80
+    hostPort: 80
+  - containerPort: 443
+    hostPort: 443

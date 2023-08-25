@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: travel
+    component: travel-api
+  name: travel-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: travel
+      component: travel-api
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: travel
+        component: travel-api
+    spec:
+      containers:
+        - image: travel-api:latest
+          name: travel-api
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - /wait-for-it.sh rabbitmq:5672 -- /wait-for-it.sh postgres:5432 -- /wait-for-it.sh redis:6379 -- ./app
+          ports:
+            - containerPort: 8080
+              hostPort: 8080
+            - containerPort: 8081
+              hostPort: 8081
+          livenessProbe:
+            httpGet:
+              path: /debug/liveness
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /debug/readiness
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          resources: {}
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always

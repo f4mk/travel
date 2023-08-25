@@ -20,10 +20,9 @@ spec:
       containers:
         - image: travel-static:latest
           name: travel-static
-          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
               hostPort: 3000
-              protocol: TCP
           resources: {}
+          imagePullPolicy: IfNotPresent
       restartPolicy: Always

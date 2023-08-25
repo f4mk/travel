@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: travel
+    component: travel-api-redis
+  name: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: travel
+      component: travel-api-redis
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: travel
+        component: travel-api-redis
+    spec:
+      containers:
+        - image: redis:6.2-alpine
+          name: travel-api-redis
+          ports:
+            - containerPort: 6379
+              hostPort: 6379
+          volumeMounts:
+            - mountPath: /data
+              name: travel-api-cache-volume
+          resources: {}
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      volumes:
+        - name: travel-api-cache-volume
+          persistentVolumeClaim:
+            claimName: travel-api-cache-volume

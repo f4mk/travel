@@ -39,7 +39,7 @@ services:
     depends_on:
       - postgres
     ports:
-      - ${CACHE_PORT}:${REDIS_PORT}
+      - ${CACHE_PORT}:${RD_PORT}
     networks: 
       - local
 

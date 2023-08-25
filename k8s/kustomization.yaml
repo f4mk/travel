@@ -1,0 +1,35 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Include all the resources
+resources:
+  # cron
+  - prod/backend/cron/cron-deployment.yaml
+  # postgres
+  - prod/backend/postgres/postgres-deployment.yaml
+  - prod/backend/postgres/postgres-service.yaml
+  - prod/backend/postgres/postgres-pv.yaml
+  - prod/backend/postgres/postgres-pvc.yaml
+  # redis
+  - prod/backend/redis/redis-deployment.yaml
+  - prod/backend/redis/redis-service.yaml
+  - prod/backend/redis/redis-pv.yaml
+  - prod/backend/redis/redis-pvc.yaml
+  # travel-api
+  - prod/backend/travel-api/travel-api-deployment.yaml
+  - prod/backend/travel-api/travel-api-service.yaml
+  # travel-static
+  - prod/frontend/travel-static-deployment.yaml
+  - prod/frontend/travel-static-service.yaml
+  # haproxy
+  - prod/haproxy/haproxy-deployment.yaml
+  - prod/haproxy/haproxy-service.yaml
+  - prod/haproxy/haproxy-config-pv.yaml
+  - prod/haproxy/haproxy-config-pvc.yaml
+  - prod/haproxy/haproxy-cert-pv.yaml
+  - prod/haproxy/haproxy-cert-pvc.yaml
+  # rabbitmq
+  - prod/rabbitmq/rabbitmq-deployment.yaml
+  - prod/rabbitmq/rabbitmq-service.yaml
+  - prod/rabbitmq/rabbitmq-pv.yaml
+  - prod/rabbitmq/rabbitmq-pvc.yaml
