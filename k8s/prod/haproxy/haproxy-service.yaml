@@ -16,5 +16,5 @@ spec:
   selector:
     app: travel
     component: haproxy
-  type: ClusterIP
+  type: LoadBalancer
 
