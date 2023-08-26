@@ -17,8 +17,10 @@ spec:
     app: travel
     component: haproxy
   type: LoadBalancer
+  externalIPs:
+    - 158.160.68.150
 status:
   loadBalancer:
     ingress:
-    - ip: 158.160.68.150
+      - ip: 158.160.68.150
 
