@@ -51,4 +51,3 @@ spec:
         - name: haproxy-certs-volume
           emptyDir: {}
       restartPolicy: Always
-  type: LoadBalancer

@@ -16,5 +16,4 @@ spec:
   selector:
     app: travel
     component: haproxy
-  type: NodePort
-
+  type: LoadBalancer
