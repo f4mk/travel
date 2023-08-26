@@ -79,4 +79,10 @@ kind-delete:
 kube-apply:
 	kubectl apply -k ./k8s
 
+prod-stop:
+	sudo kubectl scale deployment haproxy --replicas=0
+
+prod-start:
+	sudo kubectl scale deployment haproxy --replicas=1
+
 #sudo nano /etc/systemd/system/k3s.service
