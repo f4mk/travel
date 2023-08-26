@@ -16,11 +16,7 @@ spec:
   selector:
     app: travel
     component: haproxy
-  type: LoadBalancer
+  type: ClusterIP
   externalIPs:
     - 158.160.68.150
-status:
-  loadBalancer:
-    ingress:
-      - ip: 158.160.68.150
 
