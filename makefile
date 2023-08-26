@@ -11,6 +11,9 @@ backend-image-cron:
 front-image:
 	$(MAKE) -C ./frontend image
 
+haproxy-image-volume:
+	$(MAKE) -C ./haproxy image
+
 #DELETE ALL DOCKER DANGLING IMAGES
 docker-rmi:
 	docker rmi `docker images -f dangling=true -q`
@@ -61,7 +64,8 @@ kind-load-all:
 	kind load docker-image travel-api:latest && \
 	kind load docker-image postgres:15.3 && \
 	kind load docker-image redis:6.2-alpine && \
-	kind load docker-image travel-api-cron:latest
+	kind load docker-image travel-api-cron:latest && \
+	kind load docker-image haproxy-volume:latest
 
 kind-create:
 	kind create cluster --config ./k8s/kind-config.yaml --name kind
@@ -69,5 +73,6 @@ kind-create:
 kind-delete:
 	kind delete cluster --name kind
 
+# kubectl
 kube-apply:
 	kubectl apply -k ./k8s

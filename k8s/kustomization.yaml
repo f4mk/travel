@@ -24,10 +24,6 @@ resources:
   # haproxy
   - prod/haproxy/haproxy-deployment.yaml
   - prod/haproxy/haproxy-service.yaml
-  - prod/haproxy/haproxy-config-pv.yaml
-  - prod/haproxy/haproxy-config-pvc.yaml
-  - prod/haproxy/haproxy-cert-pv.yaml
-  - prod/haproxy/haproxy-cert-pvc.yaml
   # rabbitmq
   - prod/rabbitmq/rabbitmq-deployment.yaml
   - prod/rabbitmq/rabbitmq-service.yaml

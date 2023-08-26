@@ -1,6 +1,7 @@
 *.pem
 *.key
 secret
+vault-keys.txt
 # Logs
 logs
 *.log
