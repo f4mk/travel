@@ -16,7 +16,7 @@ spec:
   selector:
     app: travel
     component: haproxy
-  type: ClusterIP
+  type: LoadBalancer
   externalIPs:
     - '158.160.68.150'
 
