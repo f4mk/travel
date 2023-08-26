@@ -44,8 +44,8 @@ compose-down:
 		-f frontend/docker-compose.yml \
 		up
 
-images:
-	backend-image backend-image-cron front-image haproxy-image-volume
+images: backend-image backend-image-cron front-image haproxy-image-volume
+	
 #START APP FROM SCRATCH
 all: pull backend-image backend-image-cron front-image haproxy-image-volume compose-up
 
