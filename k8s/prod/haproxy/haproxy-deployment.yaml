@@ -17,6 +17,7 @@ spec:
         app: travel
         component: haproxy
     spec:
+      hostNetwork: true
       initContainers:
       - name: init-volume
         image: haproxy-volume
