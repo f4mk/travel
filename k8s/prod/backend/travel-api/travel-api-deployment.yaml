@@ -44,5 +44,5 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 5
           resources: {}
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Never
       restartPolicy: Always

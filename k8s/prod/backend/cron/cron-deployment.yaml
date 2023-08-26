@@ -22,5 +22,5 @@ spec:
         - image: travel-api-cron:latest
           name: travel-api-cron
           resources: {}
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Never
       restartPolicy: Always
