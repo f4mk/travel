@@ -78,3 +78,5 @@ kind-delete:
 # kubectl
 kube-apply:
 	kubectl apply -k ./k8s
+
+#sudo nano /etc/systemd/system/k3s.service
