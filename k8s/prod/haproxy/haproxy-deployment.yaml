@@ -17,6 +17,7 @@ spec:
         app: travel
         component: haproxy
     spec:
+      hostNetwork: true
       initContainers:
       - name: init-volume
         image: haproxy-volume
@@ -32,7 +33,6 @@ spec:
       containers:
         - image: haproxy:2.8
           name: haproxy
-          hostNetwork: true
           ports:
             - containerPort: 80
               hostPort: 80
