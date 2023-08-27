@@ -29,3 +29,17 @@ resources:
   - prod/rabbitmq/rabbitmq-service.yaml
   - prod/rabbitmq/rabbitmq-pv.yaml
   - prod/rabbitmq/rabbitmq-pvc.yaml
+  # promtail
+  - prod/promtail/promtail-configmap.yaml
+  - prod/promtail/promtail-deployment.yaml
+  - prod/promtail/promtail-clusterrole.yaml
+  # loki
+  - prod/loki/loki-deployment.yaml
+  - prod/loki/loki-service.yaml
+  - prod/loki/loki-configmap.yaml
+  - prod/loki/loki-pv.yaml
+  - prod/loki/loki-pvc.yaml
+  # grafana
+  - prod/grafana/grafana-configmap.yaml
+  - prod/grafana/grafana-deployment.yaml
+  - prod/grafana/grafana-service.yaml

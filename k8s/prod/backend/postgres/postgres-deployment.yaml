@@ -41,4 +41,4 @@ spec:
       volumes:
         - name: travel-api-db-volume
           persistentVolumeClaim:
-            claimName: travel-api-db-volume
+            claimName: postgres-pvc

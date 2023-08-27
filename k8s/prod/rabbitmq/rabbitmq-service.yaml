@@ -8,10 +8,10 @@ metadata:
   namespace: default
 spec:
   ports:
-    - name: "rabbit"
+    - name: rabbit
       port: 5672
       targetPort: 5672
-    - name: "rabbit-manager"
+    - name: rabbit-manager
       port: 15672
       targetPort: 15672
   selector:

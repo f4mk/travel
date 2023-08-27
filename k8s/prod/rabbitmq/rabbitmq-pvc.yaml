@@ -4,7 +4,7 @@ metadata:
   labels:
     app: travel
     component: travel-api-mq-volume
-  name: travel-api-mq-volume
+  name: rabbitmq-pvc
 spec:
   accessModes:
     - ReadWriteOnce

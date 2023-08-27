@@ -34,4 +34,4 @@ spec:
       volumes:
         - name: travel-api-cache-volume
           persistentVolumeClaim:
-            claimName: travel-api-cache-volume
+            claimName: redis-pvc

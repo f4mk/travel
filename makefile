@@ -24,6 +24,9 @@ pull:
 	$(MAKE) -C ./backend pull
 	docker pull node:18.17-alpine
 	docker pull rabbitmq:3.12:management
+	docker pull grafana/loki:2.8.4
+	docker pull grafana/promtail:2.8.4
+	docker pull grafana/grafana:10.1.0
 
 .PHONY: compose-up
 compose-up:
@@ -67,7 +70,10 @@ kind-load-all:
 	kind load docker-image postgres:15.3 && \
 	kind load docker-image redis:6.2-alpine && \
 	kind load docker-image travel-api-cron:latest && \
-	kind load docker-image haproxy-volume:latest
+	kind load docker-image haproxy-volume:latest && \
+	kind load docker-image grafana/loki:2.8.4 && \
+	kind load docker-image grafana/promtail:2.8.4 && \
+	kind load docker-image grafana/grafana:10.1.0
 
 kind-create:
 	kind create cluster --config ./k8s/kind-config.yaml --name kind

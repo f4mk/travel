@@ -28,3 +28,10 @@ nodes:
     hostPort: 80
   - containerPort: 443
     hostPort: 443
+  # loki
+  - containerPort: 3100
+    hostPort: 3100
+  # grafana
+  - containerPort: 4000
+    hostPort: 4000
+

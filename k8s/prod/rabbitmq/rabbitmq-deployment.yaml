@@ -41,4 +41,4 @@ spec:
       volumes:
         - name: rabbitmq-data
           persistentVolumeClaim:
-            claimName: travel-api-mq-volume
+            claimName: rabbitmq-pvc
