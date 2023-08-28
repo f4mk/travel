@@ -9,6 +9,9 @@ nodes:
   # travel-api debug
   - containerPort: 8081
     hostPort: 8081
+  # travel-api metrics
+  - containerPort: 8091
+    hostPort: 8091
   # travel-static
   - containerPort: 3000
     hostPort: 3000

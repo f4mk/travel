@@ -15,6 +15,17 @@ services:
       - local
     command: ["/wait-for-it.sh", "${RABBIT_HOST_NAME}:${RABBIT_PORT}", "--", "./app"]
 
+  metrics:
+    image: travel-api-metrics:latest
+    container_name: travel-api-metrics
+    restart: always
+    depends_on:
+      - travel-api
+    ports:
+      - ${M_PORT}:${METRICS_PORT}
+    networks: 
+      - local
+
   postgres:
     image: postgres:15.3
     container_name: travel-api-db

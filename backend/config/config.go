@@ -30,6 +30,11 @@ type Debug struct {
 	Port     string `env:"DEBUG_PORT,required"`
 }
 
+type Metrics struct {
+	HostName string `env:"METRICS_HOST_NAME,required"`
+	Port     string `env:"METRICS_PORT,required"`
+}
+
 type Auth struct {
 	KeyPath         string        `env:"AUTH_KEY_PATH,required"`
 	AuthDuration    time.Duration `env:"AUTH_AUTH_DURATION,required"`
@@ -84,6 +89,7 @@ type Config struct {
 	Log           Log
 	API           API
 	Debug         Debug
+	Metrics       Metrics
 	Auth          Auth
 	DB            DB
 	Cache         Cache

@@ -8,6 +8,9 @@ backend-image:
 backend-image-cron:
 	$(MAKE) -C ./backend image-cron
 
+backend-image-metrics:
+	$(MAKE) -C ./backend image-metrics
+
 front-image:
 	$(MAKE) -C ./frontend image
 
@@ -27,6 +30,7 @@ pull:
 	docker pull grafana/loki:2.8.4
 	docker pull grafana/promtail:2.8.4
 	docker pull grafana/grafana:10.1.0
+	docker pull prom/prometheus:v2.46.0
 
 .PHONY: compose-up
 compose-up:
@@ -47,13 +51,13 @@ compose-down:
 		-f frontend/docker-compose.yml \
 		up
 
-images: backend-image backend-image-cron front-image haproxy-image-volume
+images: backend-image backend-image-cron backend-image-metrics front-image haproxy-image-volume
 	
 #START APP FROM SCRATCH
-all: pull backend-image backend-image-cron front-image haproxy-image-volume compose-up
+all: pull backend-image backend-image-cron backend-image-metrics front-image haproxy-image-volume compose-up
 
 #RUN APP WITH REBUILD
-up: backend-image backend-image-cron front-image compose-up
+up: backend-image backend-image-cron backend-image-metrics front-image compose-up
 
 #GENERATE SSL CERTIFICATE FOR HTTPS
 cert:
@@ -70,9 +74,11 @@ kind-load-all:
 	kind load docker-image postgres:15.3 && \
 	kind load docker-image redis:6.2-alpine && \
 	kind load docker-image travel-api-cron:latest && \
+	kind load docker-image travel-api-metrics:latest && \
 	kind load docker-image haproxy-volume:latest && \
 	kind load docker-image grafana/loki:2.8.4 && \
 	kind load docker-image grafana/promtail:2.8.4 && \
+	kind load docker-image prom/prometheus:v2.46.0 && \
 	kind load docker-image grafana/grafana:10.1.0
 
 kind-create:

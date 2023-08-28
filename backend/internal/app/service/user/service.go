@@ -29,10 +29,10 @@ type Service struct {
 	log  *zerolog.Logger
 }
 
-func NewService(l *zerolog.Logger, storer userUsecase.Storer) *Service {
-	core := userUsecase.NewCore(storer, l)
+func NewService(l *zerolog.Logger, c *userUsecase.Core) *Service {
+
 	return &Service{
-		core: core,
+		core: c,
 		log:  l,
 	}
 }

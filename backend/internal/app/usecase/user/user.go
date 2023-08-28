@@ -33,7 +33,7 @@ type Core struct {
 	log    *zerolog.Logger
 }
 
-func NewCore(s Storer, l *zerolog.Logger) *Core {
+func NewCore(l *zerolog.Logger, s Storer) *Core {
 	return &Core{
 		storer: s,
 		log:    l,

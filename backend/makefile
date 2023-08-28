@@ -60,6 +60,17 @@ image-cron:
 		--build-arg CONFIG_PATH=${CONFIG_PATH} \
 		.
 
+#CREATE METRICS IMAGE
+image-metrics:
+	docker rmi travel-api-metrics:latest || true
+	docker build \
+		-f ./dockerfile.metrics \
+		-t travel-api-metrics \
+		--build-arg BUILD_REF=`git rev-parse HEAD` \
+		--build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
+		--build-arg CONFIG_PATH=${CONFIG_PATH} \
+		.
+
 #DELETE ALL DOCKER DANGLING IMAGES
 docker-rmi:
 	docker rmi `docker images -f dangling=true -q`
@@ -100,11 +111,11 @@ run-mailer:
 ################### APP ###################
 
 #START APP FROM SCRATCH
-all: pull image image-cron up
+all: pull image image-cron image-metrics up
 
 
 #RUN APP WITH REBUILD
-up: docker-rmi image image-cron compose-up
+up: docker-rmi image image-cron image-metrics compose-up
 
 #RUN APP
 compose-up:

@@ -9,14 +9,14 @@ import (
 	"github.com/rs/zerolog"
 )
 
-func New(cfg *config.Config) *zerolog.Logger {
+func New(cfg *config.Config, key string) *zerolog.Logger {
 
 	var logger zerolog.Logger
 
 	if cfg.Environment == "production" {
 
 		zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-		logger = zerolog.New(os.Stdout).With().Timestamp().Str("service", cfg.Service.ServiceName).Logger()
+		logger = zerolog.New(os.Stdout).With().Timestamp().Str(key, cfg.Service.ServiceName).Logger()
 		zerolog.SetGlobalLevel(intToLogLevel(cfg.Log.LogLevel))
 
 	} else {

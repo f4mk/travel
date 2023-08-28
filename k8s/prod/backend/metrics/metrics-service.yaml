@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: travel
+    component: travel-api-metrics
+  name: travel-api-metrics
+spec:
+  ports:
+    - name: metrics
+      port: 8091
+      targetPort: 8091
+  selector:
+    app: travel
+    component: travel-api-metrics

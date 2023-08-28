@@ -18,6 +18,9 @@ resources:
   # travel-api
   - prod/backend/travel-api/travel-api-deployment.yaml
   - prod/backend/travel-api/travel-api-service.yaml
+  # travel-api metrics
+  - prod/backend/metrics/metrics-deployment.yaml
+  - prod/backend/metrics/metrics-service.yaml
   # travel-static
   - prod/frontend/travel-static-deployment.yaml
   - prod/frontend/travel-static-service.yaml
@@ -43,3 +46,7 @@ resources:
   - prod/grafana/grafana-configmap.yaml
   - prod/grafana/grafana-deployment.yaml
   - prod/grafana/grafana-service.yaml
+  # prometheus
+  - prod/prometheus/prometheus-configmap.yaml
+  - prod/prometheus/prometheus-deployment.yaml
+  - prod/prometheus/prometheus-service.yaml

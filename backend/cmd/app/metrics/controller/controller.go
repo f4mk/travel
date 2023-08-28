@@ -1,22 +1,22 @@
-// Package debug provides handler support for the debugging endpoints.
-package debug
+package app
 
 import (
+	"context"
 	"expvar"
 	"net/http"
 	"net/http/pprof"
 	"strings"
+	"time"
 
-	"github.com/f4mk/api/internal/app/service/check"
-	"github.com/jmoiron/sqlx"
+	"github.com/f4mk/api/cmd/app/metrics/service"
+	"github.com/f4mk/api/pkg/web"
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 type Config struct {
-	Build   string
-	Log     *zerolog.Logger
-	DB      *sqlx.DB
-	Service *check.Service
+	Log            *zerolog.Logger
+	MetricsService *service.Metrics
 }
 
 type Mux struct {
@@ -39,8 +39,23 @@ func New(cfg Config) *Mux {
 	mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
 	mux.Handle("/debug/vars", expvar.Handler())
 
-	mux.HandleFunc("/debug/readiness", cfg.Service.Readiness)
-	mux.HandleFunc("/debug/liveness", cfg.Service.Liveness)
+	mux.HandleFunc("/debug/readiness", readiness)
+	mux.HandleFunc("/debug/liveness", readiness)
+	mux.HandleFunc("/metrics", cfg.MetricsService.Serve)
 
 	return mux
+}
+
+func readiness(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), time.Second)
+	defer cancel()
+
+	res := struct {
+		Status string `json:"status"`
+	}{
+		Status: "ok",
+	}
+	if err := web.Respond(ctx, w, res, http.StatusOK); err != nil {
+		log.Err(err).Msg("readiness: failed to respond:")
+	}
 }

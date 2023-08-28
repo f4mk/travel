@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: travel
+    component: travel-api-metrics
+  name: travel-api-metrics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: travel
+      component: travel-api-metrics
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: travel
+        component: travel-api-metrics
+    spec:
+      containers:
+        - image: travel-api-metrics:latest
+          name: travel-api-metrics
+          ports:
+            - containerPort: 8091
+              hostPort: 8091
+          livenessProbe:
+            httpGet:
+              path: /debug/liveness
+              port: 8091
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /debug/readiness
+              port: 8091
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          resources: {}
+          imagePullPolicy: Never
+      restartPolicy: Always

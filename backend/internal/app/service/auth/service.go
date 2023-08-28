@@ -26,17 +26,15 @@ type Service struct {
 
 func NewService(
 	l *zerolog.Logger,
-	auth *authPkg.Auth,
-	storer authUsecase.Storer,
+	a *authPkg.Auth,
+	c *authUsecase.Core,
 	mq *queue.Channel,
 ) *Service {
 
-	core := authUsecase.NewCore(storer, l)
-
 	return &Service{
 		log:  l,
-		auth: auth,
-		core: core,
+		auth: a,
+		core: c,
 		mq:   mq,
 	}
 }

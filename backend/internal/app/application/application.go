@@ -15,8 +15,11 @@ import (
 	mailSender "github.com/f4mk/api/internal/app/provider/mail"
 	userRepo "github.com/f4mk/api/internal/app/provider/user"
 	authService "github.com/f4mk/api/internal/app/service/auth"
+	"github.com/f4mk/api/internal/app/service/check"
 	mailService "github.com/f4mk/api/internal/app/service/mail"
 	userService "github.com/f4mk/api/internal/app/service/user"
+	authUsecase "github.com/f4mk/api/internal/app/usecase/auth"
+	userUsecase "github.com/f4mk/api/internal/app/usecase/user"
 	"github.com/f4mk/api/internal/pkg/auth"
 	"github.com/f4mk/api/internal/pkg/database"
 	"github.com/f4mk/api/internal/pkg/keystore"
@@ -154,15 +157,17 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	// -------------------------------------------------------------------------
 	// Start Debug Service
 	log.Info().Msgf("debug: initializing debug server: %s", utils.GetHost(cfg.Debug.HostName, cfg.Debug.Port))
+	check := check.NewService(build, log, db)
 
 	go func() {
 		log.Info().Msgf("debug: debug is listening on: %s", utils.GetHost(cfg.Debug.HostName, cfg.Debug.Port))
 		if err := http.ListenAndServe(
 			utils.GetHost(cfg.Debug.HostName, cfg.Debug.Port),
 			debug.New(debug.Config{
-				Build: build,
-				Log:   log,
-				DB:    db,
+				Build:   build,
+				Log:     log,
+				DB:      db,
+				Service: check,
 			}),
 		); err != nil {
 			log.Err(err).Msgf(ErrRunDebug.Error())
@@ -179,8 +184,11 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	ur := userRepo.NewRepo(log, db)
 	ar := authRepo.NewRepo(log, db)
 
-	us := userService.NewService(log, ur)
-	as := authService.NewService(log, auth, ar, mq)
+	uc := userUsecase.NewCore(log, ur)
+	us := userService.NewService(log, uc)
+
+	ac := authUsecase.NewCore(log, ar)
+	as := authService.NewService(log, auth, ac, mq)
 
 	apiCfg := api.Config{
 		Shutdown:       shutdown,
