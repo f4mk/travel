@@ -6,6 +6,7 @@ metadata:
     app: travel
     component: travel-api-cache-volume
 spec:
+  storageClassName: manual
   capacity:
     storage: 512Mi
   accessModes:

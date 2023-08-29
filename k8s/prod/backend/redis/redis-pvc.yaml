@@ -6,6 +6,7 @@ metadata:
     component: travel-api-cache-volume
   name: redis-pvc
 spec:
+  storageClassName: manual
   accessModes:
     - ReadWriteOnce
   resources:

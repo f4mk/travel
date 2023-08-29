@@ -46,6 +46,7 @@ resources:
   - prod/grafana/grafana-configmap.yaml
   - prod/grafana/grafana-deployment.yaml
   - prod/grafana/grafana-service.yaml
+  - prod/grafana/grafana-pvc.yaml
   # prometheus
   - prod/prometheus/prometheus-configmap.yaml
   - prod/prometheus/prometheus-deployment.yaml

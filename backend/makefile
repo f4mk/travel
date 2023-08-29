@@ -24,11 +24,14 @@ SHELL := /bin/bash
 ################# CONFIG ##################
 
 CONFIG_PATH = travel-api/config/.env
-GO_CONFIG_PATH = travel-api/config/.env
+GO_API_PREFIX_PATH = travel-api
 
 include ${CONFIG_PATH}
 
+# TODO: refactor this
 GO_PROVIDE_CONFIG = -ldflags="-X 'main.configPath=${CONFIG_PATH}'"
+GO_PROVIDE_MIGRATION = -ldflags="-X 'main.configPath=${CONFIG_PATH}' \
+	-X 'main.migrationsPath=file://${GO_API_PREFIX_PATH}/cmd/admin/migration/sql'"
 
 config-path:
 	@echo ${CONFIG_PATH}
@@ -45,7 +48,7 @@ image:
 		-t travel-api \
 		--build-arg BUILD_REF=`git rev-parse HEAD` \
 		--build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
-		--build-arg CONFIG_PATH=${GO_CONFIG_PATH} \
+		--build-arg CONFIG_PATH=${CONFIG_PATH} \
 		--build-arg MAIL_PRIVATE_KEY_PATH=${MAIL_PRIVATE_KEY_PATH} \
 		--build-arg MAIL_PUBLIC_KEY_PATH=${MAIL_PUBLIC_KEY_PATH} \
 		--build-arg AUTH_PRIVATE_KEY_FILE=${AUTH_PRIVATE_KEY_FILE} \
@@ -58,7 +61,7 @@ image-cron:
 	docker build \
 		-f ./dockerfile.cron \
 		-t travel-api-cron \
-		--build-arg CONFIG_PATH=${GO_CONFIG_PATH} \
+		--build-arg CONFIG_PATH=${CONFIG_PATH} \
 		.
 
 #CREATE METRICS IMAGE
@@ -69,7 +72,7 @@ image-metrics:
 		-t travel-api-metrics \
 		--build-arg BUILD_REF=`git rev-parse HEAD` \
 		--build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
-		--build-arg CONFIG_PATH=${GO_CONFIG_PATH} \
+		--build-arg CONFIG_PATH=${CONFIG_PATH} \
 		.
 
 #DELETE ALL DOCKER DANGLING IMAGES
@@ -103,7 +106,7 @@ cert:
 
 #MIGRATE (brew install golang-migrate)
 migrate:
-	go run ${GO_PROVIDE_CONFIG}  ./travel-api/cmd/admin/main.go -migrate
+	go run ${GO_PROVIDE_MIGRATION}  ./travel-api/cmd/admin/main.go -migrate
 # migrate -path ./travel-api/cmd/admin/migration/sql -database \
 # "postgresql://postgres:password@0.0.0.0:5432/travel?sslmode=disable" -verbose up
 

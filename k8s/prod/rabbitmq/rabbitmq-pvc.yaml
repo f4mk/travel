@@ -6,6 +6,7 @@ metadata:
     component: travel-api-mq-volume
   name: rabbitmq-pvc
 spec:
+  storageClassName: manual
   accessModes:
     - ReadWriteOnce
   resources:
