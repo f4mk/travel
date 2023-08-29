@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/f4mk/travel/backend/pkg/web"
 	userUsecase "github.com/f4mk/travel/backend/travel-api/internal/app/usecase/user"
-	"github.com/f4mk/travel/backend/travel-api/pkg/web"
 	"github.com/rs/zerolog"
 )
 

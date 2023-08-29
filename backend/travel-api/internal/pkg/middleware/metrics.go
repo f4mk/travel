@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/f4mk/travel/backend/pkg/web"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/metrics"
-	"github.com/f4mk/travel/backend/travel-api/pkg/web"
 )
 
 func Metrics() web.Middleware {

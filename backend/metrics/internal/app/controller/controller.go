@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/f4mk/travel/backend/metrics/internal/service"
-	"github.com/f4mk/travel/backend/metrics/pkg/web"
+	"github.com/f4mk/travel/backend/metrics/internal/app/service"
+	"github.com/f4mk/travel/backend/pkg/web"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )

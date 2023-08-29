@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/f4mk/travel/backend/metrics/config"
-	app "github.com/f4mk/travel/backend/metrics/internal/controller"
-	"github.com/f4mk/travel/backend/metrics/internal/provider"
-	"github.com/f4mk/travel/backend/metrics/internal/service"
-	metrics "github.com/f4mk/travel/backend/metrics/internal/usecase"
+	app "github.com/f4mk/travel/backend/metrics/internal/app/controller"
+	"github.com/f4mk/travel/backend/metrics/internal/app/provider"
+	"github.com/f4mk/travel/backend/metrics/internal/app/service"
+	metrics "github.com/f4mk/travel/backend/metrics/internal/app/usecase"
 	"github.com/rs/zerolog"
 )
 

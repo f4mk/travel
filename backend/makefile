@@ -23,7 +23,7 @@ SHELL := /bin/bash
 
 ################# CONFIG ##################
 
-CONFIG_PATH = config/.env
+CONFIG_PATH = travel-api/config/.env
 
 include ${CONFIG_PATH}
 
@@ -40,7 +40,7 @@ config-path:
 image:
 	docker rmi travel-api:latest || true
 	docker build \
-		-f ./dockerfile.api \
+		-f ./travel-api/dockerfile.api \
 		-t travel-api \
 		--build-arg BUILD_REF=`git rev-parse HEAD` \
 		--build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
@@ -55,7 +55,7 @@ image:
 image-cron:
 	docker rmi travel-api-cron:latest || true
 	docker build \
-		-f ./dockerfile.cron \
+		-f ./travel-api/dockerfile.cron \
 		-t travel-api-cron \
 		--build-arg CONFIG_PATH=${CONFIG_PATH} \
 		.
@@ -64,7 +64,7 @@ image-cron:
 image-metrics:
 	docker rmi travel-api-metrics:latest || true
 	docker build \
-		-f ./dockerfile.metrics \
+		-f ./metrics/dockerfile.metrics \
 		-t travel-api-metrics \
 		--build-arg BUILD_REF=`git rev-parse HEAD` \
 		--build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
@@ -92,38 +92,20 @@ tidy:
 
 #BUILD API SERVICE
 build-api:
-	go build ${GO_PROVIDE_CONFIG} -o app ./cmd/app/main.go
+	go build ${GO_PROVIDE_CONFIG} -o app ./travel-api/cmd/app/main.go
 
 #RUN API SERVICE LOCALLY
 run-api:
-	go run ${GO_PROVIDE_CONFIG} ./cmd/app/main.go
+	go run ${GO_PROVIDE_CONFIG} ./metrics/cmd/app/main.go
 
 #BUILD MAILER SERVICE
 build-mailer:
-	go build ${GO_PROVIDE_CONFIG} -o app ./cmd/app/mailer/main.go
+	go build ${GO_PROVIDE_CONFIG} -o app ./travel-api/cmd/app/mailer/main.go
 
 #RUN MAILER SERVICE LOCALLY
 run-mailer:
-	go run ${GO_PROVIDE_CONFIG} ./cmd/app/mailer/main.go
+	go run ${GO_PROVIDE_CONFIG} ./travel-api/cmd/app/mailer/main.go
 
-###########################################
-
-################### APP ###################
-
-#START APP FROM SCRATCH
-all: pull image image-cron image-metrics up
-
-
-#RUN APP WITH REBUILD
-up: docker-rmi image image-cron image-metrics compose-up
-
-#RUN APP
-compose-up:
-	docker compose --env-file ${CONFIG_PATH} up
-
-#STOP APP
-compose-down:
-	docker compose --env-file ${CONFIG_PATH} down
 
 ###########################################
 
@@ -137,30 +119,30 @@ cert:
 
 #MIGRATE (brew install golang-migrate)
 migrate:
-	go run ${GO_PROVIDE_CONFIG}  ./cmd/admin/main.go -migrate
-# migrate -path ./cmd/admin/migration/sql -database \
+	go run ${GO_PROVIDE_CONFIG}  ./travel-api/cmd/admin/main.go -migrate
+# migrate -path ./travel-api/cmd/admin/migration/sql -database \
 # "postgresql://postgres:password@0.0.0.0:5432/travel?sslmode=disable" -verbose up
 
 #GENERATE JWT TOKEN FOR SPECIFIED KEY.PEM
 gen-jwt:
-	go run ${GO_PROVIDE_CONFIG} ./cmd/admin/main.go -tokengen \
+	go run ${GO_PROVIDE_CONFIG} ./travel-api/cmd/admin/main.go -tokengen \
 		-kid="9911fa97-db1d-4e15-a683-a85f860f565b" \
 		-role="ADMIN"
 
 #GENERATE JWT ALL TOKENS FOR KEY.PEM FILES
 gen-jwt-all:
-	go run ${GO_PROVIDE_CONFIG} ./cmd/admin/main.go -tokengen-all -role="ADMIN"
+	go run ${GO_PROVIDE_CONFIG} ./travel-api/cmd/admin/main.go -tokengen-all -role="ADMIN"
 
 #GENERATE JWT TOKEN/PRIVATE KEY FOR AUTH
 gen-key:
-	go run ${GO_PROVIDE_CONFIG} ./cmd/admin/main.go -keygen
+	go run ${GO_PROVIDE_CONFIG} ./travel-api/cmd/admin/main.go -keygen
 
 #GENERATE TYPES FROM OPENAPI SPEC
 #https://pkg.go.dev/github.com/go-playground/validator/v10#section-readme
 #npm install -g @apidevtools/swagger-cli
 
 types:
-	go run cmd/tools/typegen/main.go
+	go run travel-api/cmd/tools/typegen/main.go
 
 #LINT CODE
 lint: 

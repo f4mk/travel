@@ -3,9 +3,9 @@ package utils
 import (
 	"log"
 
+	"github.com/f4mk/travel/backend/pkg/utils"
 	"github.com/f4mk/travel/backend/travel-api/config"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/database"
-	"github.com/f4mk/travel/backend/travel-api/pkg/utils"
 	"github.com/golang-migrate/migrate/v4"
 
 	postgresMigrate "github.com/golang-migrate/migrate/v4/database/postgres"

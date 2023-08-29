@@ -3,8 +3,8 @@ package service
 import (
 	"net/http"
 
-	metrics "github.com/f4mk/travel/backend/metrics/internal/usecase"
-	metricsPkg "github.com/f4mk/travel/backend/metrics/pkg/usecase"
+	metrics "github.com/f4mk/travel/backend/metrics/internal/app/usecase"
+	metricsPkg "github.com/f4mk/travel/backend/metrics/internal/pkg/metrics"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
 )

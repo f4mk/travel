@@ -7,8 +7,8 @@ import (
 	_ "net/http/pprof"
 	"os"
 
-	"github.com/f4mk/travel/backend/metrics/application"
 	"github.com/f4mk/travel/backend/metrics/config"
+	"github.com/f4mk/travel/backend/metrics/internal/app/application"
 	"github.com/f4mk/travel/backend/metrics/internal/pkg/logger"
 )
 

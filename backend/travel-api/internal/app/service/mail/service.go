@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 
+	queue "github.com/f4mk/travel/backend/pkg/mb"
 	mailUsecase "github.com/f4mk/travel/backend/travel-api/internal/app/usecase/mail"
-	queue "github.com/f4mk/travel/backend/travel-api/pkg/mb"
 	"github.com/rs/zerolog"
 )
 

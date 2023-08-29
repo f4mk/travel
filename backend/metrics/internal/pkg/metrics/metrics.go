@@ -1,8 +1,6 @@
-package service
+package metrics
 
 import (
-	"math"
-
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -50,26 +48,9 @@ func SetErrors(e float64) {
 }
 
 func SetPanics(p float64) {
-	panics.Set()
+	panics.Set(p)
 }
 
 func SetBucket(b string, v float64) {
-	requestTimeBuckets.WithLabelValues(b).Set(float64(v))
-}
-
-func bucketToSeconds(bucket string) float64 {
-	switch bucket {
-	case "<20ms":
-		return 0.02
-	case "20ms-50ms":
-		return 0.05
-	case "50ms-100ms":
-		return 0.1
-	case "100ms-200ms":
-		return 0.2
-	case "200ms-500ms":
-		return 0.5
-	default:
-		return math.Inf(+1)
-	}
+	requestTimeBuckets.WithLabelValues(b).Set(v)
 }

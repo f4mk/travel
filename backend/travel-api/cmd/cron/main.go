@@ -6,9 +6,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/f4mk/travel/backend/pkg/utils"
 	"github.com/f4mk/travel/backend/travel-api/config"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/database"
-	"github.com/f4mk/travel/backend/travel-api/pkg/utils"
 	"github.com/jmoiron/sqlx"
 
 	_ "github.com/lib/pq"

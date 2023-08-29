@@ -7,6 +7,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/f4mk/travel/backend/pkg/mb"
+	"github.com/f4mk/travel/backend/pkg/utils"
 	"github.com/f4mk/travel/backend/travel-api/config"
 	"github.com/f4mk/travel/backend/travel-api/internal/app/controller/api"
 	"github.com/f4mk/travel/backend/travel-api/internal/app/controller/debug"
@@ -24,8 +26,6 @@ import (
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/database"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/keystore"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/tracer"
-	"github.com/f4mk/travel/backend/travel-api/pkg/mb"
-	"github.com/f4mk/travel/backend/travel-api/pkg/utils"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 	"golang.org/x/net/http2"

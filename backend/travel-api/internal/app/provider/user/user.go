@@ -8,12 +8,6 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// Storer is a type that's responsible for direct interaction with a DB.
-// Only Storer should be aware of the data layout in a DB.
-// No other logic but DB requests should be presented in this file.
-// Storer methods should accept parameters that are mandatory for DB queries
-// and return appropriate results
-
 type Repo struct {
 	repo *sqlx.DB
 	log  *zerolog.Logger

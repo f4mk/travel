@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
+	"github.com/f4mk/travel/backend/pkg/web"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/auth"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/database"
-	"github.com/f4mk/travel/backend/travel-api/pkg/web"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 	"golang.org/x/crypto/bcrypt"

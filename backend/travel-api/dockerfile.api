@@ -12,7 +12,7 @@ WORKDIR /service
 RUN go mod download
 
 WORKDIR /service
-COPY . .
+COPY ./travel-api .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o app \
   -ldflags="-X 'main.build=${BUILD_REF}' \

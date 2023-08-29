@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"runtime/debug"
 
+	"github.com/f4mk/travel/backend/pkg/web"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/metrics"
-	"github.com/f4mk/travel/backend/travel-api/pkg/web"
 	"github.com/rs/zerolog"
 )
 

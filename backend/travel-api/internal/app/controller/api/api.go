@@ -5,11 +5,11 @@ import (
 	"os"
 	"time"
 
+	"github.com/f4mk/travel/backend/pkg/web"
 	authService "github.com/f4mk/travel/backend/travel-api/internal/app/service/auth"
 	userService "github.com/f4mk/travel/backend/travel-api/internal/app/service/user"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/auth"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/middleware"
-	"github.com/f4mk/travel/backend/travel-api/pkg/web"
 	"github.com/rs/zerolog"
 	"go.opentelemetry.io/otel/trace"
 )
