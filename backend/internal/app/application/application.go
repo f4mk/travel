@@ -23,6 +23,7 @@ import (
 	"github.com/f4mk/api/internal/pkg/auth"
 	"github.com/f4mk/api/internal/pkg/database"
 	"github.com/f4mk/api/internal/pkg/keystore"
+	"github.com/f4mk/api/internal/pkg/tracer"
 	"github.com/f4mk/api/pkg/mb"
 	"github.com/f4mk/api/pkg/utils"
 	"github.com/redis/go-redis/v9"
@@ -62,6 +63,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 
 	// -------------------------------------------------------------------------
 	// Initializing message broker connection manager
+	log.Info().Msg("api: initializing mb manager")
 	cm, err := mb.NewManager(mb.ConnConfig{
 		User:     cfg.MessageBroker.User,
 		Password: cfg.MessageBroker.Password,
@@ -155,13 +157,36 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	}
 
 	// -------------------------------------------------------------------------
+	// Start Tracing Support
+	log.Info().Msg("api: initializing otel tracing")
+
+	traceProvider, err := tracer.NewProvider(
+		cfg.Service.ServiceName,
+		utils.GetHost(cfg.Telemetry.HostName, cfg.Telemetry.Port),
+		cfg.Telemetry.Prob,
+	)
+	if err != nil {
+		log.Err(err).Msg("starting tracing")
+		return err
+	}
+	defer func() {
+		if err := traceProvider.Shutdown(context.Background()); err != nil {
+			log.Err(err).Msg("error shutting down otel trace provider")
+		}
+	}()
+
+	// TODO: add spans across app
+	tracer := traceProvider.Tracer("api")
+
+	// -------------------------------------------------------------------------
 	// Start Debug Service
 	log.Info().Msgf("debug: initializing debug server: %s", utils.GetHost(cfg.Debug.HostName, cfg.Debug.Port))
 	check := check.NewService(build, log, db)
+	debugErrors := make(chan error, 1)
 
 	go func() {
 		log.Info().Msgf("debug: debug is listening on: %s", utils.GetHost(cfg.Debug.HostName, cfg.Debug.Port))
-		if err := http.ListenAndServe(
+		debugErrors <- http.ListenAndServe(
 			utils.GetHost(cfg.Debug.HostName, cfg.Debug.Port),
 			debug.New(debug.Config{
 				Build:   build,
@@ -169,9 +194,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 				DB:      db,
 				Service: check,
 			}),
-		); err != nil {
-			log.Err(err).Msgf(ErrRunDebug.Error())
-		}
+		)
 	}()
 
 	// -------------------------------------------------------------------------
@@ -193,6 +216,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	apiCfg := api.Config{
 		Shutdown:       shutdown,
 		Log:            log,
+		Tracer:         tracer,
 		Auth:           auth,
 		RequestTimeout: cfg.API.RequestTimeout,
 		RateLimit:      cfg.API.RateLimit,
@@ -227,6 +251,9 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	case err := <-serverErrors:
 		log.Err(err).Msg(ErrRunServer.Error())
 		return ErrRunServer
+	case err := <-debugErrors:
+		log.Err(err).Msg(ErrRunDebug.Error())
+		return ErrRunDebug
 	case sig := <-shutdown:
 		log.Info().Msgf("api: shutting down on signal: %s", sig)
 		defer log.Info().Msgf("api: shutdown completed on signal: %s", sig)

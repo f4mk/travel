@@ -20,6 +20,7 @@ spec:
       initContainers:
       - name: init-volume
         image: haproxy-volume
+        imagePullPolicy: Never
         command: ["/bin/sh", "-c"]
         args:
           - cp /config/haproxy.cfg /config-volume/haproxy.cfg && cp /certs/* /certs-volume/
@@ -28,10 +29,10 @@ spec:
             mountPath: /config-volume
           - name: haproxy-certs-volume
             mountPath: /certs-volume
-        imagePullPolicy: IfNotPresent
       containers:
         - image: haproxy:2.8
           name: haproxy
+          imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 0
           ports:
@@ -45,7 +46,6 @@ spec:
             - name: haproxy-certs-volume
               mountPath: /etc/haproxy/certs/
           resources: {}
-          imagePullPolicy: IfNotPresent
       volumes:
         - name: haproxy-config-volume
           emptyDir: {}

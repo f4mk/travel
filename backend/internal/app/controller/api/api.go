@@ -11,11 +11,13 @@ import (
 	"github.com/f4mk/api/internal/pkg/middleware"
 	"github.com/f4mk/api/pkg/web"
 	"github.com/rs/zerolog"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type Config struct {
 	Shutdown       chan os.Signal
 	Log            *zerolog.Logger
+	Tracer         trace.Tracer
 	Auth           *auth.Auth
 	RequestTimeout time.Duration
 	RateLimit      int

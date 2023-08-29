@@ -50,3 +50,7 @@ resources:
   - prod/prometheus/prometheus-configmap.yaml
   - prod/prometheus/prometheus-deployment.yaml
   - prod/prometheus/prometheus-service.yaml
+  # tempo
+  - prod/tempo/tempo-configmap.yaml
+  - prod/tempo/tempo-deployment.yaml
+  - prod/tempo/tempo-service.yaml

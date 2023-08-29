@@ -21,6 +21,7 @@ spec:
     spec:
       containers:
         - image: redis:6.2-alpine
+          imagePullPolicy: IfNotPresent
           name: travel-api-redis
           ports:
             - containerPort: 6379
@@ -29,7 +30,6 @@ spec:
             - mountPath: /data
               name: travel-api-cache-volume
           resources: {}
-          imagePullPolicy: IfNotPresent
       restartPolicy: Always
       volumes:
         - name: travel-api-cache-volume

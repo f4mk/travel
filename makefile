@@ -31,6 +31,7 @@ pull:
 	docker pull grafana/promtail:2.8.4
 	docker pull grafana/grafana:10.1.0
 	docker pull prom/prometheus:v2.46.0
+	docker pull grafana/tempo:2.2.1
 
 .PHONY: compose-up
 compose-up:
@@ -76,10 +77,11 @@ kind-load-all:
 	kind load docker-image travel-api-cron:latest && \
 	kind load docker-image travel-api-metrics:latest && \
 	kind load docker-image haproxy-volume:latest && \
+	kind load docker-image prom/prometheus:v2.46.0 && \
 	kind load docker-image grafana/loki:2.8.4 && \
 	kind load docker-image grafana/promtail:2.8.4 && \
-	kind load docker-image prom/prometheus:v2.46.0 && \
-	kind load docker-image grafana/grafana:10.1.0
+	kind load docker-image grafana/grafana:10.1.0 && \
+	kind load docker-image grafana/tempo:2.2.1
 
 kind-create:
 	kind create cluster --config ./k8s/kind-config.yaml --name kind

@@ -28,6 +28,7 @@ spec:
             - name: POSTGRES_USER
               value: postgres
           image: postgres:15.3
+          imagePullPolicy: IfNotPresent
           name: travel-api-db
           ports:
             - containerPort: 5432
@@ -36,7 +37,6 @@ spec:
             - mountPath: /var/lib/postgresql/data
               name: travel-api-db-volume
           resources: {}
-          imagePullPolicy: IfNotPresent
       restartPolicy: Always
       volumes:
         - name: travel-api-db-volume

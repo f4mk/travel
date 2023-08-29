@@ -14,7 +14,7 @@ spec:
     spec:
       initContainers: 
         - name: set-data-dir-permission
-          image: busybox
+          image: alpine:3.18.2
           imagePullPolicy: IfNotPresent
           command: ["sh", "-c", "chown -R 10001:10001 /loki"]
           volumeMounts:

@@ -37,4 +37,7 @@ nodes:
   # grafana
   - containerPort: 4000
     hostPort: 4000
+  # tempo
+  - containerPort: 3101
+    hostPort: 3101
 

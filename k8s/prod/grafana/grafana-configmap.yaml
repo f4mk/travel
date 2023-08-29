@@ -14,3 +14,7 @@ data:
       type: prometheus
       access: proxy
       url: http://prometheus:9090
+    - name: Tempo
+      type: tempo
+      access: proxy
+      url: http://tempo:3101

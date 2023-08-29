@@ -68,7 +68,6 @@ type Log struct {
 type Telemetry struct {
 	Port     string  `env:"OTEL_PORT,required"`
 	HostName string  `env:"OTEL_HOST_NAME,required"`
-	Route    string  `env:"OTEL_ROUTE,required"`
 	Prob     float64 `env:"OTEL_PROB,required"`
 }
 
