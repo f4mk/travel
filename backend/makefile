@@ -24,14 +24,15 @@ SHELL := /bin/bash
 ################# CONFIG ##################
 
 CONFIG_PATH = travel-api/config/.env
+GO_CONFIG_PATH = travel-api/config/.env
 
 include ${CONFIG_PATH}
 
 GO_PROVIDE_CONFIG = -ldflags="-X 'main.configPath=${CONFIG_PATH}'"
 
-.PHONY: config-path
 config-path:
 	@echo ${CONFIG_PATH}
+
 
 ###########################################
 
@@ -40,11 +41,11 @@ config-path:
 image:
 	docker rmi travel-api:latest || true
 	docker build \
-		-f ./travel-api/dockerfile.api \
+		-f ./dockerfile.api \
 		-t travel-api \
 		--build-arg BUILD_REF=`git rev-parse HEAD` \
 		--build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
-		--build-arg CONFIG_PATH=${CONFIG_PATH} \
+		--build-arg CONFIG_PATH=${GO_CONFIG_PATH} \
 		--build-arg MAIL_PRIVATE_KEY_PATH=${MAIL_PRIVATE_KEY_PATH} \
 		--build-arg MAIL_PUBLIC_KEY_PATH=${MAIL_PUBLIC_KEY_PATH} \
 		--build-arg AUTH_PRIVATE_KEY_FILE=${AUTH_PRIVATE_KEY_FILE} \
@@ -55,20 +56,20 @@ image:
 image-cron:
 	docker rmi travel-api-cron:latest || true
 	docker build \
-		-f ./travel-api/dockerfile.cron \
+		-f ./dockerfile.cron \
 		-t travel-api-cron \
-		--build-arg CONFIG_PATH=${CONFIG_PATH} \
+		--build-arg CONFIG_PATH=${GO_CONFIG_PATH} \
 		.
 
 #CREATE METRICS IMAGE
 image-metrics:
 	docker rmi travel-api-metrics:latest || true
 	docker build \
-		-f ./metrics/dockerfile.metrics \
+		-f ./dockerfile.metrics \
 		-t travel-api-metrics \
 		--build-arg BUILD_REF=`git rev-parse HEAD` \
 		--build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
-		--build-arg CONFIG_PATH=${CONFIG_PATH} \
+		--build-arg CONFIG_PATH=${GO_CONFIG_PATH} \
 		.
 
 #DELETE ALL DOCKER DANGLING IMAGES
@@ -89,23 +90,6 @@ pull:
 #UPDATE SERVICE DEPENDENCIES
 tidy:
 	go mod tidy
-
-#BUILD API SERVICE
-build-api:
-	go build ${GO_PROVIDE_CONFIG} -o app ./travel-api/cmd/app/main.go
-
-#RUN API SERVICE LOCALLY
-run-api:
-	go run ${GO_PROVIDE_CONFIG} ./metrics/cmd/app/main.go
-
-#BUILD MAILER SERVICE
-build-mailer:
-	go build ${GO_PROVIDE_CONFIG} -o app ./travel-api/cmd/app/mailer/main.go
-
-#RUN MAILER SERVICE LOCALLY
-run-mailer:
-	go run ${GO_PROVIDE_CONFIG} ./travel-api/cmd/app/mailer/main.go
-
 
 ###########################################
 
