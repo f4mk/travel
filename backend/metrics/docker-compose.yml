@@ -1,0 +1,15 @@
+version: '3'
+services:
+  metrics:
+    image: travel-api-metrics:latest
+    container_name: travel-api-metrics
+    restart: always
+    depends_on:
+      - travel-api
+    ports:
+      - ${M_PORT}:${METRICS_PORT}
+    networks: 
+      - local
+
+networks:
+  local:
