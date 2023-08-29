@@ -1,7 +1,5 @@
 SHELL := /bin/bash
 
-API_CONFIG_PATH := $(shell cd ./backend && $(MAKE) -s config-path)
-
 backend-image:
 	$(MAKE) -C ./backend image
 
@@ -33,33 +31,8 @@ pull:
 	docker pull prom/prometheus:v2.46.0
 	docker pull grafana/tempo:2.2.1
 
-.PHONY: compose-up
-compose-up:
-	docker compose \
-		--env-file backend/${API_CONFIG_PATH} \
-		-f haproxy/docker-compose.yml \
-		-f backend/docker-compose.yml \
-		-f frontend/docker-compose.yml \
-		-f rabbit/docker-compose.yml \
-		up
-
-.PHONY: compose-down
-compose-down:
-	docker compose \
-		--env-file backend/${API_CONFIG_PATH} \
-		-f haproxy/docker-compose.yml \
-		-f backend/docker-compose.yml \
-		-f frontend/docker-compose.yml \
-		up
-
 images: backend-image backend-image-cron backend-image-metrics front-image haproxy-image-volume
 	
-#START APP FROM SCRATCH
-all: pull backend-image backend-image-cron backend-image-metrics front-image haproxy-image-volume compose-up
-
-#RUN APP WITH REBUILD
-up: backend-image backend-image-cron backend-image-metrics front-image compose-up
-
 #GENERATE SSL CERTIFICATE FOR HTTPS
 cert:
 	mkdir -p certs

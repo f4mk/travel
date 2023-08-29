@@ -7,7 +7,8 @@ ARG MAIL_PUBLIC_KEY_PATH
 
 RUN mkdir /service
 
-COPY go.* /service
+COPY go.* /service/
+
 WORKDIR /service
 RUN go mod download
 
@@ -18,7 +19,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o app \
   -ldflags="-X 'main.build=${BUILD_REF}' \
   -X 'main.date=${BUILD_DATE}' \
   -X 'main.configPath=${CONFIG_PATH}'" \
-  /service/cmd/app/api/main.go 
+  /service/travel-api/cmd/app/main.go 
 
 FROM alpine:3.18.2
 
@@ -41,5 +42,5 @@ CMD ["./app"]
 
 LABEL org.opencontainers.image.created="${BUILD_DATE}" \
       org.opencontainers.image.title="travel-api" \
-      org.opencontainers.image.source="https://github.com/f4mk/api" \
+      org.opencontainers.image.source="https://github.com/f4mk/travel/backend/travel-api" \
       org.opencontainers.image.revision="${BUILD_REF}" \

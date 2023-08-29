@@ -4,9 +4,6 @@ image:
 	docker rmi travel-static:latest || true
 	docker build -t travel-static -f ./dockerfile .
 
-up: image
-	docker compose up
-
 extract:
 	npm run extract -- 'src/**/*.ts*' --ignore='**/*.d.ts' --out-file lang/en.json --id-interpolation-pattern '[sha512:contenthash:base64:6]'
 

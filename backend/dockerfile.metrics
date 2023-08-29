@@ -3,27 +3,28 @@ ARG CONFIG_PATH
 
 RUN mkdir /service
 
-COPY go.* /service
+COPY go.* /service/
+
 WORKDIR /service
 RUN go mod download
 
 WORKDIR /service
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o metrics \
+RUN CGO_ENABLED=0 GOOS=linux go build -o app \
   -ldflags="-X 'main.build=${BUILD_REF}' \
   -X 'main.date=${BUILD_DATE}' \
   -X 'main.configPath=${CONFIG_PATH}'" \
-  /service/cmd/app/metrics/main.go 
+  /service/metrics/cmd/app/main.go 
 
 FROM alpine:3.18.2
 
 RUN adduser -D user
 USER user
 
-COPY --from=build /service/metrics .
+COPY --from=build /service/app /service/app
 COPY --from=build /service/${CONFIG_PATH} /service/${CONFIG_PATH}
 
-WORKDIR /service/
+WORKDIR /service
 
-CMD ["./metrics"]
+CMD ["./app"]

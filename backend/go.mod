@@ -1,4 +1,4 @@
-module github.com/f4mk/api
+module github.com/f4mk/travel/backend
 
 go 1.20
 
