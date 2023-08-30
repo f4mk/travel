@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { GoogleMap, useLoadScript } from '@react-google-maps/api'
 
 import { useGetLocale } from '#/hooks'
@@ -15,16 +15,20 @@ export const Map = ({ children }: Props) => {
     language: useGetLocale(),
     googleMapsApiKey: import.meta.env.VITE_MAP_API_KEY
   })
-  const [map, setMap] = useState<google.maps.Map | undefined>(undefined)
+  const mapRef = useRef<Nullable<google.maps.Map>>(null)
   const [zoom, setZoom] = useState(10)
   const center = useCurrentLocation()
 
-  const onLoad = useCallback((map: google.maps.Map) => {
-    setMap(map)
+  const handleLoad = useCallback((map: google.maps.Map) => {
+    mapRef.current = map
   }, [])
 
-  const onUnmount = useCallback(() => {
-    setMap(undefined)
+  const handleUnmount = useCallback(() => {
+    mapRef.current = null
+  }, [])
+
+  const handleZoomChanged = useCallback(() => {
+    setZoom((prev) => mapRef.current?.getZoom() || prev)
   }, [])
 
   if (loadError) {
@@ -36,16 +40,15 @@ export const Map = ({ children }: Props) => {
       mapContainerStyle={mapContainerStyles}
       center={center}
       zoom={zoom}
-      onLoad={onLoad}
-      onUnmount={onUnmount}
+      onLoad={handleLoad}
+      onUnmount={handleUnmount}
       options={defaultMapOptions}
       clickableIcons={true}
       mapTypeId={'terrain'}
-      onZoomChanged={() => {
-        setZoom(map?.getZoom() || zoom)
-      }}
+      onZoomChanged={handleZoomChanged}
+      onClick={(e) => console.log(e)}
     >
-      ({map && children})
+      {children}
     </GoogleMap>
   ) : (
     <MapLoader isLoading={!isLoaded} />
