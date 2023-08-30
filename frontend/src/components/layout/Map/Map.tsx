@@ -1,16 +1,18 @@
 import { useCallback, useState } from 'react'
 import { GoogleMap, useLoadScript } from '@react-google-maps/api'
 
+import { useGetLocale } from '#/hooks'
+
 import { MapError } from './components/MapError'
 import { MapLoader } from './components/MapLoader'
 import { defaultMapOptions, mapContainerStyles } from './constants'
-import { useClientLanguage, useCurrentLocation } from './hooks'
+import { useCurrentLocation } from './hooks'
 import { Props } from './types'
 
 export const Map = ({ children }: Props) => {
   const { isLoaded, loadError } = useLoadScript({
     id: 'google-map-script',
-    language: useClientLanguage(),
+    language: useGetLocale(),
     googleMapsApiKey: import.meta.env.VITE_MAP_API_KEY
   })
   const [map, setMap] = useState<google.maps.Map | undefined>(undefined)

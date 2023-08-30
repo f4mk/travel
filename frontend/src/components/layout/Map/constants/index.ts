@@ -1,5 +1,7 @@
-export const defaultMapOptions = {
+export const defaultMapOptions: google.maps.MapOptions = {
   disableDefaultUI: true,
+  minZoom: 3,
+  zoomControl: true,
   restriction: {
     strictBounds: true,
     latLngBounds: {

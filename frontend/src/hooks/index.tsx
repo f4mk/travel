@@ -1,3 +1,3 @@
-export { useLocale } from './useLocale'
+export * from './useLocale'
 export { useMessage } from './useMessage'
 export { useTheme } from './useTheme'
