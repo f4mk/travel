@@ -7,7 +7,7 @@ import { defaultMapOptions, mapContainerStyles } from './constants'
 import { useClientLanguage, useCurrentLocation } from './hooks'
 import { Props } from './types'
 
-export const Map = ({ markers }: Props) => {
+export const Map = ({ children }: Props) => {
   const { isLoaded, loadError } = useLoadScript({
     id: 'google-map-script',
     language: useClientLanguage(),
@@ -43,7 +43,7 @@ export const Map = ({ markers }: Props) => {
         setZoom(map?.getZoom() || zoom)
       }}
     >
-      {map && markers({ map })}
+      ({map && children})
     </GoogleMap>
   ) : (
     <MapLoader isLoading={!isLoaded} />

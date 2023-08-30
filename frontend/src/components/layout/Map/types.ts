@@ -1,3 +1,3 @@
-export type Props = {
-  markers: (props: { map: google.maps.Map }) => JSX.Element
-}
+import { PropsWithChildren } from 'react'
+
+export type Props = PropsWithChildren

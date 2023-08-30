@@ -33,18 +33,16 @@ const cards = [
 export const MapPage = () => {
   return (
     <S.Div>
-      <Map
-        markers={(props) => (
-          <>
-            {pins.map(({ id, ...rest }) => (
-              <Pin key={id} {...rest} {...props} />
-            ))}
-            {cards.map(({ id, ...rest }) => (
-              <MapCard key={id} {...rest} {...props} />
-            ))}
-          </>
-        )}
-      />
+      <Map>
+        <>
+          {pins.map((pin) => (
+            <Pin key={pin.id} {...pin} />
+          ))}
+          {cards.map((card) => (
+            <MapCard key={card.id} {...card} />
+          ))}
+        </>
+      </Map>
     </S.Div>
   )
 }

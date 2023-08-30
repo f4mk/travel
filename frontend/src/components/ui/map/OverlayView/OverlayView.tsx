@@ -1,37 +1,31 @@
-import { useEffect, useMemo } from 'react'
-import { createPortal } from 'react-dom'
+import { useEffect, useRef } from 'react'
+import {
+  OverlayView as DefaultOverlayView,
+  OverlayViewF
+} from '@react-google-maps/api'
 
-import { createOverlay } from './Overlay'
-import { Props } from './types'
+import type { Props } from './types'
+
 export const OverlayView = ({
   position,
-  pane = 'floatPane',
-  map,
-  zIndex,
-  preventInteraction,
-  children
+  children,
+  preventInteraction
 }: Props) => {
-  const container = useMemo(() => {
-    const div = document.createElement('div')
-    div.id = '___map-overlay'
-    div.style.position = 'absolute'
-    return div
-  }, [])
-
-  const overlay = useMemo(() => {
-    return createOverlay(container, pane, position)
-  }, [container, pane, position])
-
+  const containerRef = useRef(null)
   useEffect(() => {
-    overlay?.setMap(map)
-    preventInteraction &&
-      google.maps.OverlayView.preventMapHitsAndGesturesFrom(container)
-    return () => overlay?.setMap(null)
-  }, [map, overlay, container, preventInteraction])
+    if (containerRef.current && preventInteraction) {
+      google.maps.OverlayView.preventMapHitsAndGesturesFrom(
+        containerRef.current
+      )
+    }
+  }, [containerRef, preventInteraction])
 
-  useEffect(() => {
-    container.style.zIndex = `${zIndex}`
-  }, [zIndex, container])
-
-  return createPortal(children, container)
+  return (
+    <OverlayViewF
+      position={position}
+      mapPaneName={DefaultOverlayView.OVERLAY_MOUSE_TARGET}
+    >
+      <div ref={containerRef}>{children}</div>
+    </OverlayViewF>
+  )
 }
