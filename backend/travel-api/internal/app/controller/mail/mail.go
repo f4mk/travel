@@ -29,6 +29,7 @@ func New(cfg Config) (*Agent, error) {
 
 	errMsgCh := make(chan mail.ServeError, 1)
 	errServiceCh := make(chan error)
+	// TODO: needs to reconnect
 	go ma.service.Serve(ctx, errMsgCh, errServiceCh)
 
 	go func() {

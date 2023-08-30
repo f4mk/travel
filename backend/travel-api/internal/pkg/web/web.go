@@ -9,9 +9,7 @@ import (
 
 	"github.com/dimfeld/httptreemux/v5"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -25,12 +23,13 @@ type App struct {
 }
 type Handler func(ctx context.Context, w http.ResponseWriter, r *http.Request) error
 
-func New(shutdown chan os.Signal, timeout time.Duration, mw ...Middleware) *App {
+func New(shutdown chan os.Signal, timeout time.Duration, tracer trace.Tracer, mw ...Middleware) *App {
 
 	mux := httptreemux.NewContextMux()
 	app := App{
 		mux:        mux,
 		otmux:      otelhttp.NewHandler(mux, "request"),
+		tracer:     tracer,
 		shutdown:   shutdown,
 		timeout:    timeout,
 		middleware: mw,
@@ -49,8 +48,8 @@ func (a App) Handle(method string, path string, handler Handler, mw ...Middlewar
 		ctx, cancel := context.WithTimeout(r.Context(), a.timeout)
 		defer cancel()
 
-		ctx, span := a.startSpan(ctx, w, r)
-		defer span.End()
+		span := trace.SpanFromContext(ctx)
+		span.SetAttributes(attribute.String("endpoint", r.RequestURI))
 
 		v := Values{
 			TraceID: span.SpanContext().TraceID().String(),
@@ -80,23 +79,4 @@ func (a App) Handle(method string, path string, handler Handler, mw ...Middlewar
 func (a App) SignalShutdown() {
 
 	a.shutdown <- syscall.SIGTERM
-}
-
-func (a *App) startSpan(ctx context.Context, w http.ResponseWriter, r *http.Request) (context.Context, trace.Span) {
-
-	// There are times when the handler is called without a tracer, such
-	// as with tests. We need a span for the trace id.
-	span := trace.SpanFromContext(ctx)
-
-	// If a tracer exists, then replace the span for the one currently
-	// found in the context. This may have come from over the wire.
-	if a.tracer != nil {
-		ctx, span = a.tracer.Start(ctx, "pkg.web.handle")
-		span.SetAttributes(attribute.String("endpoint", r.RequestURI))
-	}
-
-	// Inject the trace information into the response.
-	otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(w.Header()))
-
-	return ctx, span
 }

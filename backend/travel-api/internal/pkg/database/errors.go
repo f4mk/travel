@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/f4mk/travel/backend/pkg/web"
+	"github.com/f4mk/travel/backend/travel-api/internal/pkg/web"
 	"github.com/lib/pq"
 )
 

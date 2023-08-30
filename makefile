@@ -30,6 +30,7 @@ pull:
 	docker pull grafana/grafana:10.1.0
 	docker pull prom/prometheus:v2.46.0
 	docker pull grafana/tempo:2.2.1
+	docker pull registry:2.8.2
 
 images: backend-image backend-image-cron backend-image-metrics front-image haproxy-image-volume
 	
@@ -72,4 +73,13 @@ prod-stop:
 prod-start:
 	sudo kubectl scale deployment haproxy --replicas=1
 
-#sudo nano /etc/systemd/system/k3s.service
+
+docker-registry-up:
+	docker run -d -p 5000:5000 --restart=always --name registry registry:2.8.2
+
+doker-push-image:
+	docker tag $(image):latest localhost:5000/$(image):latest
+	docker push localhost:5000/$(image):latest
+	
+# sudo nano /etc/systemd/system/k3s.service
+# kubectl scale deployment haproxy --replicas=1

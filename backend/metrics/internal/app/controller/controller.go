@@ -1,15 +1,13 @@
 package app
 
 import (
-	"context"
+	"encoding/json"
 	"expvar"
 	"net/http"
 	"net/http/pprof"
 	"strings"
-	"time"
 
 	"github.com/f4mk/travel/backend/metrics/internal/app/service"
-	"github.com/f4mk/travel/backend/pkg/web"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -46,16 +44,26 @@ func New(cfg Config) *Mux {
 	return mux
 }
 
-func readiness(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), time.Second)
-	defer cancel()
-
+func readiness(w http.ResponseWriter, _ *http.Request) {
 	res := struct {
 		Status string `json:"status"`
 	}{
 		Status: "ok",
 	}
-	if err := web.Respond(ctx, w, res, http.StatusOK); err != nil {
-		log.Err(err).Msg("readiness: failed to respond:")
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	jsonData, err := json.Marshal(res)
+
+	if err != nil {
+		log.Err(err).Msg("readiness: failed to marshal")
+		return
 	}
+
+	if _, err := w.Write(jsonData); err != nil {
+		log.Err(err).Msg("readiness: failed to write response")
+		return
+	}
+
 }

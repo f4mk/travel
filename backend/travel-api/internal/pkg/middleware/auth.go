@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/f4mk/travel/backend/pkg/web"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/auth"
+	"github.com/f4mk/travel/backend/travel-api/internal/pkg/web"
 )
 
 func Authenticate(a *auth.Auth) web.Middleware {

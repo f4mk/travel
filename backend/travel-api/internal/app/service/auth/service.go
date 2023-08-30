@@ -8,11 +8,11 @@ import (
 	"time"
 
 	queue "github.com/f4mk/travel/backend/pkg/mb"
-	"github.com/f4mk/travel/backend/pkg/web"
 	authUsecase "github.com/f4mk/travel/backend/travel-api/internal/app/usecase/auth"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/auth"
 	authPkg "github.com/f4mk/travel/backend/travel-api/internal/pkg/auth"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/messages"
+	"github.com/f4mk/travel/backend/travel-api/internal/pkg/web"
 
 	"github.com/rs/zerolog"
 )

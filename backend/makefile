@@ -24,6 +24,7 @@ SHELL := /bin/bash
 ################# CONFIG ##################
 
 CONFIG_PATH = travel-api/config/.env
+METRICS_CONFIG_PATH = metrics/config/.env
 GO_API_PREFIX_PATH = travel-api
 
 include ${CONFIG_PATH}
@@ -72,7 +73,7 @@ image-metrics:
 		-t travel-api-metrics \
 		--build-arg BUILD_REF=`git rev-parse HEAD` \
 		--build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
-		--build-arg CONFIG_PATH=${CONFIG_PATH} \
+		--build-arg CONFIG_PATH=${METRICS_CONFIG_PATH} \
 		.
 
 #DELETE ALL DOCKER DANGLING IMAGES
