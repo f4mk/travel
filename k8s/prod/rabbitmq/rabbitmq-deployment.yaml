@@ -25,7 +25,7 @@ spec:
               value: password
             - name: RABBITMQ_DEFAULT_USER
               value: user
-          image: rabbitmq:3.12-management
+          image: rabbitmq:3.12.4-management-alpine
           imagePullPolicy: IfNotPresent
           name: rabbitmq
           ports:

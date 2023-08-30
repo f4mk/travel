@@ -82,7 +82,7 @@ docker-rmi:
 
 #PULL DOCKER IMAGES
 pull: 
-	docker pull postgres:15.3
+	docker pull postgres:15.4-alpine3.18
 	docker pull alpine:3.18.2
 	docker pull golang:1.20.6-alpine3.18
 	docker pull redis:6.2-alpine

@@ -27,7 +27,7 @@ spec:
               value: password
             - name: POSTGRES_USER
               value: postgres
-          image: postgres:15.3
+          image: postgres:15.4-alpine3.18
           imagePullPolicy: IfNotPresent
           name: travel-api-db
           ports:

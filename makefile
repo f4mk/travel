@@ -24,7 +24,7 @@ docker-rmi:
 pull: 
 	$(MAKE) -C ./backend pull
 	docker pull node:18.17-alpine
-	docker pull rabbitmq:3.12:management
+	docker pull rabbitmq:3.12.4-management-alpine
 	docker pull grafana/loki:2.8.4
 	docker pull grafana/promtail:2.8.4
 	docker pull grafana/grafana:10.1.0
@@ -43,10 +43,10 @@ cert:
 # KIND
 kind-load-all:
 	kind load docker-image haproxy:2.8 && \
-	kind load docker-image rabbitmq:3.12-management && \
+	kind load docker-image rabbitmq:3.12.4-management-alpine && \
 	kind load docker-image travel-static:latest && \
 	kind load docker-image travel-api:latest && \
-	kind load docker-image postgres:15.3 && \
+	kind load docker-image postgres:15.4-alpine3.18 && \
 	kind load docker-image redis:6.2-alpine && \
 	kind load docker-image travel-api-cron:latest && \
 	kind load docker-image travel-api-metrics:latest && \
