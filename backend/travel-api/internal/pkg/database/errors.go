@@ -6,14 +6,15 @@ import (
 	"errors"
 
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/web"
-	"github.com/lib/pq"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
-// lib/pq errorCodeNames
-// https://github.com/lib/pq/blob/master/error.go#L178
+// errorCodeNames
+// https://www.postgresql.org/docs/current/errcodes-appendix.html
+
 const (
-	uniqueViolation  = pq.ErrorCode("23505")
-	deadlineExceeded = pq.ErrorCode("57014")
+	uniqueViolation  = "23505"
+	deadlineExceeded = "57014"
 )
 
 var ErrQueryDB = errors.New("error querying db")
@@ -23,12 +24,11 @@ func WrapStorerError(err error) error {
 		return web.ErrNotFound
 	}
 
-	if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == uniqueViolation {
-		return web.ErrAlreadyExists
-	}
-
-	if pqErr, ok := err.(*pq.Error); ok {
-		if pqErr.Code == deadlineExceeded {
+	if pgErr, ok := err.(*pgconn.PgError); ok {
+		switch pgErr.Code {
+		case uniqueViolation:
+			return web.ErrAlreadyExists
+		case deadlineExceeded:
 			return context.DeadlineExceeded
 		}
 	}

@@ -12,7 +12,7 @@ import (
 	//for using file source
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	//for using postgres driver
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 func RunMigration(cfg *config.Config, mp string) {

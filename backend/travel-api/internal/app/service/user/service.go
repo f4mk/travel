@@ -91,7 +91,13 @@ func (s *Service) CreateUser(ctx context.Context, w http.ResponseWriter, r *http
 			web.GetResponseErrorFromBusiness(err),
 		)
 	}
-	return web.Respond(ctx, w, res, http.StatusCreated)
+	cu := UserResponse{
+		ID:          res.ID,
+		Name:        res.Name,
+		Email:       res.Email,
+		DateCreated: res.DateCreated,
+	}
+	return web.Respond(ctx, w, cu, http.StatusCreated)
 }
 
 func (s *Service) UpdateUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {

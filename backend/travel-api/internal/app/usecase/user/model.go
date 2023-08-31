@@ -6,16 +6,15 @@ import (
 	"github.com/lib/pq"
 )
 
-// Model describes a data type in terms of business needs.
 type User struct {
-	ID           string         `db:"user_id" json:"id"`
-	Name         string         `db:"name" json:"name"`
-	Email        string         `db:"email" json:"email"`
-	TokenVersion int32          `db:"token_version" json:"-"`
-	Roles        pq.StringArray `db:"roles" json:"-"`
-	PasswordHash []byte         `db:"password_hash" json:"-"`
-	DateCreated  time.Time      `db:"date_created" json:"date_created"`
-	DateUpdated  time.Time      `db:"date_updated" json:"date_updated"`
+	ID           string         `db:"user_id"`
+	Name         string         `db:"name"`
+	Email        string         `db:"email"`
+	TokenVersion int32          `db:"token_version"`
+	Roles        pq.StringArray `db:"roles"`
+	PasswordHash []byte         `db:"password_hash"`
+	DateCreated  time.Time      `db:"date_created"`
+	DateUpdated  time.Time      `db:"date_updated"`
 }
 
 type NewUser struct {

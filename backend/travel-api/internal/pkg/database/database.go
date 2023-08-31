@@ -7,8 +7,9 @@ import (
 	"strings"
 	"time"
 
+	// using pgx driver
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
-	// _ "github.com/lib/pq"
 )
 
 type Config struct {
@@ -40,7 +41,7 @@ func Open(cfg Config) (*sqlx.DB, error) {
 		RawQuery: q.Encode(),
 	}
 
-	db, err := sqlx.Open("postgres", u.String())
+	db, err := sqlx.Open("pgx", u.String())
 	if err != nil {
 		return nil, err
 	}

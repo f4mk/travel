@@ -11,7 +11,8 @@ import (
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/database"
 	"github.com/jmoiron/sqlx"
 
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v5/stdlib"
+
 	"github.com/robfig/cron/v3"
 )
 
