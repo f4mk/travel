@@ -43,6 +43,7 @@ func RunMigration(cfg *config.Config, mp string) {
 		log.Fatalln(err)
 	}
 
+	log.Println("applying migrations")
 	err = migrator.Up()
 	if err != nil && err != migrate.ErrNoChange {
 		log.Fatalln(err)

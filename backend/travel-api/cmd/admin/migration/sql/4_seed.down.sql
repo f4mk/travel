@@ -1,0 +1,11 @@
+BEGIN;
+
+DELETE FROM
+	users
+WHERE
+	user_id IN (
+		'5cf37266-3473-4006-984f-9325122678b7',
+		'45b5fbd3-755f-4379-8f07-a58d4a30fa2f'
+	);
+
+COMMIT;

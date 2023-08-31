@@ -63,11 +63,12 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 
 	// -------------------------------------------------------------------------
 	// Initializing message broker connection manager
-	log.Info().Msg("api: initializing mb manager")
+	cmHost := utils.GetHost(cfg.MessageBroker.HostName, cfg.MessageBroker.Port)
+	log.Info().Msgf("api: initializing mb manager %s", cmHost)
 	cm, err := mb.NewManager(mb.ConnConfig{
 		User:     cfg.MessageBroker.User,
 		Password: cfg.MessageBroker.Password,
-		Host:     utils.GetHost(cfg.MessageBroker.HostName, cfg.MessageBroker.Port),
+		Host:     cmHost,
 		Log:      log,
 	})
 	if err != nil {
@@ -118,8 +119,10 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	activeKids := ks.CollectKeyIDs()
 
 	// creating cache
+	redisHost := utils.GetHost(cfg.Cache.HostName, cfg.Cache.Port)
+	log.Info().Msgf("api: initializing redis: %s", redisHost)
 	redis := redis.NewClient(&redis.Options{
-		Addr:         utils.GetHost(cfg.Cache.HostName, cfg.Cache.Port),
+		Addr:         redisHost,
 		Password:     "",
 		DB:           cfg.Cache.DB,
 		PoolSize:     cfg.Cache.PoolSize,
@@ -158,11 +161,11 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 
 	// -------------------------------------------------------------------------
 	// Start Tracing Support
-	log.Info().Msg("api: initializing otel tracing")
-
+	tpHost := utils.GetHost(cfg.Telemetry.HostName, cfg.Telemetry.Port)
+	log.Info().Msgf("api: initializing otel tracing %s", tpHost)
 	traceProvider, err := tracer.NewProvider(
 		cfg.Service.ServiceName,
-		utils.GetHost(cfg.Telemetry.HostName, cfg.Telemetry.Port),
+		tpHost,
 		cfg.Telemetry.Prob,
 	)
 	if err != nil {
