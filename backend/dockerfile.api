@@ -2,9 +2,7 @@ FROM golang:1.20.6-alpine3.18 as build_api
 ARG BUILD_DATE
 ARG BUILD_REF
 ARG CONFIG_PATH
-ARG MAIL_PRIVATE_KEY_PATH
-ARG MAIL_PUBLIC_KEY_PATH
-
+ARG MIGRATIONS_PATH
 RUN mkdir /service
 
 COPY go.* /service/
@@ -21,24 +19,44 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o app \
   -X 'main.configPath=${CONFIG_PATH}'" \
   /service/travel-api/cmd/app/main.go 
 
-FROM alpine:3.18.2
+# TODO: should pull env from makefile
+RUN CGO_ENABLED=0 GOOS=linux go build -o migrate \
+  -ldflags="-X 'main.configPath=${CONFIG_PATH}' \
+  -X 'main.migrationsPath=file://${MIGRATIONS_PATH}'" \
+  /service/travel-api/cmd/admin/main.go
 
 #prod container
+FROM alpine:3.18.2
+
+ARG CONFIG_PATH
+ARG MIGRATIONS_PATH
+ARG MAIL_PRIVATE_KEY_PATH
+ARG MAIL_PUBLIC_KEY_PATH
+ARG AUTH_KEY_PATH
+
+RUN apk add --no-cache postgresql-client bash
+
 COPY --from=build_api /service/${CONFIG_PATH} /service/${CONFIG_PATH}
+COPY --from=build_api /service/${MIGRATIONS_PATH} /service/${MIGRATIONS_PATH}
 COPY --from=build_api /service/${MAIL_PRIVATE_KEY_PATH} /service/${MAIL_PRIVATE_KEY_PATH}
 COPY --from=build_api /service/${MAIL_PUBLIC_KEY_PATH} /service/${MAIL_PUBLIC_KEY_PATH}
 COPY --from=build_api /service/${AUTH_KEY_PATH}/ /service/${AUTH_KEY_PATH}/
 COPY --from=build_api /service/app /service/app
+COPY --from=build_api /service/migrate /service/migrate
+ENV CONFIG_PATH_ENV=${CONFIG_PATH}
+
 WORKDIR /service
 
 RUN apk add --no-cache bash
 COPY ./scripts/wait-for-it.sh /wait-for-it.sh
+COPY ./scripts/start-api.sh /start-api.sh
 RUN chmod +x /wait-for-it.sh
+RUN chmod +x /start-api.sh
 
 RUN adduser -D user
 USER user
 
-CMD ["./app"]
+CMD ["/start-api.sh"]
 
 LABEL org.opencontainers.image.created="${BUILD_DATE}" \
       org.opencontainers.image.title="travel-api" \

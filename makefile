@@ -46,7 +46,7 @@ kind-load-all:
 	kind load docker-image rabbitmq:3.12.4-management-alpine && \
 	kind load docker-image travel-static:latest && \
 	kind load docker-image travel-api:latest && \
-	kind load docker-image postgres:15.4-alpine3.18 && \
+	kind load docker-image postgis/postgis:15-3.4-alpine && \
 	kind load docker-image redis:6.2-alpine && \
 	kind load docker-image travel-api-cron:latest && \
 	kind load docker-image travel-api-metrics:latest && \

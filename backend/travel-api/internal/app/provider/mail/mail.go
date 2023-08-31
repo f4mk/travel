@@ -89,6 +89,7 @@ func (s *Sender) Send(l mailUsecase.Letter) error {
 		return err
 	}
 
+	// TODO: log original trace id
 	s.log.Info().Msgf("email sent successfully")
 
 	return nil

@@ -19,8 +19,8 @@ func RunMigration(cfg *config.Config, mp string) {
 	db, err := database.Open(database.Config{
 		User:     cfg.DB.User,
 		Password: cfg.DB.Password,
-		// TODO: shouldnt be hardcoded
-		Host:       utils.GetHost("0.0.0.0", cfg.DB.Port),
+		// TODO: need to provied hostname when run as a standalone script
+		Host:       utils.GetHost(cfg.DB.HostName, cfg.DB.Port),
 		Name:       cfg.DB.DBName,
 		DisableTLS: cfg.DB.DisableTLS,
 	})

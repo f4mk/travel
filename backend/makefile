@@ -25,14 +25,14 @@ SHELL := /bin/bash
 
 CONFIG_PATH = travel-api/config/.env
 METRICS_CONFIG_PATH = metrics/config/.env
-GO_API_PREFIX_PATH = travel-api
+MIGRATIONS_PATH = travel-api/cmd/admin/migration/sql
 
 include ${CONFIG_PATH}
 
 # TODO: refactor this
 GO_PROVIDE_CONFIG = -ldflags="-X 'main.configPath=${CONFIG_PATH}'"
 GO_PROVIDE_MIGRATION = -ldflags="-X 'main.configPath=${CONFIG_PATH}' \
-	-X 'main.migrationsPath=file://${GO_API_PREFIX_PATH}/cmd/admin/migration/sql'"
+	-X 'main.migrationsPath=file://${MIGRATIONS_PATH}'"
 
 config-path:
 	@echo ${CONFIG_PATH}
@@ -50,10 +50,10 @@ image:
 		--build-arg BUILD_REF=`git rev-parse HEAD` \
 		--build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
 		--build-arg CONFIG_PATH=${CONFIG_PATH} \
+		--build-arg MIGRATIONS_PATH=${MIGRATIONS_PATH} \
 		--build-arg MAIL_PRIVATE_KEY_PATH=${MAIL_PRIVATE_KEY_PATH} \
 		--build-arg MAIL_PUBLIC_KEY_PATH=${MAIL_PUBLIC_KEY_PATH} \
-		--build-arg AUTH_PRIVATE_KEY_FILE=${AUTH_PRIVATE_KEY_FILE} \
-		--build-arg AUTH_PUBLIC_KEY_FILE=${AUTH_PUBLIC_KEY_FILE} \
+		--build-arg AUTH_KEY_PATH=${AUTH_KEY_PATH} \
 		.
 
 #CREATE CRON IMAGE
@@ -82,7 +82,7 @@ docker-rmi:
 
 #PULL DOCKER IMAGES
 pull: 
-	docker pull postgres:15.4-alpine3.18
+	docker pull postgis/postgis:15-3.4-alpine
 	docker pull alpine:3.18.2
 	docker pull golang:1.20.6-alpine3.18
 	docker pull redis:6.2-alpine
