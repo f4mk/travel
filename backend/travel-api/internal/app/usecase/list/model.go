@@ -2,42 +2,75 @@ package list
 
 import "time"
 
-type List struct {
-	ID          string    `db:"list_id"`
-	UserID      string    `db:"user_id"`
-	Name        string    `db:"name"`
-	Description string    `db:"description"`
-	Private     bool      `db:"private"`
-	Favorite    bool      `db:"favorite"`
-	Completed   bool      `db:"completed"`
-	ItemsID     []string  `db:"items"`
-	DateCreated time.Time `db:"date_created"`
-	DateUpdated time.Time `db:"date_updated"`
+type ListWithIDs struct {
+	ID          string
+	Type        string
+	UserID      string
+	Name        string
+	Description string
+	Private     bool
+	Favorite    bool
+	Completed   bool
+	ItemsID     []string
+	DateCreated time.Time
+	DateUpdated time.Time
+}
+
+type ListWithItems struct {
+	ID          string
+	Type        string
+	UserID      string
+	Name        string
+	Description string
+	Private     bool
+	Favorite    bool
+	Completed   bool
+	Items       []Item
+	DateCreated time.Time
+	DateUpdated time.Time
+}
+
+type NewList struct {
+	UserID      string
+	Name        string
+	Description *string
+	Private     bool
+}
+
+type UpdateList struct {
+	ID          string
+	UserID      string
+	Name        *string
+	Description *string
+	Private     bool
+	Favorite    bool
+	Completed   bool
+	ItemsID     []string
 }
 
 type Item struct {
-	ID          string    `db:"item_id"`
-	ListID      string    `db:"list_id"`
-	Name        string    `db:"name"`
-	Description string    `db:"description"`
-	Address     string    `db:"address"`
-	PointID     string    `db:"point_id"`
-	ImageLinks  []string  `db:"image_links"`
-	Links       []string  `db:"links"`
-	Visited     bool      `db:"is_visited"`
-	DateCreated time.Time `db:"date_created"`
-	DateUpdated time.Time `db:"date_updated"`
+	ID          string
+	ListID      string
+	Name        string
+	Description string
+	Address     string
+	Point       Point
+	ImageLinks  []string
+	LinksID     []Link
+	Visited     bool
+	DateCreated time.Time
+	DateUpdated time.Time
 }
 
 type Link struct {
-	ID   string `db:"link_id"`
-	Name string `db:"name"`
-	URL  string `db:"url"`
+	ID   string
+	Name string
+	URL  string
 }
 
 type Point struct {
-	ID     string  `db:"point_id"`
-	ItemID string  `db:"item_id"`
-	Lat    float64 `db:"lat"`
-	Lng    float64 `db:"lng"`
+	ID     string
+	ItemID string
+	Lat    float64
+	Lng    float64
 }

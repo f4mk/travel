@@ -1,0 +1,84 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: API
+paths:
+  /list:
+    get:
+      tags: ["list","get"]
+      responses:
+        '200':
+          description: get all lists ofr owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    List:
+      type: object
+      properties:
+        id:
+          type: string
+          description: "list id"
+          x-go-name: ID
+        user_id:
+          type: string
+          description: "list owner id"
+          x-go-name: UserID
+        name:
+          type: string
+          description: "list name"
+        description:
+          type: string
+          description: "list description"
+        private:
+          type: boolean
+          description: "is list private"
+        favorite:
+          type: boolean
+          description: "is list favorite"
+        completed:
+          type: boolean
+          description: "is list completed"
+        items:
+          type: array
+          description: "array of items ids"
+          items:
+            type: string
+            description: "id of item that belongs to list"
+        date_created:
+          type: string
+          description: "date of creation"
+          x-go-type: time.Time
+        date_updated:
+          type: string
+          description: "date of last update"
+          x-go-type: time.Time
+      required:
+        - id
+        - user_id
+        - name
+        - private
+        - favorite
+        - completed
+        - date_created

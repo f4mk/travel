@@ -8,7 +8,7 @@ import (
 
 type storer interface {
 	// TODO:
-	QueryListByID(ctx context.Context, listID string) (List, error)
+	QueryListByID(ctx context.Context, listID string) (ListWithIDs, error)
 }
 
 type Core struct {
@@ -30,7 +30,7 @@ func (c *Core) GetAllLists(ctx context.Context, userID string) error {
 	return nil
 }
 
-func (c *Core) CreateNewList(ctx context.Context, list List) error {
+func (c *Core) CreateNewList(ctx context.Context, list NewList) error {
 	// Business logic for creating a new list, then:
 	return nil
 }
@@ -39,7 +39,7 @@ func (c *Core) GetListByID(ctx context.Context, listID string) error {
 	return nil
 }
 
-func (c *Core) UpdateListByID(ctx context.Context, listID string, updatedList List) error {
+func (c *Core) UpdateListByID(ctx context.Context, listID string, updatedList UpdateList) error {
 	// Business logic for updating a list by ID, then:
 	return nil
 }
