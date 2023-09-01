@@ -25,7 +25,9 @@ import (
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/auth"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/database"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/keystore"
+	"github.com/f4mk/travel/backend/travel-api/internal/pkg/middleware"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/tracer"
+	"github.com/f4mk/travel/backend/travel-api/internal/pkg/web"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 	"golang.org/x/net/http2"
@@ -207,6 +209,17 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
 
+	// Create App
+	app := web.New(
+		shutdown,
+		cfg.API.RequestTimeout,
+		tracer,
+		middleware.Logger(log),
+		middleware.Errors(log),
+		middleware.Metrics(),
+		middleware.Panics(log),
+	)
+
 	ur := userRepo.NewRepo(log, db)
 	ar := authRepo.NewRepo(log, db)
 
@@ -216,22 +229,27 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	ac := authUsecase.NewCore(log, ar)
 	as := authService.NewService(log, auth, ac, mq)
 
-	apiCfg := api.Config{
-		Shutdown:       shutdown,
-		Log:            log,
-		Tracer:         tracer,
-		Auth:           auth,
-		RequestTimeout: cfg.API.RequestTimeout,
-		RateLimit:      cfg.API.RateLimit,
-		AuthService:    as,
-		UserService:    us,
+	userCon := api.UserController{
+		Log:         log,
+		UserService: us,
+		Auth:        auth,
+		RateLimit:   cfg.API.RateLimit,
 	}
+	userCon.RegisterRoutes(app)
+
+	authCon := api.AuthController{
+		Log:         log,
+		AuthService: as,
+		Auth:        auth,
+		RateLimit:   cfg.API.RateLimit,
+	}
+	authCon.RegisterRoutes(app)
 
 	h2s := &http2.Server{}
 
 	api := &http.Server{
 		Addr:         utils.GetHost(cfg.API.HostName, cfg.API.Port),
-		Handler:      h2c.NewHandler(api.New(apiCfg), h2s),
+		Handler:      h2c.NewHandler(app, h2s),
 		ReadTimeout:  cfg.API.ReadTimeout,
 		WriteTimeout: cfg.API.WriteTimeout,
 	}

@@ -9,6 +9,7 @@ type List struct {
 	Description string    `db:"description"`
 	Private     bool      `db:"private"`
 	Favorite    bool      `db:"favorite"`
+	Completed   bool      `db:"completed"`
 	ItemsID     []string  `db:"items"`
 	DateCreated time.Time `db:"date_created"`
 	DateUpdated time.Time `db:"date_updated"`

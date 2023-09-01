@@ -14,6 +14,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// TODO: find a better place for this
 const emailCooldown = 10
 
 type Storer interface {

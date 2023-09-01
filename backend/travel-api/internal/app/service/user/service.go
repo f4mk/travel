@@ -46,7 +46,16 @@ func (s *Service) GetUsers(ctx context.Context, w http.ResponseWriter, _ *http.R
 			web.GetResponseErrorFromBusiness(err),
 		)
 	}
-	return web.Respond(ctx, w, res, http.StatusOK)
+	us := []UserResponse{}
+	for _, u := range res {
+		us = append(us, UserResponse{
+			ID:          u.ID,
+			Name:        u.Name,
+			Email:       u.Email,
+			DateCreated: u.DateCreated,
+		})
+	}
+	return web.Respond(ctx, w, us, http.StatusOK)
 }
 
 func (s *Service) GetUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
@@ -66,7 +75,13 @@ func (s *Service) GetUser(ctx context.Context, w http.ResponseWriter, r *http.Re
 			web.GetResponseErrorFromBusiness(err),
 		)
 	}
-	return web.Respond(ctx, w, res, http.StatusOK)
+	u := UserResponse{
+		ID:          res.ID,
+		Name:        res.Name,
+		Email:       res.Email,
+		DateCreated: res.DateCreated,
+	}
+	return web.Respond(ctx, w, u, http.StatusOK)
 }
 
 func (s *Service) CreateUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
