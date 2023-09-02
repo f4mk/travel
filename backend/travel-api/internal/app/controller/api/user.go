@@ -24,8 +24,8 @@ func (uc *UserController) RegisterRoutes(app *web.App) {
 		uc.UserService.CreateUser,
 		middleware.RateLimit(uc.Log, uc.RateLimit),
 	)
-	app.Handle(http.MethodGet, "/users", uc.UserService.GetUsers)
-	app.Handle(http.MethodGet, "/users/:id", uc.UserService.GetUser)
+	app.Handle(http.MethodGet, "/users", uc.UserService.GetUsers, middleware.Authenticate(uc.Auth))
+	app.Handle(http.MethodGet, "/users/:id", uc.UserService.GetUser, middleware.Authenticate(uc.Auth))
 	app.Handle(
 		http.MethodPut,
 		"/users/:id",
