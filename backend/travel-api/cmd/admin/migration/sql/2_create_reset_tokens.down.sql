@@ -1,5 +1,5 @@
 BEGIN;
 
-DROP TABLE reset_tokens;
+DROP TABLE IF EXISTS reset_tokens;
 
 COMMIT;

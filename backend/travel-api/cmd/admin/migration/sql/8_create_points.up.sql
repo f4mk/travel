@@ -1,0 +1,11 @@
+BEGIN;
+
+CREATE TABLE points (
+    point_id UUID PRIMARY KEY,
+    item_id UUID NOT NULL,
+    lat DOUBLE PRECISION NOT NULL,
+    lng DOUBLE PRECISION NOT NULL,
+    FOREIGN KEY (item_id) REFERENCES items(item_id) ON DELETE CASCADE
+);
+
+COMMIT;
