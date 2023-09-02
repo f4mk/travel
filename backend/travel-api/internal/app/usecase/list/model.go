@@ -42,16 +42,17 @@ type Item struct {
 	Address     string
 	Point       Point
 	ImageLinks  []string
-	LinksID     []Link
+	Links       []Link
 	Visited     bool
 	DateCreated time.Time
 	DateUpdated time.Time
 }
 
 type Link struct {
-	ID   string
-	Name string
-	URL  string
+	ID     string
+	ItemID string
+	Name   string
+	URL    string
 }
 
 type Point struct {

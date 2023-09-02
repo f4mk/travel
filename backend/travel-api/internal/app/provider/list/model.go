@@ -30,9 +30,10 @@ type RepoItem struct {
 }
 
 type RepoLink struct {
-	ID   string `db:"link_id"`
-	Name string `db:"name"`
-	URL  string `db:"url"`
+	ID     string `db:"link_id"`
+	ItemID string `db:"item_id"`
+	Name   string `db:"name"`
+	URL    string `db:"url"`
 }
 
 type RepoPoint struct {
