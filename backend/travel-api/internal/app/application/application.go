@@ -14,13 +14,16 @@ import (
 	"github.com/f4mk/travel/backend/travel-api/internal/app/controller/debug"
 	"github.com/f4mk/travel/backend/travel-api/internal/app/controller/mail"
 	authRepo "github.com/f4mk/travel/backend/travel-api/internal/app/provider/auth"
+	listRepo "github.com/f4mk/travel/backend/travel-api/internal/app/provider/list"
 	mailSender "github.com/f4mk/travel/backend/travel-api/internal/app/provider/mail"
 	userRepo "github.com/f4mk/travel/backend/travel-api/internal/app/provider/user"
 	authService "github.com/f4mk/travel/backend/travel-api/internal/app/service/auth"
 	"github.com/f4mk/travel/backend/travel-api/internal/app/service/check"
+	listService "github.com/f4mk/travel/backend/travel-api/internal/app/service/list"
 	mailService "github.com/f4mk/travel/backend/travel-api/internal/app/service/mail"
 	userService "github.com/f4mk/travel/backend/travel-api/internal/app/service/user"
 	authUsecase "github.com/f4mk/travel/backend/travel-api/internal/app/usecase/auth"
+	listUsecase "github.com/f4mk/travel/backend/travel-api/internal/app/usecase/list"
 	userUsecase "github.com/f4mk/travel/backend/travel-api/internal/app/usecase/user"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/auth"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/database"
@@ -220,18 +223,22 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 		middleware.Panics(log),
 	)
 
-	ur := userRepo.NewRepo(log, db)
-	ar := authRepo.NewRepo(log, db)
+	userR := userRepo.NewRepo(log, db)
+	authR := authRepo.NewRepo(log, db)
+	listR := listRepo.NewRepo(log, db)
 
-	uc := userUsecase.NewCore(log, ur)
-	us := userService.NewService(log, uc)
+	userC := userUsecase.NewCore(log, userR)
+	userS := userService.NewService(log, userC)
 
-	ac := authUsecase.NewCore(log, ar)
-	as := authService.NewService(log, auth, ac, mq)
+	authC := authUsecase.NewCore(log, authR)
+	authS := authService.NewService(log, auth, authC, mq)
+
+	listC := listUsecase.NewCore(log, listR)
+	listS := listService.NewService(log, listC)
 
 	userCon := api.UserController{
 		Log:         log,
-		UserService: us,
+		UserService: userS,
 		Auth:        auth,
 		RateLimit:   cfg.API.RateLimit,
 	}
@@ -239,11 +246,19 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 
 	authCon := api.AuthController{
 		Log:         log,
-		AuthService: as,
+		AuthService: authS,
 		Auth:        auth,
 		RateLimit:   cfg.API.RateLimit,
 	}
 	authCon.RegisterRoutes(app)
+
+	listCon := api.ListController{
+		Log:         log,
+		ListService: listS,
+		Auth:        auth,
+		RateLimit:   cfg.API.RateLimit,
+	}
+	listCon.RegisterRoutes(app)
 
 	h2s := &http2.Server{}
 

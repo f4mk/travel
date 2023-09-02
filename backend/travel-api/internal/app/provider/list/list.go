@@ -20,21 +20,49 @@ func NewRepo(l *zerolog.Logger, r *sqlx.DB) *Repo {
 }
 
 func (r *Repo) QueryListsByUserID(ctx context.Context, uID string) ([]list.List, error) {
-	res := []list.List{}
+	res := []RepoList{}
 	q := `SELECT * from lists where user_id=$1`
 	if err := r.repo.SelectContext(ctx, &res, q, uID); err != nil {
 		return []list.List{}, err
 	}
-	return res, nil
+	ls := []list.List{}
+	for _, l := range res {
+		ll := list.List{
+			ID:          l.ID,
+			UserID:      l.UserID,
+			Name:        l.Name,
+			Description: l.Description,
+			Private:     l.Private,
+			Favorite:    l.Favorite,
+			Completed:   l.Completed,
+			ItemsID:     l.ItemsID,
+			DateCreated: l.DateCreated,
+			DateUpdated: l.DateUpdated,
+		}
+		ls = append(ls, ll)
+	}
+	return ls, nil
 }
 
 func (r *Repo) QueryListByID(ctx context.Context, uID string, lID string) (list.List, error) {
 	q := `SELECT * FROM lists WHERE list_id = $1 AND user_id = $2;`
-	res := list.List{}
+	res := RepoList{}
 	if err := r.repo.GetContext(ctx, &res, q, lID, uID); err != nil {
 		return list.List{}, err
 	}
-	return res, nil
+	l := list.List{
+		ID:          res.ID,
+		UserID:      res.UserID,
+		Name:        res.Name,
+		Description: res.Description,
+		Private:     res.Private,
+		Favorite:    res.Favorite,
+		Completed:   res.Completed,
+		ItemsID:     res.ItemsID,
+		DateCreated: res.DateCreated,
+		DateUpdated: res.DateUpdated,
+	}
+	return l, nil
 }
 
 func (r *Repo) QueryItemsByListID(ctx context.Context, userID string, listID string) ([]list.Item, error) {

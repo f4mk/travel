@@ -64,6 +64,13 @@ func (s *Service) GetList(ctx context.Context, w http.ResponseWriter, r *http.Re
 		return auth.ErrGetClaims
 	}
 	listID := web.Param(r, "listID")
+	if err := web.ValidateUUID(listID); err != nil {
+		s.log.Err(err).Msg(ErrListValidateListUUID.Error())
+		return web.NewRequestError(
+			fmt.Errorf("invalid id: %w", err),
+			http.StatusBadRequest,
+		)
+	}
 	res, err := s.core.GetListByID(ctx, claims.Subject, listID)
 	if err != nil {
 		s.log.Err(err).Msg(ErrGetListsBusiness.Error())
@@ -94,6 +101,13 @@ func (s *Service) GetItems(ctx context.Context, w http.ResponseWriter, r *http.R
 		return auth.ErrGetClaims
 	}
 	listID := web.Param(r, "listID")
+	if err := web.ValidateUUID(listID); err != nil {
+		s.log.Err(err).Msg(ErrListValidateListUUID.Error())
+		return web.NewRequestError(
+			fmt.Errorf("invalid id: %w", err),
+			http.StatusBadRequest,
+		)
+	}
 	res, err := s.core.GetItemsByListID(ctx, claims.Subject, listID)
 	if err != nil {
 		s.log.Err(err).Msg(ErrGetListsBusiness.Error())
@@ -144,7 +158,21 @@ func (s *Service) GetItem(ctx context.Context, w http.ResponseWriter, r *http.Re
 		return auth.ErrGetClaims
 	}
 	listID := web.Param(r, "listID")
+	if err := web.ValidateUUID(listID); err != nil {
+		s.log.Err(err).Msg(ErrListValidateListUUID.Error())
+		return web.NewRequestError(
+			fmt.Errorf("invalid id: %w", err),
+			http.StatusBadRequest,
+		)
+	}
 	itemID := web.Param(r, "itemID")
+	if err := web.ValidateUUID(itemID); err != nil {
+		s.log.Err(err).Msg(ErrListValidateItemUUID.Error())
+		return web.NewRequestError(
+			fmt.Errorf("invalid id: %w", err),
+			http.StatusBadRequest,
+		)
+	}
 	res, err := s.core.GetItemByID(ctx, claims.Subject, listID, itemID)
 	if err != nil {
 		s.log.Err(err).Msg(ErrGetListsBusiness.Error())
