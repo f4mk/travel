@@ -20,22 +20,22 @@ type UserController struct {
 func (uc *UserController) RegisterRoutes(app *web.App) {
 	app.Handle(
 		http.MethodPost,
-		"/user",
+		"/users",
 		uc.UserService.CreateUser,
 		middleware.RateLimit(uc.Log, uc.RateLimit),
 	)
-	app.Handle(http.MethodGet, "/user", uc.UserService.GetUsers)
-	app.Handle(http.MethodGet, "/user/:id", uc.UserService.GetUser)
+	app.Handle(http.MethodGet, "/users", uc.UserService.GetUsers)
+	app.Handle(http.MethodGet, "/users/:id", uc.UserService.GetUser)
 	app.Handle(
 		http.MethodPut,
-		"/user/:id",
+		"/users/:id",
 		uc.UserService.UpdateUser,
 		middleware.RateLimit(uc.Log, uc.RateLimit),
 		middleware.Authenticate(uc.Auth),
 	)
 	app.Handle(
 		http.MethodDelete,
-		"/user/:id",
+		"/users/:id",
 		uc.UserService.DeleteUser,
 		middleware.Authenticate(uc.Auth),
 	)

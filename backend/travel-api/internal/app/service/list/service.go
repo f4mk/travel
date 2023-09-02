@@ -2,9 +2,12 @@ package list
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	listUsecase "github.com/f4mk/travel/backend/travel-api/internal/app/usecase/list"
+	"github.com/f4mk/travel/backend/travel-api/internal/pkg/auth"
+	"github.com/f4mk/travel/backend/travel-api/internal/pkg/web"
 	"github.com/rs/zerolog"
 )
 
@@ -24,20 +27,34 @@ func NewService(l *zerolog.Logger, c *listUsecase.Core) *Service {
 	}
 }
 
-// GetLists retrieves all lists.
 func (s *Service) GetLists(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+
+	claims, err := auth.GetClaims(ctx)
+	if err != nil {
+		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		return auth.ErrGetClaims
+	}
+
+	ls, err := s.core.GetAllLists(ctx, claims.Subject)
+	if err != nil {
+		s.log.Err(err).Msg(ErrGetListsBusiness.Error())
+		return fmt.Errorf(
+			"cannot query lists: %w",
+			web.GetResponseErrorFromBusiness(err),
+		)
+	}
+
+	return web.Respond(ctx, w, ls, http.StatusOK)
+}
+
+// GetList retrieves a specific list by its ID.
+func (s *Service) GetList(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	// Implement your code here...
 	return nil
 }
 
 // CreateList creates a new list.
 func (s *Service) CreateList(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	// Implement your code here...
-	return nil
-}
-
-// GetList retrieves a specific list by its ID.
-func (s *Service) GetList(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	// Implement your code here...
 	return nil
 }

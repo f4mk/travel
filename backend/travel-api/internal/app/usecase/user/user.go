@@ -91,7 +91,7 @@ func (c *Core) Update(ctx context.Context, uID string, uu UpdateUser) (User, err
 		return User{}, auth.ErrGetClaims
 	}
 	if !claims.Authorize(auth.RoleAdmin) && uID != claims.Subject {
-		c.log.Err(err).Msgf("user: update: %s", web.ErrForbidden.Error())
+		c.log.Error().Msgf("user: update: %s", web.ErrForbidden.Error())
 		return User{}, web.ErrForbidden
 	}
 	//update user

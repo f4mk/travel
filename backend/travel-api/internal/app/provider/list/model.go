@@ -2,7 +2,7 @@ package list
 
 import "time"
 
-type StorerList struct {
+type RepoList struct {
 	ID          string    `db:"list_id"`
 	UserID      string    `db:"user_id"`
 	Name        string    `db:"name"`
@@ -15,7 +15,7 @@ type StorerList struct {
 	DateUpdated time.Time `db:"date_updated"`
 }
 
-type StorerItem struct {
+type RepoItem struct {
 	ID          string    `db:"item_id"`
 	ListID      string    `db:"list_id"`
 	Name        string    `db:"name"`
@@ -29,13 +29,13 @@ type StorerItem struct {
 	DateUpdated time.Time `db:"date_updated"`
 }
 
-type StorerLink struct {
+type RepoLink struct {
 	ID   string `db:"link_id"`
 	Name string `db:"name"`
 	URL  string `db:"url"`
 }
 
-type StorerPoint struct {
+type RepoPoint struct {
 	ID     string  `db:"point_id"`
 	ItemID string  `db:"item_id"`
 	Lat    float64 `db:"lat"`

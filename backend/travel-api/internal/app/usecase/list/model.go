@@ -2,7 +2,7 @@ package list
 
 import "time"
 
-type ListWithIDs struct {
+type List struct {
 	ID          string
 	Type        string
 	UserID      string
@@ -12,20 +12,6 @@ type ListWithIDs struct {
 	Favorite    bool
 	Completed   bool
 	ItemsID     []string
-	DateCreated time.Time
-	DateUpdated time.Time
-}
-
-type ListWithItems struct {
-	ID          string
-	Type        string
-	UserID      string
-	Name        string
-	Description string
-	Private     bool
-	Favorite    bool
-	Completed   bool
-	Items       []Item
 	DateCreated time.Time
 	DateUpdated time.Time
 }
