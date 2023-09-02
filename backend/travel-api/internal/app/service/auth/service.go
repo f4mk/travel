@@ -156,14 +156,20 @@ func (s *Service) ChangePassword(ctx context.Context, w http.ResponseWriter, r *
 		Password:    p.Password,
 		PasswordOld: p.PasswordOld,
 	}
-	u, err := s.core.ChangePassword(ctx, cp)
+	res, err := s.core.ChangePassword(ctx, cp)
 	if err != nil {
 		s.log.Err(err).Msg(ErrChangePassBusiness.Error())
 		return web.GetResponseErrorFromBusiness(err)
 	}
-	if err := s.auth.StoreUserTokenVersion(ctx, u.UserID, u.TokenVersion); err != nil {
+	if err := s.auth.StoreUserTokenVersion(ctx, res.UserID, res.TokenVersion); err != nil {
 		s.log.Err(err).Msg(ErrLoginStoreTokenVersion.Error())
 		return ErrLoginStoreTokenVersion
+	}
+	u := UserResponse{
+		ID:          res.UserID,
+		Name:        res.Name,
+		Email:       res.Email,
+		DateCreated: res.DateCreated,
 	}
 
 	return web.Respond(ctx, w, u, http.StatusCreated)
@@ -306,7 +312,6 @@ func (s *Service) LogoutAll(ctx context.Context, w http.ResponseWriter, r *http.
 			http.StatusBadRequest,
 		)
 	}
-
 	c, err := auth.GetClaims(ctx)
 	if err != nil {
 		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
@@ -329,7 +334,6 @@ func (s *Service) LogoutAll(ctx context.Context, w http.ResponseWriter, r *http.
 		s.log.Err(err).Msg(ErrLoginStoreTokenVersion.Error())
 		return ErrLoginStoreTokenVersion
 	}
-
 	return web.Respond(ctx, w, struct{}{}, http.StatusOK)
 }
 

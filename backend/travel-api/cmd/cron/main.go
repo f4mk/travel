@@ -60,12 +60,10 @@ func removeExpiredRecords() {
 	for {
 		q := `
 		DELETE FROM revoked_tokens
-		WHERE token_id IN (
-				SELECT token_id FROM revoked_tokens
+		WHERE token_id IN 
+				(SELECT token_id FROM revoked_tokens
 				WHERE expires_at < $1
-				LIMIT $2
-		);
-		`
+				LIMIT $2);`
 		result, err := db.Exec(q, time.Now(), batchSize)
 		if err != nil {
 			fmt.Println("error removing records:", err)

@@ -26,6 +26,8 @@ SHELL := /bin/bash
 CONFIG_PATH = travel-api/config/.env
 METRICS_CONFIG_PATH = metrics/config/.env
 MIGRATIONS_PATH = travel-api/cmd/admin/migration/sql
+TYPES_API_PATH = travel-api/api/specs
+TYPES_INTERNAL_PATH = travel-api/internal/app/service
 
 include ${CONFIG_PATH}
 
@@ -33,6 +35,8 @@ include ${CONFIG_PATH}
 GO_PROVIDE_CONFIG = -ldflags="-X 'main.configPath=${CONFIG_PATH}'"
 GO_PROVIDE_MIGRATION = -ldflags="-X 'main.configPath=${CONFIG_PATH}' \
 	-X 'main.migrationsPath=file://${MIGRATIONS_PATH}'"
+GO_PROVIDE_TYPES = -ldflags="-X 'main.apiDir=${TYPES_API_PATH}' \
+	-X 'main.internalDir=${TYPES_INTERNAL_PATH}'"
 
 config-path:
 	@echo ${CONFIG_PATH}
@@ -130,7 +134,7 @@ gen-key:
 #npm install -g @apidevtools/swagger-cli
 
 types:
-	go run travel-api/cmd/tools/typegen/main.go
+	go run ${GO_PROVIDE_TYPES} ./travel-api/cmd/tools/typegen/main.go
 
 #LINT CODE
 lint: 

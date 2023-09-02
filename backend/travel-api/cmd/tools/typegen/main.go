@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-const (
+var (
 	apiDir      = "./api/specs"
 	internalDir = "./internal/app/service"
 )

@@ -46,24 +46,20 @@ func (c *Core) GetListByID(ctx context.Context, userID string, listID string) (L
 }
 
 func (c *Core) GetItemsByListID(ctx context.Context, userID string, listID string) ([]Item, error) {
-
 	is, err := c.storer.QueryItemsByListID(ctx, userID, listID)
 	if err != nil {
 		c.log.Err(err).Msgf("lists: query: %s", database.ErrQueryDB.Error())
 		return []Item{}, database.WrapStorerError(err)
 	}
-
 	return is, nil
 }
 
 func (c *Core) GetItemByID(ctx context.Context, userID, listID, itemID string) (Item, error) {
-
 	it, err := c.storer.QueryItemByID(ctx, userID, listID, itemID)
 	if err != nil {
 		c.log.Err(err).Msgf("lists: query: %s", database.ErrQueryDB.Error())
 		return Item{}, database.WrapStorerError(err)
 	}
-
 	return it, nil
 }
 

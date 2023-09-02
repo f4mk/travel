@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"errors"
 	"time"
 
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/auth"
@@ -13,9 +12,6 @@ import (
 	"github.com/rs/zerolog"
 	"golang.org/x/crypto/bcrypt"
 )
-
-// TODO: find a better place for this
-const emailCooldown = 10
 
 type Storer interface {
 	DeleteToken(ctx context.Context, dt DeleteToken) error
@@ -102,26 +98,12 @@ func (c *Core) ChangePassword(ctx context.Context, cp ChangePassword) (User, err
 	return u, nil
 }
 
+// TODO: cron to clean the table every day for unclaimed tokens
 func (c *Core) ResetPasswordRequest(ctx context.Context, email string) (ResetPassword, error) {
 	u, err := c.storer.QueryByEmail(ctx, email)
 	if err != nil {
 		c.log.Err(err).Msgf("auth: reset password request: %s", database.ErrQueryDB.Error())
 		return ResetPassword{}, database.WrapStorerError(err)
-	}
-	lt, err := c.storer.QueryLastResetTokenByUserID(ctx, u.UserID)
-	if err != nil {
-		//handle all errors but 404(no token - no problems)
-		if !errors.Is(database.WrapStorerError(err), web.ErrNotFound) {
-			c.log.Err(err).Msgf("auth: reset password request: %s", database.ErrQueryDB.Error())
-			return ResetPassword{}, database.WrapStorerError(err)
-		}
-	}
-	if lt != nil {
-		// allow new token once every Xmin
-		if lt.IssuedAt.After(time.Now().Add(-emailCooldown * time.Minute)) {
-			c.log.Warn().Msg("auth: reset password request: requested token too soon")
-			return ResetPassword{}, auth.ErrResetTokenReqLimit
-		}
 	}
 
 	token := make([]byte, 32)

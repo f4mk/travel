@@ -21,9 +21,9 @@ func (lc *ListController) RegisterRoutes(app *web.App) {
 	app.Handle(http.MethodGet, "/lists", lc.ListService.GetLists, middleware.Authenticate(lc.Auth))
 	app.Handle(http.MethodPost, "/lists", lc.ListService.CreateList, middleware.Authenticate(lc.Auth))
 
-	app.Handle(http.MethodGet, "/lists/:id", lc.ListService.GetList, middleware.Authenticate(lc.Auth))
-	app.Handle(http.MethodPut, "/lists/:id", lc.ListService.UpdateList, middleware.Authenticate(lc.Auth))
-	app.Handle(http.MethodDelete, "/lists/:id", lc.ListService.DeleteList, middleware.Authenticate(lc.Auth))
+	app.Handle(http.MethodGet, "/lists/:listID", lc.ListService.GetList, middleware.Authenticate(lc.Auth))
+	app.Handle(http.MethodPut, "/lists/:listID", lc.ListService.UpdateList, middleware.Authenticate(lc.Auth))
+	app.Handle(http.MethodDelete, "/lists/:listID", lc.ListService.DeleteList, middleware.Authenticate(lc.Auth))
 
 	app.Handle(http.MethodGet, "/lists/:listID/items", lc.ListService.GetItems, middleware.Authenticate(lc.Auth))
 	app.Handle(http.MethodPost, "/lists/:listID/items", lc.ListService.CreateItem, middleware.Authenticate(lc.Auth))

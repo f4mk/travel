@@ -4,7 +4,6 @@ import "time"
 
 type List struct {
 	ID          string
-	Type        string
 	UserID      string
 	Name        string
 	Description string
