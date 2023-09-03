@@ -250,13 +250,17 @@ func (s *Service) CreateItem(ctx context.Context, w http.ResponseWriter, r *http
 		Lat: ni.Point.Lat,
 		Lng: ni.Point.Lng,
 	}
-	nl := []listUsecase.NewLink{}
-	for _, link := range *ni.Links {
-		l := listUsecase.NewLink{
-			Name: link.Name,
-			URL:  link.URL,
+	var nl *[]listUsecase.NewLink
+	if ni.Links != nil {
+		tempLinks := []listUsecase.NewLink{}
+		for _, link := range *ni.Links {
+			l := listUsecase.NewLink{
+				Name: link.Name,
+				URL:  link.URL,
+			}
+			tempLinks = append(tempLinks, l)
 		}
-		nl = append(nl, l)
+		nl = &tempLinks
 	}
 	i := listUsecase.NewItem{
 		ListID:      listID,
@@ -265,7 +269,7 @@ func (s *Service) CreateItem(ctx context.Context, w http.ResponseWriter, r *http
 		Address:     ni.Address,
 		Point:       np,
 		ImageLinks:  ni.ImageLinks,
-		Links:       &nl,
+		Links:       nl,
 	}
 	res, err := s.core.CreateNewItem(ctx, claims.Subject, i)
 	if err != nil {
@@ -304,21 +308,29 @@ func (s *Service) UpdateItem(ctx context.Context, w http.ResponseWriter, r *http
 		return err
 	}
 
-	up := listUsecase.UpdatePoint{
-		ID:     ui.Point.ID,
-		ItemID: itemID,
-		Lat:    ui.Point.Lat,
-		Lng:    ui.Point.Lng,
-	}
-	ul := []listUsecase.UpdateLink{}
-	for _, link := range *ui.Links {
-		l := listUsecase.UpdateLink{
-			ID:     link.ID,
+	var up *listUsecase.UpdatePoint
+	if ui.Point != nil {
+		up = &listUsecase.UpdatePoint{
+			ID:     ui.Point.ID,
 			ItemID: itemID,
-			Name:   link.Name,
-			URL:    link.URL,
+			Lat:    ui.Point.Lat,
+			Lng:    ui.Point.Lng,
 		}
-		ul = append(ul, l)
+	}
+
+	var ul *[]listUsecase.UpdateLink
+	if ui.Links != nil {
+		tempLinks := []listUsecase.UpdateLink{}
+		for _, link := range *ui.Links {
+			l := listUsecase.UpdateLink{
+				ID:     link.ID,
+				ItemID: itemID,
+				Name:   link.Name,
+				URL:    link.URL,
+			}
+			tempLinks = append(tempLinks, l)
+		}
+		ul = &tempLinks
 	}
 	i := listUsecase.UpdateItem{
 		ID:          itemID,
@@ -326,9 +338,9 @@ func (s *Service) UpdateItem(ctx context.Context, w http.ResponseWriter, r *http
 		Name:        ui.Name,
 		Description: ui.Description,
 		Address:     ui.Description,
-		Point:       &up,
+		Point:       up,
 		ImageLinks:  ui.ImageLinks,
-		Links:       &ul,
+		Links:       ul,
 		Visited:     ui.Visited,
 	}
 	res, err := s.core.UpdateItemByID(ctx, claims.Subject, i)
