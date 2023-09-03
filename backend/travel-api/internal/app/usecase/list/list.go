@@ -67,17 +67,31 @@ func (c *Core) GetItemByID(ctx context.Context, userID, listID, itemID string) (
 //
 //revive:disable
 
-func (c *Core) CreateNewList(ctx context.Context, list NewList) error {
+func (c *Core) CreateNewList(ctx context.Context, list NewList) (List, error) {
 	// Business logic for creating a new list, then:
-	return nil
+	return List{}, nil
 }
 
-func (c *Core) UpdateListByID(ctx context.Context, listID string, updatedList UpdateList) error {
+func (c *Core) UpdateListByID(ctx context.Context, ul UpdateList) (List, error) {
 	// Business logic for updating a list by ID, then:
+	return List{}, nil
+}
+
+func (c *Core) DeleteListByID(ctx context.Context, userID string, listID string) error {
 	return nil
 }
 
-func (c *Core) DeleteListByID(ctx context.Context, listID string) error {
+func (c *Core) CreateNewItem(ctx context.Context, userID string, item NewItem) (Item, error) {
+	// Business logic for creating a new list, then:
+	return Item{}, nil
+}
+
+func (c *Core) UpdateItemByID(ctx context.Context, userID string, ui UpdateItem) (Item, error) {
+	// Business logic for updating a list by ID, then:
+	return Item{}, nil
+}
+
+func (c *Core) DeleteItemByID(ctx context.Context, userID string, listID string, itemID string) error {
 	return nil
 }
 

@@ -40,18 +40,7 @@ func (s *Service) GetLists(ctx context.Context, w http.ResponseWriter, _ *http.R
 	}
 	ls := []ListResponse{}
 	for _, list := range res {
-		l := ListResponse{
-			ID:          list.ID,
-			UserID:      list.UserID,
-			Name:        list.Name,
-			Description: &list.Description,
-			Favorite:    list.Favorite,
-			Private:     list.Private,
-			Completed:   list.Completed,
-			ItemsID:     &list.ItemsID,
-			DateCreated: list.DateCreated,
-			DateUpdated: &list.DateUpdated,
-		}
+		l := populateListResponse(list)
 		ls = append(ls, l)
 	}
 	return web.Respond(ctx, w, ls, http.StatusOK)
@@ -63,13 +52,10 @@ func (s *Service) GetList(ctx context.Context, w http.ResponseWriter, r *http.Re
 		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
-	listID := web.Param(r, "listID")
-	if err := web.ValidateUUID(listID); err != nil {
+	listID, err := getListIDParam(r)
+	if err != nil {
 		s.log.Err(err).Msg(ErrListValidateListUUID.Error())
-		return web.NewRequestError(
-			fmt.Errorf("invalid id: %w", err),
-			http.StatusBadRequest,
-		)
+		return err
 	}
 	res, err := s.core.GetListByID(ctx, claims.Subject, listID)
 	if err != nil {
@@ -79,6 +65,340 @@ func (s *Service) GetList(ctx context.Context, w http.ResponseWriter, r *http.Re
 			web.GetResponseErrorFromBusiness(err),
 		)
 	}
+	ls := populateListResponse(res)
+	return web.Respond(ctx, w, ls, http.StatusOK)
+}
+
+func (s *Service) GetItems(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	claims, err := auth.GetClaims(ctx)
+	if err != nil {
+		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		return auth.ErrGetClaims
+	}
+	listID, err := getListIDParam(r)
+	if err != nil {
+		s.log.Err(err).Msg(ErrListValidateListUUID.Error())
+		return err
+	}
+	res, err := s.core.GetItemsByListID(ctx, claims.Subject, listID)
+	if err != nil {
+		s.log.Err(err).Msg(ErrGetListsBusiness.Error())
+		return fmt.Errorf(
+			"cannot query items: %w",
+			web.GetResponseErrorFromBusiness(err),
+		)
+	}
+	is := []ItemResponse{}
+	for _, item := range res {
+		i := populateItemResponse(item)
+		is = append(is, i)
+	}
+	return web.Respond(ctx, w, is, http.StatusOK)
+}
+
+func (s *Service) GetItem(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	claims, err := auth.GetClaims(ctx)
+	if err != nil {
+		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		return auth.ErrGetClaims
+	}
+	listID, err := getListIDParam(r)
+	if err != nil {
+		s.log.Err(err).Msg(ErrListValidateListUUID.Error())
+		return err
+	}
+	itemID, err := getItemIDParam(r)
+	if err != nil {
+		s.log.Err(err).Msg(ErrListValidateItemUUID.Error())
+		return err
+	}
+	res, err := s.core.GetItemByID(ctx, claims.Subject, listID, itemID)
+	if err != nil {
+		s.log.Err(err).Msg(ErrGetListsBusiness.Error())
+		return fmt.Errorf(
+			"cannot query items: %w",
+			web.GetResponseErrorFromBusiness(err),
+		)
+	}
+	i := populateItemResponse(res)
+	return web.Respond(ctx, w, i, http.StatusOK)
+}
+
+func (s *Service) CreateList(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	nl := NewList{}
+	if err := web.Decode(r, &nl); err != nil {
+		s.log.Err(err).Msg(ErrListCreateValidate.Error())
+		return web.NewRequestError(
+			err,
+			http.StatusBadRequest,
+		)
+	}
+	claims, err := auth.GetClaims(ctx)
+	if err != nil {
+		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		return auth.ErrGetClaims
+	}
+	l := listUsecase.NewList{
+		UserID:      claims.Subject,
+		Name:        nl.Name,
+		Description: nl.Description,
+		Private:     nl.Private,
+	}
+	res, err := s.core.CreateNewList(ctx, l)
+	if err != nil {
+		s.log.Err(err).Msg(ErrCreateListBusiness.Error())
+		return fmt.Errorf(
+			"cannot create list: %w",
+			web.GetResponseErrorFromBusiness(err),
+		)
+	}
+	pl := populateListResponse(res)
+	return web.Respond(ctx, w, pl, http.StatusCreated)
+}
+
+func (s *Service) UpdateList(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ul := UpdateList{}
+	if err := web.Decode(r, &ul); err != nil {
+		s.log.Err(err).Msg(ErrListUpdateValidate.Error())
+		return web.NewRequestError(
+			err,
+			http.StatusBadRequest,
+		)
+	}
+	claims, err := auth.GetClaims(ctx)
+	if err != nil {
+		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		return auth.ErrGetClaims
+	}
+	listID, err := getListIDParam(r)
+	if err != nil {
+		s.log.Err(err).Msg(ErrListValidateListUUID.Error())
+		return err
+	}
+	l := listUsecase.UpdateList{
+		ID:          listID,
+		UserID:      claims.Subject,
+		Name:        ul.Name,
+		Description: ul.Description,
+		Private:     ul.Private,
+		Favorite:    ul.Favorite,
+		Completed:   ul.Completed,
+		ItemsID:     ul.ItemsID,
+	}
+
+	res, err := s.core.UpdateListByID(ctx, l)
+	if err != nil {
+		s.log.Err(err).Msg(ErrUpdateListBusiness.Error())
+		return fmt.Errorf(
+			"cannot update list: %w",
+			web.GetResponseErrorFromBusiness(err),
+		)
+	}
+	pl := populateListResponse(res)
+	return web.Respond(ctx, w, pl, http.StatusOK)
+}
+
+func (s *Service) DeleteList(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	dl := struct{}{}
+	if err := web.Decode(r, &dl); err != nil {
+		s.log.Err(err).Msg(ErrListDeleteValidate.Error())
+		return web.NewRequestError(
+			err,
+			http.StatusBadRequest,
+		)
+	}
+	claims, err := auth.GetClaims(ctx)
+	if err != nil {
+		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		return auth.ErrGetClaims
+	}
+	listID, err := getListIDParam(r)
+	if err != nil {
+		s.log.Err(err).Msg(ErrListValidateListUUID.Error())
+		return err
+	}
+	if err := s.core.DeleteListByID(ctx, claims.Subject, listID); err != nil {
+		s.log.Err(err).Msg(ErrDeleteListBusiness.Error())
+		return fmt.Errorf(
+			"cannot delete list: %w",
+			web.GetResponseErrorFromBusiness(err),
+		)
+	}
+	return web.Respond(ctx, w, struct{}{}, http.StatusOK)
+}
+
+func (s *Service) CreateItem(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ni := NewItem{}
+	if err := web.Decode(r, &ni); err != nil {
+		s.log.Err(err).Msg(ErrItemCreateValidate.Error())
+		return web.NewRequestError(
+			err,
+			http.StatusBadRequest,
+		)
+	}
+	claims, err := auth.GetClaims(ctx)
+	if err != nil {
+		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		return auth.ErrGetClaims
+	}
+	listID, err := getListIDParam(r)
+	if err != nil {
+		s.log.Err(err).Msg(ErrItemValidateListUUID.Error())
+		return err
+	}
+	np := listUsecase.NewPoint{
+		Lat: ni.Point.Lat,
+		Lng: ni.Point.Lng,
+	}
+	nl := []listUsecase.NewLink{}
+	for _, link := range *ni.Links {
+		l := listUsecase.NewLink{
+			Name: link.Name,
+			URL:  link.URL,
+		}
+		nl = append(nl, l)
+	}
+	i := listUsecase.NewItem{
+		ListID:      listID,
+		Name:        ni.Name,
+		Description: ni.Description,
+		Address:     ni.Address,
+		Point:       np,
+		ImageLinks:  ni.ImageLinks,
+		Links:       &nl,
+	}
+	res, err := s.core.CreateNewItem(ctx, claims.Subject, i)
+	if err != nil {
+		s.log.Err(err).Msg(ErrCreateItemBusiness.Error())
+		return fmt.Errorf(
+			"cannot create item: %w",
+			web.GetResponseErrorFromBusiness(err),
+		)
+	}
+	pi := populateItemResponse(res)
+	return web.Respond(ctx, w, pi, http.StatusCreated)
+}
+
+func (s *Service) UpdateItem(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ui := UpdateItem{}
+	if err := web.Decode(r, &ui); err != nil {
+		s.log.Err(err).Msg(ErrItemUpdateValidate.Error())
+		return web.NewRequestError(
+			err,
+			http.StatusBadRequest,
+		)
+	}
+	claims, err := auth.GetClaims(ctx)
+	if err != nil {
+		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		return auth.ErrGetClaims
+	}
+	listID, err := getListIDParam(r)
+	if err != nil {
+		s.log.Err(err).Msg(ErrItemValidateListUUID.Error())
+		return err
+	}
+	itemID, err := getItemIDParam(r)
+	if err != nil {
+		s.log.Err(err).Msg(ErrItemValidateItemUUID.Error())
+		return err
+	}
+
+	up := listUsecase.UpdatePoint{
+		ID:     ui.Point.ID,
+		ItemID: itemID,
+		Lat:    ui.Point.Lat,
+		Lng:    ui.Point.Lng,
+	}
+	ul := []listUsecase.UpdateLink{}
+	for _, link := range *ui.Links {
+		l := listUsecase.UpdateLink{
+			ID:     link.ID,
+			ItemID: itemID,
+			Name:   link.Name,
+			URL:    link.URL,
+		}
+		ul = append(ul, l)
+	}
+	i := listUsecase.UpdateItem{
+		ID:          itemID,
+		ListID:      listID,
+		Name:        ui.Name,
+		Description: ui.Description,
+		Address:     ui.Description,
+		Point:       &up,
+		ImageLinks:  ui.ImageLinks,
+		Links:       &ul,
+		Visited:     ui.Visited,
+	}
+	res, err := s.core.UpdateItemByID(ctx, claims.Subject, i)
+	if err != nil {
+		s.log.Err(err).Msg(ErrUpdateItemBusiness.Error())
+		return fmt.Errorf(
+			"cannot update item: %w",
+			web.GetResponseErrorFromBusiness(err),
+		)
+	}
+	pi := populateItemResponse(res)
+	return web.Respond(ctx, w, pi, http.StatusOK)
+}
+
+func (s *Service) DeleteItem(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	di := struct{}{}
+	if err := web.Decode(r, &di); err != nil {
+		s.log.Err(err).Msg(ErrItemDeleteValidate.Error())
+		return web.NewRequestError(
+			err,
+			http.StatusBadRequest,
+		)
+	}
+	claims, err := auth.GetClaims(ctx)
+	if err != nil {
+		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		return auth.ErrGetClaims
+	}
+	listID, err := getListIDParam(r)
+	if err != nil {
+		s.log.Err(err).Msg(ErrItemValidateListUUID.Error())
+		return err
+	}
+	itemID, err := getItemIDParam(r)
+	if err != nil {
+		s.log.Err(err).Msg(ErrItemValidateItemUUID.Error())
+		return err
+	}
+	if err := s.core.DeleteItemByID(ctx, claims.Subject, listID, itemID); err != nil {
+		s.log.Err(err).Msg(ErrDeleteItemBusiness.Error())
+		return fmt.Errorf(
+			"cannot delete item: %w",
+			web.GetResponseErrorFromBusiness(err),
+		)
+	}
+	return web.Respond(ctx, w, struct{}{}, http.StatusOK)
+}
+
+func getListIDParam(r *http.Request) (string, error) {
+	listID := web.Param(r, "listID")
+	if err := web.ValidateUUID(listID); err != nil {
+		return "", web.NewRequestError(
+			fmt.Errorf("invalid id: %w", err),
+			http.StatusBadRequest,
+		)
+	}
+	return listID, nil
+}
+func getItemIDParam(r *http.Request) (string, error) {
+	itemID := web.Param(r, "itemID")
+	if err := web.ValidateUUID(itemID); err != nil {
+		return "", web.NewRequestError(
+			fmt.Errorf("invalid id: %w", err),
+			http.StatusBadRequest,
+		)
+	}
+	return itemID, nil
+}
+
+func populateListResponse(res listUsecase.List) ListResponse {
 	ls := ListResponse{
 		ID:          res.ID,
 		UserID:      res.UserID,
@@ -91,97 +411,10 @@ func (s *Service) GetList(ctx context.Context, w http.ResponseWriter, r *http.Re
 		DateCreated: res.DateCreated,
 		DateUpdated: &res.DateUpdated,
 	}
-	return web.Respond(ctx, w, ls, http.StatusOK)
+	return ls
 }
 
-func (s *Service) GetItems(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	claims, err := auth.GetClaims(ctx)
-	if err != nil {
-		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
-		return auth.ErrGetClaims
-	}
-	listID := web.Param(r, "listID")
-	if err := web.ValidateUUID(listID); err != nil {
-		s.log.Err(err).Msg(ErrListValidateListUUID.Error())
-		return web.NewRequestError(
-			fmt.Errorf("invalid id: %w", err),
-			http.StatusBadRequest,
-		)
-	}
-	res, err := s.core.GetItemsByListID(ctx, claims.Subject, listID)
-	if err != nil {
-		s.log.Err(err).Msg(ErrGetListsBusiness.Error())
-		return fmt.Errorf(
-			"cannot query items: %w",
-			web.GetResponseErrorFromBusiness(err),
-		)
-	}
-	is := []ItemResponse{}
-	for _, item := range res {
-		l := []LinkResponse{}
-		for _, link := range item.Links {
-			l = append(l, LinkResponse{
-				ID:     link.ID,
-				ItemID: link.ItemID,
-				Name:   &link.Name,
-				URL:    link.URL,
-			})
-		}
-
-		i := ItemResponse{
-			ID:          item.ID,
-			ListID:      item.ListID,
-			Name:        item.Name,
-			Description: &item.Description,
-			Address:     &item.Address,
-			Point: PointResponse{
-				ID:     item.Point.ID,
-				ItemID: item.Point.ItemID,
-				Lat:    item.Point.Lat,
-				Lng:    item.Point.Lng,
-			},
-			ImageLinks:  &item.ImageLinks,
-			Links:       &l,
-			Visited:     item.Visited,
-			DateCreated: item.DateCreated,
-			DateUpdated: item.DateUpdated,
-		}
-		is = append(is, i)
-	}
-	return web.Respond(ctx, w, is, http.StatusOK)
-}
-
-func (s *Service) GetItem(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	claims, err := auth.GetClaims(ctx)
-	if err != nil {
-		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
-		return auth.ErrGetClaims
-	}
-	listID := web.Param(r, "listID")
-	if err := web.ValidateUUID(listID); err != nil {
-		s.log.Err(err).Msg(ErrListValidateListUUID.Error())
-		return web.NewRequestError(
-			fmt.Errorf("invalid id: %w", err),
-			http.StatusBadRequest,
-		)
-	}
-	itemID := web.Param(r, "itemID")
-	if err := web.ValidateUUID(itemID); err != nil {
-		s.log.Err(err).Msg(ErrListValidateItemUUID.Error())
-		return web.NewRequestError(
-			fmt.Errorf("invalid id: %w", err),
-			http.StatusBadRequest,
-		)
-	}
-	res, err := s.core.GetItemByID(ctx, claims.Subject, listID, itemID)
-	if err != nil {
-		s.log.Err(err).Msg(ErrGetListsBusiness.Error())
-		return fmt.Errorf(
-			"cannot query items: %w",
-			web.GetResponseErrorFromBusiness(err),
-		)
-	}
-
+func populateItemResponse(res listUsecase.Item) ItemResponse {
 	l := []LinkResponse{}
 	for _, link := range res.Links {
 		l = append(l, LinkResponse{
@@ -209,45 +442,5 @@ func (s *Service) GetItem(ctx context.Context, w http.ResponseWriter, r *http.Re
 		DateCreated: res.DateCreated,
 		DateUpdated: res.DateUpdated,
 	}
-	return web.Respond(ctx, w, i, http.StatusOK)
-}
-
-// TODO: remove when done
-//
-// CreateList creates a new list.
-//
-//revive:disable
-func (s *Service) CreateList(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	// Implement your code here...
-	return nil
-}
-
-// UpdateList updates a specific list by its ID.
-func (s *Service) UpdateList(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	// Implement your code here...
-	return nil
-}
-
-// DeleteList deletes a specific list by its ID.
-func (s *Service) DeleteList(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	// Implement your code here...
-	return nil
-}
-
-// CreateItem creates a new item for a specific list.
-func (s *Service) CreateItem(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	// Implement your code here...
-	return nil
-}
-
-// UpdateItem updates a specific item by its ID for a specific list.
-func (s *Service) UpdateItem(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	// Implement your code here...
-	return nil
-}
-
-// DeleteItem deletes a specific item by its ID for a specific list.
-func (s *Service) DeleteItem(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	// Implement your code here...
-	return nil
+	return i
 }
