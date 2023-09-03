@@ -13,14 +13,11 @@ import (
 )
 
 type Storer interface {
-	// TODO:
 	Create(ctx context.Context, u User) error
 	Update(ctx context.Context, u User) error
 	Delete(ctx context.Context, uID string) error
 	QueryAll(ctx context.Context) ([]User, error)
 	QueryByID(ctx context.Context, uID string) (User, error)
-	// QueryByIDs(ctx context.Context, userID []uuid.UUID) ([]User, error)
-	// QueryByEmail(ctx context.Context, email mail.Address) (User, error)
 }
 
 // Core unit implements a set of methods for model types transformation.
@@ -90,11 +87,10 @@ func (c *Core) Update(ctx context.Context, uID string, uu UpdateUser) (User, err
 		c.log.Err(err).Msgf("user: update: %s", auth.ErrGetClaims.Error())
 		return User{}, auth.ErrGetClaims
 	}
-	if !claims.Authorize(auth.RoleAdmin) && uID != claims.Subject {
+	if !claims.Authorize(auth.RoleAdmin) && uID != u.ID {
 		c.log.Error().Msgf("user: update: %s", web.ErrForbidden.Error())
 		return User{}, web.ErrForbidden
 	}
-	//update user
 	if uu.Name != nil {
 		u.Name = *uu.Name
 	}
@@ -115,15 +111,19 @@ func (c *Core) QueryByID(ctx context.Context, uID string) (User, error) {
 		c.log.Err(err).Msgf("user: query by id: %s", database.ErrQueryDB.Error())
 		return User{}, database.WrapStorerError(err)
 	}
+	claims, err := auth.GetClaims(ctx)
+	if err != nil {
+		c.log.Err(err).Msgf("user: query by id: %s", auth.ErrGetClaims.Error())
+		return User{}, auth.ErrGetClaims
+	}
+	if !claims.Authorize(auth.RoleAdmin) && uID != u.ID {
+		c.log.Error().Msgf("user: query by id: %s", web.ErrForbidden.Error())
+		return User{}, web.ErrForbidden
+	}
 	return u, nil
 }
 
 func (c *Core) Delete(ctx context.Context, uID string) error {
-	_, err := c.storer.QueryByID(ctx, uID)
-	if err != nil {
-		c.log.Err(err).Msgf("user: delete: %s", database.ErrQueryDB.Error())
-		return database.WrapStorerError(err)
-	}
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
 		c.log.Err(err).Msgf("user: delete: %s", auth.ErrGetClaims.Error())
