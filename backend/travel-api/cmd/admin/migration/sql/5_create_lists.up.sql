@@ -11,7 +11,7 @@ CREATE TABLE lists (
   items UUID [] DEFAULT ARRAY [] :: UUID [],
   date_created TIMESTAMP NOT NULL,
   date_updated TIMESTAMP NOT NULL,
-  FOREIGN KEY (user_id) REFERENCES users(user_id)
+  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 COMMIT;

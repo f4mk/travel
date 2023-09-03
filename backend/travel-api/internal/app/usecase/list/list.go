@@ -20,6 +20,11 @@ type storer interface {
 	UpdateList(ctx context.Context, list List) error
 	DeleteListAdmin(ctx context.Context, listID string) error
 	DeleteList(ctx context.Context, userID string, listID string) error
+	CreateItem(ctx context.Context, userID string, item Item) error
+	UpdateItemAdmin(ctx context.Context, item Item) error
+	UpdateItem(ctx context.Context, item Item) error
+	DeleteItemAdmin(ctx context.Context, itemID string) error
+	DeleteItem(ctx context.Context, userID string, listID string, itemID string) error
 }
 
 type Core struct {
@@ -159,22 +164,129 @@ func (c *Core) DeleteListByID(ctx context.Context, userID string, listID string)
 	return nil
 }
 
-// TODO: remove when done
-//
-//revive:disable
-
-func (c *Core) CreateNewItem(ctx context.Context, userID string, item NewItem) (Item, error) {
-	// Business logic for creating a new list, then:
-	return Item{}, nil
+func (c *Core) CreateNewItem(ctx context.Context, userID string, ni NewItem) (Item, error) {
+	now := time.Now().UTC()
+	itemID := uuid.New().String()
+	point := Point{
+		ID:     uuid.New().String(),
+		ItemID: itemID,
+		Lat:    ni.Point.Lat,
+		Lng:    ni.Point.Lng,
+	}
+	links := []Link{}
+	for _, link := range ni.Links {
+		l := Link{
+			ID:     uuid.New().String(),
+			ItemID: itemID,
+			Name:   *link.Name,
+			URL:    link.URL,
+		}
+		links = append(links, l)
+	}
+	item := Item{
+		ID:          itemID,
+		ListID:      ni.ListID,
+		Name:        ni.Name,
+		Description: *ni.Description,
+		Address:     *ni.Address,
+		Point:       point,
+		ImageLinks:  ni.ImageLinks,
+		Links:       links,
+		Visited:     false,
+		DateCreated: now,
+		DateUpdated: now,
+	}
+	if err := c.storer.CreateItem(ctx, userID, item); err != nil {
+		c.log.Err(err).Msgf("item: create: %s", database.ErrQueryDB.Error())
+		return Item{}, database.WrapStorerError(err)
+	}
+	return item, nil
 }
 
 func (c *Core) UpdateItemByID(ctx context.Context, userID string, ui UpdateItem) (Item, error) {
-	// Business logic for updating a list by ID, then:
-	return Item{}, nil
+	i, err := c.storer.QueryItemByID(ctx, userID, ui.ListID, ui.ID)
+	if err != nil {
+		c.log.Err(err).Msgf("item: update: %s", database.ErrQueryDB.Error())
+		return Item{}, database.WrapStorerError(err)
+	}
+
+	claims, err := auth.GetClaims(ctx)
+	if err != nil {
+		c.log.Err(err).Msgf("item: update: %s", auth.ErrGetClaims.Error())
+		return Item{}, auth.ErrGetClaims
+	}
+
+	if ui.Name != nil {
+		i.Name = *ui.Name
+	}
+	if ui.Description != nil {
+		i.Description = *ui.Description
+	}
+	if ui.Address != nil {
+		i.Address = *ui.Address
+	}
+	if ui.Point != nil {
+		i.Point = Point{
+			ID:     ui.Point.ID,
+			ItemID: ui.Point.ItemID,
+			Lat:    ui.Point.Lat,
+			Lng:    ui.Point.Lng,
+		}
+	}
+	if ui.ImageLinks != nil {
+		i.ImageLinks = *ui.ImageLinks
+	}
+	if ui.Links != nil {
+		links := []Link{}
+		for _, link := range *ui.Links {
+			l := Link{
+				ID:     link.ID,
+				ItemID: link.ItemID,
+				Name:   *link.Name,
+				URL:    *link.URL,
+			}
+			links = append(links, l)
+		}
+		i.Links = links
+	}
+	if ui.Visited != nil {
+		i.Visited = *ui.Visited
+	}
+	i.DateUpdated = time.Now().UTC()
+	if claims.Authorize(auth.RoleAdmin) {
+		if err := c.storer.UpdateItemAdmin(ctx, i); err != nil {
+			c.log.Err(err).Msgf("item: update: %s", database.ErrQueryDB.Error())
+			return Item{}, database.WrapStorerError(err)
+		}
+		c.log.Warn().Msgf("item: update by admin: %s", i.ID)
+		return i, nil
+	}
+
+	if err := c.storer.UpdateItem(ctx, i); err != nil {
+		c.log.Err(err).Msgf("item: update: %s", database.ErrQueryDB.Error())
+		return Item{}, database.WrapStorerError(err)
+	}
+	return i, nil
 }
 
 func (c *Core) DeleteItemByID(ctx context.Context, userID string, listID string, itemID string) error {
+	claims, err := auth.GetClaims(ctx)
+	if err != nil {
+		c.log.Err(err).Msgf("item: delete: %s", auth.ErrGetClaims.Error())
+		return auth.ErrGetClaims
+	}
+	if claims.Authorize(auth.RoleAdmin) {
+		// TODO: may be need to pass listID as well
+		if err := c.storer.DeleteItemAdmin(ctx, itemID); err != nil {
+			c.log.Err(err).Msgf("item: delete by admin: %s", database.ErrQueryDB.Error())
+			return database.WrapStorerError(err)
+		}
+		c.log.Warn().Msgf("item: deleted by admin: %s", listID)
+		return nil
+	}
+	if err := c.storer.DeleteItem(ctx, userID, listID, itemID); err != nil {
+		c.log.Err(err).Msgf("item: delete: %s", database.ErrQueryDB.Error())
+		return database.WrapStorerError(err)
+	}
 	return nil
 }
-
-// ... Repeat similar methods for items ...

@@ -67,8 +67,8 @@ type NewItem struct {
 	Description *string
 	Address     *string
 	Point       NewPoint
-	ImageLinks  *[]string
-	Links       *[]NewLink
+	ImageLinks  []string
+	Links       []NewLink
 }
 
 type NewLink struct {

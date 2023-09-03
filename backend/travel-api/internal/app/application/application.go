@@ -223,22 +223,22 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 		middleware.Panics(log),
 	)
 
-	userR := userRepo.NewRepo(log, db)
-	authR := authRepo.NewRepo(log, db)
-	listR := listRepo.NewRepo(log, db)
+	userStorer := userRepo.NewRepo(log, db)
+	authStorer := authRepo.NewRepo(log, db)
+	listStorer := listRepo.NewRepo(log, db)
 
-	userC := userUsecase.NewCore(log, userR)
-	userS := userService.NewService(log, userC)
+	userCore := userUsecase.NewCore(log, userStorer)
+	userService := userService.NewService(log, userCore)
 
-	authC := authUsecase.NewCore(log, authR)
-	authS := authService.NewService(log, auth, authC, mq)
+	authCore := authUsecase.NewCore(log, authStorer)
+	authService := authService.NewService(log, auth, authCore, mq)
 
-	listC := listUsecase.NewCore(log, listR)
-	listS := listService.NewService(log, listC)
+	listCore := listUsecase.NewCore(log, listStorer)
+	listService := listService.NewService(log, listCore)
 
 	userCon := api.UserController{
 		Log:         log,
-		UserService: userS,
+		UserService: userService,
 		Auth:        auth,
 		RateLimit:   cfg.API.RateLimit,
 	}
@@ -246,7 +246,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 
 	authCon := api.AuthController{
 		Log:         log,
-		AuthService: authS,
+		AuthService: authService,
 		Auth:        auth,
 		RateLimit:   cfg.API.RateLimit,
 	}
@@ -254,7 +254,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 
 	listCon := api.ListController{
 		Log:         log,
-		ListService: listS,
+		ListService: listService,
 		Auth:        auth,
 		RateLimit:   cfg.API.RateLimit,
 	}

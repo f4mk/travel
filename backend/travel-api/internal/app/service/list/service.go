@@ -250,17 +250,17 @@ func (s *Service) CreateItem(ctx context.Context, w http.ResponseWriter, r *http
 		Lat: ni.Point.Lat,
 		Lng: ni.Point.Lng,
 	}
-	var nl *[]listUsecase.NewLink
-	if ni.Links != nil {
-		tempLinks := []listUsecase.NewLink{}
-		for _, link := range *ni.Links {
-			l := listUsecase.NewLink{
-				Name: link.Name,
-				URL:  link.URL,
-			}
-			tempLinks = append(tempLinks, l)
+	nl := []listUsecase.NewLink{}
+	for _, link := range *ni.Links {
+		l := listUsecase.NewLink{
+			Name: link.Name,
+			URL:  link.URL,
 		}
-		nl = &tempLinks
+		nl = append(nl, l)
+	}
+	imageLinks := []string{}
+	if ni.ImageLinks != nil {
+		imageLinks = *ni.ImageLinks
 	}
 	i := listUsecase.NewItem{
 		ListID:      listID,
@@ -268,7 +268,7 @@ func (s *Service) CreateItem(ctx context.Context, w http.ResponseWriter, r *http
 		Description: ni.Description,
 		Address:     ni.Address,
 		Point:       np,
-		ImageLinks:  ni.ImageLinks,
+		ImageLinks:  imageLinks,
 		Links:       nl,
 	}
 	res, err := s.core.CreateNewItem(ctx, claims.Subject, i)

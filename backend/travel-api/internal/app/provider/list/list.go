@@ -124,6 +124,39 @@ func (r *Repo) QueryItemByID(ctx context.Context, userID string, listID string, 
 	return *res, nil
 }
 
+func (r *Repo) CreateList(ctx context.Context, list list.List) error {
+	return nil
+
+}
+func (r *Repo) UpdateListAdmin(ctx context.Context, list list.List) error {
+	return nil
+
+}
+func (r *Repo) UpdateList(ctx context.Context, list list.List) error {
+	return nil
+}
+func (r *Repo) DeleteListAdmin(ctx context.Context, listID string) error {
+	return nil
+}
+func (r *Repo) DeleteList(ctx context.Context, userID string, listID string) error {
+	return nil
+}
+func (r *Repo) CreateItem(ctx context.Context, userID string, item list.Item) error {
+	return nil
+}
+func (r *Repo) UpdateItemAdmin(ctx context.Context, item list.Item) error {
+	return nil
+}
+func (r *Repo) UpdateItem(ctx context.Context, item list.Item) error {
+	return nil
+}
+func (r *Repo) DeleteItemAdmin(ctx context.Context, itemID string) error {
+	return nil
+}
+func (r *Repo) DeleteItem(ctx context.Context, userID string, listID string, itemID string) error {
+	return nil
+}
+
 type rowItemsByListID struct {
 	RepoItem
 	RepoLink
