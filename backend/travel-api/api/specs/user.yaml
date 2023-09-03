@@ -60,8 +60,51 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
+  /user/{id}:
+    get:
+      tags: ["user","get"]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the user
+          schema:
+            type: string
+      responses:
+        '200':
+          description: returns a user with the specified ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     put:
       tags: ["user","put","update"]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the user
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -70,7 +113,7 @@ paths:
               $ref: '#/components/schemas/UpdateUser'
       responses:
         '200':
-          description: user created successfully
+          description: user updated successfully
           content:
             application/json:
               schema:
@@ -105,9 +148,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /user/{id}:
-    get:
-      tags: ["user","get"]
+    delete:
+      tags: ["user","delete"]
       parameters:
         - name: id
           in: path
@@ -115,15 +157,41 @@ paths:
           description: ID of the user
           schema:
             type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
       responses:
         '200':
-          description: returns a user with the specified ID
+          description: user deleted successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                type: object
+                properties:
+        '400':
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: user not found
+          description: not found
           content:
             application/json:
               schema:
@@ -134,7 +202,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-
 
 components:
   schemas:

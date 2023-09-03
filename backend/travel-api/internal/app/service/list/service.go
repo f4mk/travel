@@ -38,9 +38,9 @@ func (s *Service) GetLists(ctx context.Context, w http.ResponseWriter, _ *http.R
 			web.GetResponseErrorFromBusiness(err),
 		)
 	}
-	ls := []List{}
+	ls := []ListResponse{}
 	for _, list := range res {
-		l := List{
+		l := ListResponse{
 			ID:          list.ID,
 			UserID:      list.UserID,
 			Name:        list.Name,
@@ -79,7 +79,7 @@ func (s *Service) GetList(ctx context.Context, w http.ResponseWriter, r *http.Re
 			web.GetResponseErrorFromBusiness(err),
 		)
 	}
-	ls := List{
+	ls := ListResponse{
 		ID:          res.ID,
 		UserID:      res.UserID,
 		Name:        res.Name,
@@ -116,11 +116,11 @@ func (s *Service) GetItems(ctx context.Context, w http.ResponseWriter, r *http.R
 			web.GetResponseErrorFromBusiness(err),
 		)
 	}
-	is := []Item{}
+	is := []ItemResponse{}
 	for _, item := range res {
-		l := []Link{}
+		l := []LinkResponse{}
 		for _, link := range item.Links {
-			l = append(l, Link{
+			l = append(l, LinkResponse{
 				ID:     link.ID,
 				ItemID: link.ItemID,
 				Name:   &link.Name,
@@ -128,13 +128,13 @@ func (s *Service) GetItems(ctx context.Context, w http.ResponseWriter, r *http.R
 			})
 		}
 
-		i := Item{
+		i := ItemResponse{
 			ID:          item.ID,
 			ListID:      item.ListID,
 			Name:        item.Name,
 			Description: &item.Description,
 			Address:     &item.Address,
-			Point: Point{
+			Point: PointResponse{
 				ID:     item.Point.ID,
 				ItemID: item.Point.ItemID,
 				Lat:    item.Point.Lat,
@@ -182,22 +182,22 @@ func (s *Service) GetItem(ctx context.Context, w http.ResponseWriter, r *http.Re
 		)
 	}
 
-	l := []Link{}
+	l := []LinkResponse{}
 	for _, link := range res.Links {
-		l = append(l, Link{
+		l = append(l, LinkResponse{
 			ID:     link.ID,
 			ItemID: link.ItemID,
 			Name:   &link.Name,
 			URL:    link.URL,
 		})
 	}
-	i := Item{
+	i := ItemResponse{
 		ID:          res.ID,
 		ListID:      res.ListID,
 		Name:        res.Name,
 		Description: &res.Description,
 		Address:     &res.Address,
-		Point: Point{
+		Point: PointResponse{
 			ID:     res.Point.ID,
 			ItemID: res.Point.ItemID,
 			Lat:    res.Point.Lat,

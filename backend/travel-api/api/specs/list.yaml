@@ -14,7 +14,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/List'
+                  $ref: '#/components/schemas/ListResponse'
         '401':
           description: unauthorized
           content:
@@ -27,15 +27,56 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-
-  /lists/{id}:
+    post:
+      tags: ["lists","post","create"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewList'
+      responses:
+        '201':
+          description: create new list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ListResponse'
+        '400':
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /lists/{list_id}:
     get:
       tags: ["lists","get"]
       parameters:
-        - name: id
+        - name: list_id
           in: path
           required: true
           description: ID of the list
+          x-go-name: listID
           schema:
             type: string
       responses:
@@ -44,9 +85,119 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/List'
+                $ref: '#/components/schemas/ListResponse'
         '404':
           description: list not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags: ["lists","put","update"]
+      parameters:
+        - name: list_id
+          in: path
+          required: true
+          description: ID of the list
+          x-go-name: listID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateList'
+      responses:
+        '200':
+          description: list successfully updated
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ListResponse'
+        '400':
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags: ["lists","delete"]
+      parameters:
+        - name: list_id
+          in: path
+          required: true
+          description: ID of the list
+          x-go-name: listID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+      responses:
+        '200':
+          description: list successfully deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+        '400':
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: not found
           content:
             application/json:
               schema:
@@ -66,6 +217,7 @@ paths:
           in: path
           required: true
           description: ID of the list
+          x-go-name: listID
           schema:
             type: string
       responses:
@@ -76,9 +228,58 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Item'
+                  $ref: '#/components/schemas/ItemResponse'
         '401':
           description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags: ["items","post","create"]
+      parameters:
+        - name: list_id
+          in: path
+          required: true
+          description: ID of the list
+          x-go-name: listID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewItem'
+      responses:
+        '201':
+          description: create new item
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ItemResponse'
+        '400':
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: conflict
           content:
             application/json:
               schema:
@@ -98,12 +299,14 @@ paths:
           in: path
           required: true
           description: ID of the list
+          x-go-name: listID
           schema:
             type: string
         - name: item_id
           in: path
           required: true
           description: ID of the item
+          x-go-name: itemID
           schema:
             type: string
       responses:
@@ -112,7 +315,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Item'
+                $ref: '#/components/schemas/ItemResponse'
         '401':
           description: unauthorized
           content:
@@ -125,10 +328,135 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags: ["items","put","update"]
+      parameters:
+        - name: list_id
+          in: path
+          required: true
+          description: ID of the list
+          x-go-name: listID
+          schema:
+            type: string
+        - name: item_id
+          in: path
+          required: true
+          description: ID of the item
+          x-go-name: itemID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateItem'
+      responses:
+        '200':
+          description: item successfully updated
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ItemResponse'
+        '400':
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags: ["lists","delete"]
+      parameters:
+        - name: list_id
+          in: path
+          required: true
+          description: ID of the list
+          x-go-name: listID
+          schema:
+            type: string
+        - name: item_id
+          in: path
+          required: true
+          description: ID of the item
+          x-go-name: itemID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+      responses:
+        '200':
+          description: list successfully deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+        '400':
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 
 components:
   schemas:
-    List:
+    ListResponse:
       type: object
       properties:
         id:
@@ -178,7 +506,7 @@ components:
         - completed
         - date_created
         
-    Item:
+    ItemResponse:
       type: object
       properties:
         id: 
@@ -199,7 +527,7 @@ components:
           type: string
           description: "item address on map"
         point: 
-          $ref: '#/components/schemas/Point'
+          $ref: '#/components/schemas/PointResponse'
         image_links:
           type: array
           description: "array of attached image links"
@@ -210,7 +538,7 @@ components:
           type: array
           description: "array of attached links"
           items:
-            $ref: '#/components/schemas/Link'
+            $ref: '#/components/schemas/LinkResponse'
         visited: 
           type: boolean
           description: "location is visited"
@@ -231,7 +559,7 @@ components:
         - date_created
         - date_updated
 
-    Link:
+    LinkResponse:
       type: object
       description: "link object"
       properties:
@@ -255,7 +583,7 @@ components:
         - item_id
         - url
     
-    Point:
+    PointResponse:
       type: object
       description: "item location on map"
       properties:
@@ -278,6 +606,245 @@ components:
       required:
         - id
         - item_id
+        - lat
+        - lng
+
+    NewList:
+      type: object
+      description: new list object
+      properties:
+        name: 
+          type: string
+          description: new list name
+          x-oapi-codegen-extra-tags:
+            validate: "required,gte=1"
+        description:
+          type: string
+          description: new list description
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,gte=1"
+        private:
+          type: boolean
+          description: is new list private
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,boolean"
+      required:
+        - name
+
+    UpdateList:
+      type: object
+      description: update list object
+      properties:
+        name:
+          type: string
+          description: updated list name
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,gte=1"
+        description:
+          type: string
+          description: updated list description
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,gte=1"
+        private:
+          type: boolean
+          description: updated list privacy setting
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,boolean"
+        favorite:
+          type: boolean
+          description: updated list favorite setting
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,boolean"
+        completed:
+          type: boolean
+          description: updated list completeness setting
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,boolean"
+        items_id:
+          type: array
+          description: array of list's items
+          x-go-name: ItemsID
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty"
+          items:
+            type: string
+            description: updates list's item id
+
+    NewItem:
+      type: object
+      description: new item object
+      properties:
+        name:
+          type: string
+          description: new item name
+          x-oapi-codegen-extra-tags:
+            validate: "required,gte=1"
+        description:
+          type: string
+          description: new item description
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,gte=1"
+        address:
+          type: string
+          description: new item address
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty"
+        point:
+          x-oapi-codegen-extra-tags:
+            validate: "required"
+          $ref: '#/components/schemas/NewPoint'
+        image_links:
+          type: array
+          description: new item's image links array
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty"
+          items:
+            type: string
+            description: new item's image url
+        links:
+          type: array
+          description: new item's links array
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty"
+          items:
+            $ref: '#/components/schemas/NewLink'
+      required:
+        - name
+        - point
+
+    NewLink:
+      type: object
+      description: new link object
+      properties:
+        name:
+          type: string
+          description: new link name
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,gte=1"
+        url:
+          type: string
+          description: new link url
+          x-go-name: URL
+          x-oapi-codegen-extra-tags:
+            validate: "required,startswith=http"
+      required:
+        - url
+
+    NewPoint:
+      type: object
+      description: new point object
+      properties:
+        lat:
+          type: number
+          description: new point's latitude
+          x-go-type: float64
+          x-oapi-codegen-extra-tags:
+            validate: "required,number"
+        lng:
+          type: number
+          description: new point's latitude
+          x-go-type: float64
+          x-oapi-codegen-extra-tags:
+            validate: "required,number"
+      required:
+        - lat
+        - lng
+
+    UpdateItem:
+      type: object
+      description: update item object
+      properties:
+        name:
+          type: string
+          description: updated item name
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,gte=1"
+        description:
+          type: string
+          description: updated item description
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,gte=1"
+        address:
+          type: string
+          description: updated item address
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,gte=1"
+        point:
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty"
+          $ref: '#/components/schemas/UpdatePoint'
+        image_links:
+          type: array
+          description: updated item's image links array
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty"
+          items:
+            type: string
+            description: updated item's image url
+        links:
+          type: array
+          description: updated item's links array
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty"
+          items:
+            $ref: '#/components/schemas/UpdateLink'
+        visited:
+          type: boolean
+          description: updated item visited mark
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,boolean"
+      required:
+        - id
+        - list_id
+
+    UpdateLink:
+      type: object
+      description: new link object
+      properties:
+        id:
+          type: string
+          description: updated link id
+          x-go-name: ID
+          x-oapi-codegen-extra-tags:
+            validate: "required"
+        name:
+          type: string
+          description: new link name
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,gte=1"
+        url:
+          type: string
+          description: new link url
+          x-go-name: URL
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,startswith=http"
+      required:
+        - id
+
+    UpdatePoint:
+      type: object
+      description: new point object
+      properties:
+        id:
+          type: string
+          description: updated point id
+          x-go-name: ID
+          x-oapi-codegen-extra-tags:
+            validate: "required"
+        lat:
+          type: number
+          description: new point's latitude
+          x-go-type: float64
+          x-oapi-codegen-extra-tags:
+            validate: "required,number"
+        lng:
+          type: number
+          description: new point's latitude
+          x-go-type: float64
+          x-oapi-codegen-extra-tags:
+            validate: "required,number"
+      required:
+        - id
         - lat
         - lng
 

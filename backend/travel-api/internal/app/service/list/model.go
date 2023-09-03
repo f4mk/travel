@@ -14,8 +14,8 @@ type ErrorResponse struct {
 	Fields *map[string]string `json:"fields,omitempty"`
 }
 
-// Item defines model for Item.
-type Item struct {
+// ItemResponse defines model for ItemResponse.
+type ItemResponse struct {
 	// Address item address on map
 	Address *string `json:"address,omitempty"`
 
@@ -35,7 +35,7 @@ type Item struct {
 	ImageLinks *[]string `json:"image_links,omitempty"`
 
 	// Links array of attached links
-	Links *[]Link `json:"links,omitempty"`
+	Links *[]LinkResponse `json:"links,omitempty"`
 
 	// ListId item parent id
 	ListID string `json:"list_id"`
@@ -44,14 +44,14 @@ type Item struct {
 	Name string `json:"name"`
 
 	// Point item location on map
-	Point Point `json:"point"`
+	Point PointResponse `json:"point"`
 
 	// Visited location is visited
 	Visited bool `json:"visited"`
 }
 
-// Link link object
-type Link struct {
+// LinkResponse link object
+type LinkResponse struct {
 	// Id link id
 	ID string `json:"id"`
 
@@ -65,8 +65,8 @@ type Link struct {
 	URL string `json:"url"`
 }
 
-// List defines model for List.
-type List struct {
+// ListResponse defines model for ListResponse.
+type ListResponse struct {
 	// Completed is list completed
 	Completed bool `json:"completed"`
 
@@ -98,8 +98,59 @@ type List struct {
 	UserID string `json:"user_id"`
 }
 
-// Point item location on map
-type Point struct {
+// NewItem new item object
+type NewItem struct {
+	// Address new item address
+	Address *string `json:"address,omitempty" validate:"omitempty"`
+
+	// Description new item description
+	Description *string `json:"description,omitempty" validate:"omitempty,gte=1"`
+
+	// ImageLinks new item's image links array
+	ImageLinks *[]string `json:"image_links,omitempty" validate:"omitempty"`
+
+	// Links new item's links array
+	Links *[]NewLink `json:"links,omitempty" validate:"omitempty"`
+
+	// Name new item name
+	Name string `json:"name" validate:"required,gte=1"`
+
+	// Point new point object
+	Point NewPoint `json:"point"`
+}
+
+// NewLink new link object
+type NewLink struct {
+	// Name new link name
+	Name *string `json:"name,omitempty" validate:"omitempty,gte=1"`
+
+	// Url new link url
+	URL string `json:"url" validate:"required,startswith=http"`
+}
+
+// NewList new list object
+type NewList struct {
+	// Description new list description
+	Description *string `json:"description,omitempty" validate:"omitempty,gte=1"`
+
+	// Name new list name
+	Name string `json:"name" validate:"required,gte=1"`
+
+	// Private is new list private
+	Private *bool `json:"private,omitempty" validate:"omitempty,boolean"`
+}
+
+// NewPoint new point object
+type NewPoint struct {
+	// Lat new point's latitude
+	Lat float64 `json:"lat" validate:"required,number"`
+
+	// Lng new point's latitude
+	Lng float64 `json:"lng" validate:"required,number"`
+}
+
+// PointResponse item location on map
+type PointResponse struct {
 	// Id location id
 	ID string `json:"id"`
 
@@ -112,3 +163,96 @@ type Point struct {
 	// Lng longitude of location on map
 	Lng float64 `json:"lng"`
 }
+
+// UpdateItem update item object
+type UpdateItem struct {
+	// Address updated item address
+	Address *string `json:"address,omitempty" validate:"omitempty,gte=1"`
+
+	// Description updated item description
+	Description *string `json:"description,omitempty" validate:"omitempty,gte=1"`
+
+	// ImageLinks updated item's image links array
+	ImageLinks *[]string `json:"image_links,omitempty" validate:"omitempty"`
+
+	// Links updated item's links array
+	Links *[]UpdateLink `json:"links,omitempty" validate:"omitempty"`
+
+	// Name updated item name
+	Name *string `json:"name,omitempty" validate:"omitempty,gte=1"`
+
+	// Point new point object
+	Point *UpdatePoint `json:"point,omitempty"`
+
+	// Visited updated item visited mark
+	Visited *bool `json:"visited,omitempty" validate:"omitempty,boolean"`
+}
+
+// UpdateLink new link object
+type UpdateLink struct {
+	// Id updated link id
+	ID string `json:"id" validate:"required"`
+
+	// Name new link name
+	Name *string `json:"name,omitempty" validate:"omitempty,gte=1"`
+
+	// Url new link url
+	URL *string `json:"url,omitempty" validate:"omitempty,startswith=http"`
+}
+
+// UpdateList update list object
+type UpdateList struct {
+	// Completed updated list completeness setting
+	Completed *bool `json:"completed,omitempty" validate:"omitempty,boolean"`
+
+	// Description updated list description
+	Description *string `json:"description,omitempty" validate:"omitempty,gte=1"`
+
+	// Favorite updated list favorite setting
+	Favorite *bool `json:"favorite,omitempty" validate:"omitempty,boolean"`
+
+	// ItemsId array of list's items
+	ItemsID *[]string `json:"items_id,omitempty" validate:"omitempty"`
+
+	// Name updated list name
+	Name *string `json:"name,omitempty" validate:"omitempty,gte=1"`
+
+	// Private updated list privacy setting
+	Private *bool `json:"private,omitempty" validate:"omitempty,boolean"`
+}
+
+// UpdatePoint new point object
+type UpdatePoint struct {
+	// Id updated point id
+	ID string `json:"id" validate:"required"`
+
+	// Lat new point's latitude
+	Lat float64 `json:"lat" validate:"required,number"`
+
+	// Lng new point's latitude
+	Lng float64 `json:"lng" validate:"required,number"`
+}
+
+// DeleteListsListIdJSONBody defines parameters for DeleteListsListId.
+type DeleteListsListIdJSONBody = map[string]interface{}
+
+// DeleteListsListIdItemsItemIdJSONBody defines parameters for DeleteListsListIdItemsItemId.
+type DeleteListsListIdItemsItemIdJSONBody = map[string]interface{}
+
+// PostListsJSONRequestBody defines body for PostLists for application/json ContentType.
+type PostListsJSONRequestBody = NewList
+
+// DeleteListsListIdJSONRequestBody defines body for DeleteListsListId for application/json ContentType.
+type DeleteListsListIdJSONRequestBody = DeleteListsListIdJSONBody
+
+// PutListsListIdJSONRequestBody defines body for PutListsListId for application/json ContentType.
+type PutListsListIdJSONRequestBody = UpdateList
+
+// PostListsListIdItemsJSONRequestBody defines body for PostListsListIdItems for application/json ContentType.
+type PostListsListIdItemsJSONRequestBody = NewItem
+
+// DeleteListsListIdItemsItemIdJSONRequestBody defines body for DeleteListsListIdItemsItemId for application/json ContentType.
+type DeleteListsListIdItemsItemIdJSONRequestBody = DeleteListsListIdItemsItemIdJSONBody
+
+// PutListsListIdItemsItemIdJSONRequestBody defines body for PutListsListIdItemsItemId for application/json ContentType.
+type PutListsListIdItemsItemIdJSONRequestBody = UpdateItem
