@@ -12,7 +12,8 @@ CREATE TABLE items (
   is_visited BOOLEAN NOT NULL DEFAULT FALSE,
   date_created TIMESTAMP NOT NULL,
   date_updated TIMESTAMP NOT NULL,
-  FOREIGN KEY (list_id) REFERENCES lists(list_id) ON DELETE CASCADE
+  FOREIGN KEY (list_id) REFERENCES lists(list_id) ON DELETE CASCADE,
+  UNIQUE (list_id, name)
 );
 
 COMMIT;

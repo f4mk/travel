@@ -22,7 +22,7 @@ type storer interface {
 	DeleteList(ctx context.Context, userID string, listID string) error
 	CreateItem(ctx context.Context, userID string, item Item) error
 	UpdateItemAdmin(ctx context.Context, item Item) error
-	UpdateItem(ctx context.Context, item Item) error
+	UpdateItem(ctx context.Context, userID string, item Item) error
 	DeleteItemAdmin(ctx context.Context, itemID string) error
 	DeleteItem(ctx context.Context, userID string, listID string, itemID string) error
 }
@@ -75,16 +75,24 @@ func (c *Core) GetItemByID(ctx context.Context, userID, listID, itemID string) (
 	return it, nil
 }
 
-func (c *Core) CreateNewList(ctx context.Context, nl NewList) (List, error) {
+func (c *Core) CreateList(ctx context.Context, nl NewList) (List, error) {
+	desc := ""
+	if nl.Description != nil {
+		desc = *nl.Description
+	}
+	priv := false
+	if nl.Private != nil {
+		priv = *nl.Private
+	}
 	now := time.Now().UTC()
 	list := List{
 		ID:          uuid.New().String(),
 		UserID:      nl.UserID,
 		Name:        nl.Name,
-		Description: *nl.Description,
-		Private:     *nl.Private,
+		Description: desc,
+		Private:     priv,
 		Completed:   false,
-		ItemsID:     []string{},
+		ItemsID:     nil,
 		DateCreated: now,
 		DateUpdated: now,
 	}
@@ -123,7 +131,7 @@ func (c *Core) UpdateListByID(ctx context.Context, ul UpdateList) (List, error) 
 		l.Completed = *ul.Completed
 	}
 	if ul.ItemsID != nil {
-		l.ItemsID = *ul.ItemsID
+		l.ItemsID = ul.ItemsID
 	}
 	l.DateUpdated = time.Now().UTC()
 
@@ -164,7 +172,7 @@ func (c *Core) DeleteListByID(ctx context.Context, userID string, listID string)
 	return nil
 }
 
-func (c *Core) CreateNewItem(ctx context.Context, userID string, ni NewItem) (Item, error) {
+func (c *Core) CreateItem(ctx context.Context, userID string, ni NewItem) (Item, error) {
 	now := time.Now().UTC()
 	itemID := uuid.New().String()
 	point := Point{
@@ -174,24 +182,28 @@ func (c *Core) CreateNewItem(ctx context.Context, userID string, ni NewItem) (It
 		Lng:    ni.Point.Lng,
 	}
 	links := []Link{}
-	for _, link := range ni.Links {
-		l := Link{
-			ID:     uuid.New().String(),
-			ItemID: itemID,
-			Name:   *link.Name,
-			URL:    link.URL,
+	if ni.Links != nil {
+		for _, link := range *ni.Links {
+			l := Link{
+				ID:     uuid.New().String(),
+				ItemID: itemID,
+				Name:   link.Name,
+				URL:    link.URL,
+			}
+			links = append(links, l)
 		}
-		links = append(links, l)
 	}
+
 	item := Item{
 		ID:          itemID,
 		ListID:      ni.ListID,
 		Name:        ni.Name,
-		Description: *ni.Description,
-		Address:     *ni.Address,
+		Description: ni.Description,
+		Address:     ni.Address,
 		Point:       point,
 		ImageLinks:  ni.ImageLinks,
-		Links:       links,
+		// TODO: handle all nil dereferencing in one place
+		Links:       &links,
 		Visited:     false,
 		DateCreated: now,
 		DateUpdated: now,
@@ -220,10 +232,10 @@ func (c *Core) UpdateItemByID(ctx context.Context, userID string, ui UpdateItem)
 		i.Name = *ui.Name
 	}
 	if ui.Description != nil {
-		i.Description = *ui.Description
+		i.Description = ui.Description
 	}
 	if ui.Address != nil {
-		i.Address = *ui.Address
+		i.Address = ui.Address
 	}
 	if ui.Point != nil {
 		i.Point = Point{
@@ -234,20 +246,25 @@ func (c *Core) UpdateItemByID(ctx context.Context, userID string, ui UpdateItem)
 		}
 	}
 	if ui.ImageLinks != nil {
-		i.ImageLinks = *ui.ImageLinks
+		i.ImageLinks = ui.ImageLinks
 	}
 	if ui.Links != nil {
 		links := []Link{}
 		for _, link := range *ui.Links {
+
 			l := Link{
 				ID:     link.ID,
 				ItemID: link.ItemID,
-				Name:   *link.Name,
-				URL:    *link.URL,
+			}
+			if link.Name != nil {
+				l.Name = link.Name
+			}
+			if link.URL != nil {
+				l.URL = *link.URL
 			}
 			links = append(links, l)
 		}
-		i.Links = links
+		i.Links = &links
 	}
 	if ui.Visited != nil {
 		i.Visited = *ui.Visited
@@ -261,8 +278,9 @@ func (c *Core) UpdateItemByID(ctx context.Context, userID string, ui UpdateItem)
 		c.log.Warn().Msgf("item: update by admin: %s", i.ID)
 		return i, nil
 	}
-
-	if err := c.storer.UpdateItem(ctx, i); err != nil {
+	// TODO: userID was already checked during QueryItemByID
+	// but may be its better to keep it here as well
+	if err := c.storer.UpdateItem(ctx, userID, i); err != nil {
 		c.log.Err(err).Msgf("item: update: %s", database.ErrQueryDB.Error())
 		return Item{}, database.WrapStorerError(err)
 	}

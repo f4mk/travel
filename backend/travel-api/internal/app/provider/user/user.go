@@ -36,10 +36,10 @@ func (r *Repo) Create(ctx context.Context, u user.User) error {
 	return nil
 }
 
-func (r *Repo) QueryByID(ctx context.Context, uID string) (user.User, error) {
+func (r *Repo) QueryByID(ctx context.Context, userID string) (user.User, error) {
 	res := user.User{}
 	q := `SELECT * from users WHERE user_id = $1`
-	if err := r.repo.GetContext(ctx, &res, q, uID); err != nil {
+	if err := r.repo.GetContext(ctx, &res, q, userID); err != nil {
 		return user.User{}, err
 	}
 	return res, nil
@@ -55,9 +55,9 @@ func (r *Repo) Update(ctx context.Context, u user.User) error {
 	return nil
 }
 
-func (r *Repo) Delete(ctx context.Context, uID string) error {
+func (r *Repo) Delete(ctx context.Context, userID string) error {
 	q := `DELETE from users WHERE user_id = $1;`
-	_, err := r.repo.ExecContext(ctx, q, uID)
+	_, err := r.repo.ExecContext(ctx, q, userID)
 	if err != nil {
 		return err
 	}

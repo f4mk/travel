@@ -144,7 +144,7 @@ func (s *Service) CreateList(ctx context.Context, w http.ResponseWriter, r *http
 		Description: nl.Description,
 		Private:     nl.Private,
 	}
-	res, err := s.core.CreateNewList(ctx, l)
+	res, err := s.core.CreateList(ctx, l)
 	if err != nil {
 		s.log.Err(err).Msg(ErrCreateListBusiness.Error())
 		return fmt.Errorf(
@@ -251,27 +251,26 @@ func (s *Service) CreateItem(ctx context.Context, w http.ResponseWriter, r *http
 		Lng: ni.Point.Lng,
 	}
 	nl := []listUsecase.NewLink{}
-	for _, link := range *ni.Links {
-		l := listUsecase.NewLink{
-			Name: link.Name,
-			URL:  link.URL,
+	if ni.Links != nil {
+		for _, link := range *ni.Links {
+			l := listUsecase.NewLink{
+				Name: link.Name,
+				URL:  link.URL,
+			}
+			nl = append(nl, l)
 		}
-		nl = append(nl, l)
 	}
-	imageLinks := []string{}
-	if ni.ImageLinks != nil {
-		imageLinks = *ni.ImageLinks
-	}
+
 	i := listUsecase.NewItem{
 		ListID:      listID,
 		Name:        ni.Name,
 		Description: ni.Description,
 		Address:     ni.Address,
 		Point:       np,
-		ImageLinks:  imageLinks,
-		Links:       nl,
+		ImageLinks:  ni.ImageLinks,
+		Links:       &nl,
 	}
-	res, err := s.core.CreateNewItem(ctx, claims.Subject, i)
+	res, err := s.core.CreateItem(ctx, claims.Subject, i)
 	if err != nil {
 		s.log.Err(err).Msg(ErrCreateItemBusiness.Error())
 		return fmt.Errorf(
@@ -318,9 +317,8 @@ func (s *Service) UpdateItem(ctx context.Context, w http.ResponseWriter, r *http
 		}
 	}
 
-	var ul *[]listUsecase.UpdateLink
+	ul := []listUsecase.UpdateLink{}
 	if ui.Links != nil {
-		tempLinks := []listUsecase.UpdateLink{}
 		for _, link := range *ui.Links {
 			l := listUsecase.UpdateLink{
 				ID:     link.ID,
@@ -328,9 +326,8 @@ func (s *Service) UpdateItem(ctx context.Context, w http.ResponseWriter, r *http
 				Name:   link.Name,
 				URL:    link.URL,
 			}
-			tempLinks = append(tempLinks, l)
+			ul = append(ul, l)
 		}
-		ul = &tempLinks
 	}
 	i := listUsecase.UpdateItem{
 		ID:          itemID,
@@ -340,8 +337,9 @@ func (s *Service) UpdateItem(ctx context.Context, w http.ResponseWriter, r *http
 		Address:     ui.Description,
 		Point:       up,
 		ImageLinks:  ui.ImageLinks,
-		Links:       ul,
-		Visited:     ui.Visited,
+		// TODO:
+		Links:   &ul,
+		Visited: ui.Visited,
 	}
 	res, err := s.core.UpdateItemByID(ctx, claims.Subject, i)
 	if err != nil {
@@ -419,7 +417,7 @@ func populateListResponse(res listUsecase.List) ListResponse {
 		Favorite:    res.Favorite,
 		Private:     res.Private,
 		Completed:   res.Completed,
-		ItemsID:     &res.ItemsID,
+		ItemsID:     res.ItemsID,
 		DateCreated: res.DateCreated,
 		DateUpdated: &res.DateUpdated,
 	}
@@ -428,27 +426,31 @@ func populateListResponse(res listUsecase.List) ListResponse {
 
 func populateItemResponse(res listUsecase.Item) ItemResponse {
 	l := []LinkResponse{}
-	for _, link := range res.Links {
-		l = append(l, LinkResponse{
-			ID:     link.ID,
-			ItemID: link.ItemID,
-			Name:   &link.Name,
-			URL:    link.URL,
-		})
+	if res.Links != nil {
+		for _, link := range *res.Links {
+			l = append(l, LinkResponse{
+				ID:     link.ID,
+				ItemID: link.ItemID,
+				Name:   link.Name,
+				URL:    link.URL,
+			})
+		}
 	}
+
 	i := ItemResponse{
 		ID:          res.ID,
 		ListID:      res.ListID,
 		Name:        res.Name,
-		Description: &res.Description,
-		Address:     &res.Address,
+		Description: res.Description,
+		Address:     res.Address,
 		Point: PointResponse{
 			ID:     res.Point.ID,
 			ItemID: res.Point.ItemID,
 			Lat:    res.Point.Lat,
 			Lng:    res.Point.Lng,
 		},
-		ImageLinks:  &res.ImageLinks,
+		ImageLinks: res.ImageLinks,
+		// TODO:
 		Links:       &l,
 		Visited:     res.Visited,
 		DateCreated: res.DateCreated,

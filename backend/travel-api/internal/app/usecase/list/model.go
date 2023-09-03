@@ -10,7 +10,7 @@ type List struct {
 	Private     bool
 	Favorite    bool
 	Completed   bool
-	ItemsID     []string
+	ItemsID     *[]string
 	DateCreated time.Time
 	DateUpdated time.Time
 }
@@ -37,11 +37,11 @@ type Item struct {
 	ID          string
 	ListID      string
 	Name        string
-	Description string
-	Address     string
+	Description *string
+	Address     *string
 	Point       Point
-	ImageLinks  []string
-	Links       []Link
+	ImageLinks  *[]string
+	Links       *[]Link
 	Visited     bool
 	DateCreated time.Time
 	DateUpdated time.Time
@@ -50,7 +50,7 @@ type Item struct {
 type Link struct {
 	ID     string
 	ItemID string
-	Name   string
+	Name   *string
 	URL    string
 }
 
@@ -67,8 +67,8 @@ type NewItem struct {
 	Description *string
 	Address     *string
 	Point       NewPoint
-	ImageLinks  []string
-	Links       []NewLink
+	ImageLinks  *[]string
+	Links       *[]NewLink
 }
 
 type NewLink struct {
