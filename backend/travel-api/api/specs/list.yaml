@@ -691,7 +691,7 @@ components:
             validate: "omitempty"
         point:
           x-oapi-codegen-extra-tags:
-            validate: "required"
+            validate: "required,dive"
           $ref: '#/components/schemas/NewPoint'
         image_links:
           type: array
@@ -705,7 +705,7 @@ components:
           type: array
           description: new item's links array
           x-oapi-codegen-extra-tags:
-            validate: "omitempty"
+            validate: "omitempty,dive"
           items:
             $ref: '#/components/schemas/NewLink'
       required:
@@ -771,7 +771,7 @@ components:
             validate: "omitempty,gte=1"
         point:
           x-oapi-codegen-extra-tags:
-            validate: "omitempty"
+            validate: "omitempty,dive"
           $ref: '#/components/schemas/UpdatePoint'
         image_links:
           type: array
@@ -785,7 +785,7 @@ components:
           type: array
           description: updated item's links array
           x-oapi-codegen-extra-tags:
-            validate: "omitempty"
+            validate: "omitempty,dive"
           items:
             $ref: '#/components/schemas/UpdateLink'
         visited:
@@ -806,7 +806,7 @@ components:
           description: updated link id
           x-go-name: ID
           x-oapi-codegen-extra-tags:
-            validate: "required"
+            validate: "omitempty"
         name:
           type: string
           description: new link name
@@ -817,9 +817,10 @@ components:
           description: new link url
           x-go-name: URL
           x-oapi-codegen-extra-tags:
-            validate: "omitempty,startswith=http"
+            validate: "required,startswith=http"
       required:
         - id
+        - url
 
     UpdatePoint:
       type: object

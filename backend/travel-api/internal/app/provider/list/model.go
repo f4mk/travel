@@ -9,7 +9,7 @@ import (
 type RepoList struct {
 	ID          string          `db:"list_id"`
 	UserID      string          `db:"user_id"`
-	Name        string          `db:"name"`
+	Name        string          `db:"list_name"`
 	Description string          `db:"description"`
 	Private     bool            `db:"private"`
 	Favorite    bool            `db:"favorite"`
@@ -22,10 +22,10 @@ type RepoList struct {
 type RepoItem struct {
 	ID          string          `db:"item_id"`
 	ListID      string          `db:"list_id"`
-	Name        string          `db:"name"`
+	Name        string          `db:"item_name"`
 	Description *string         `db:"description"`
 	Address     *string         `db:"address"`
-	PointID     string          `db:"point_id"`
+	PointID     string          `db:"point"`
 	ImageLinks  *pq.StringArray `db:"image_links"`
 	LinksID     *pq.StringArray `db:"links"`
 	Visited     bool            `db:"is_visited"`
@@ -34,10 +34,10 @@ type RepoItem struct {
 }
 
 type RepoLink struct {
-	ID     string  `db:"link_id"`
-	ItemID string  `db:"item_id"`
-	Name   *string `db:"name"`
-	URL    string  `db:"url"`
+	ID     *string `db:"link_id"`
+	ItemID *string `db:"item_id"`
+	Name   *string `db:"link_name"`
+	URL    *string `db:"url"`
 }
 
 type RepoPoint struct {

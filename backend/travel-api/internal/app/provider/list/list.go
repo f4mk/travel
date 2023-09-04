@@ -71,14 +71,14 @@ func (r *Repo) QueryListByID(ctx context.Context, uID string, lID string) (list.
 func (r *Repo) QueryItemsByListID(ctx context.Context, userID string, listID string) ([]list.Item, error) {
 	q := `SELECT items.*, points.point_id,
 				ST_Y(points.location) AS lat, ST_X(points.location) AS lng,
-				links.link_id, links.name, links.url 
+				links.link_id, links.link_name, links.url 
 				FROM lists
 				INNER JOIN items ON items.list_id = lists.list_id
 				INNER JOIN points ON points.item_id = items.item_id
 				LEFT JOIN links ON links.item_id = items.item_id
-				WHERE lists.list_id = $1 AND lists.user_id = $2;`
+				WHERE lists.user_id = $1 AND lists.list_id = $2;`
 
-	rows, err := r.repo.QueryxContext(ctx, q, listID, userID)
+	rows, err := r.repo.QueryxContext(ctx, q, userID, listID)
 	if err != nil {
 		return nil, err
 	}
@@ -98,9 +98,9 @@ func (r *Repo) QueryItemsByListID(ctx context.Context, userID string, listID str
 }
 
 func (r *Repo) QueryItemByID(ctx context.Context, userID string, listID string, itemID string) (list.Item, error) {
-	q := `SELECT items.*, points.point_id, 
-					ST_Y(points.location) AS lat, ST_X(points.location) AS lng, 
-					links.link_id, links.name, links.url 
+	q := `SELECT items.*, points.point_id,
+					ST_Y(points.location) AS lat, ST_X(points.location) AS lng,
+					links.link_id, links.link_name, links.url
 				FROM lists
 				INNER JOIN items ON items.list_id = lists.list_id
 				INNER JOIN points ON points.item_id = items.item_id
@@ -132,12 +132,12 @@ func (r *Repo) QueryItemByID(ctx context.Context, userID string, listID string, 
 func (r *Repo) CreateList(ctx context.Context, l list.List) error {
 	list := populateList(l)
 	q := `INSERT INTO lists (
-					list_id, user_id, name, description, 
+					list_id, user_id, list_name, description, 
 					private, favorite, completed, items, 
 					date_created, date_updated
 				) 
 				VALUES (
-					:list_id, :user_id, :name, :description, 
+					:list_id, :user_id, :list_name, :description, 
 					:private, :favorite, :completed, :items,
 					:date_created, :date_updated
 				)`
@@ -150,8 +150,8 @@ func (r *Repo) CreateList(ctx context.Context, l list.List) error {
 
 func (r *Repo) UpdateListAdmin(ctx context.Context, l list.List) error {
 	list := populateList(l)
-	q := `UPDATE lists SET 
-					name = :name,
+	q := `UPDATE lists SET
+					list_name = :list_name,
 					description = :description,
 					private = :private,
 					favorite = :favorite,
@@ -171,7 +171,7 @@ func (r *Repo) UpdateListAdmin(ctx context.Context, l list.List) error {
 func (r *Repo) UpdateList(ctx context.Context, l list.List) error {
 	list := populateList(l)
 	q := `UPDATE lists SET 
-					name = :name,
+					list_name = :list_name,
 					description = :description,
 					private = :private,
 					favorite = :favorite,
@@ -187,6 +187,7 @@ func (r *Repo) UpdateList(ctx context.Context, l list.List) error {
 	}
 	return nil
 }
+
 func (r *Repo) DeleteListAdmin(ctx context.Context, listID string) error {
 	q := `DELETE FROM lists WHERE list_id = $1;`
 	_, err := r.repo.ExecContext(ctx, q, listID)
@@ -195,6 +196,7 @@ func (r *Repo) DeleteListAdmin(ctx context.Context, listID string) error {
 	}
 	return nil
 }
+
 func (r *Repo) DeleteList(ctx context.Context, userID string, listID string) error {
 	q := `DELETE FROM lists WHERE user_id = $1 AND list_id = $2;`
 	_, err := r.repo.ExecContext(ctx, q, userID, listID)
@@ -220,10 +222,10 @@ func (r *Repo) CreateItem(ctx context.Context, userID string, i list.Item) error
 	if *i.Links != nil {
 		for _, link := range *i.Links {
 			l := RepoLink{
-				ID:     link.ID,
-				ItemID: link.ItemID,
+				ID:     &link.ID,
+				ItemID: &link.ItemID,
 				Name:   link.Name,
-				URL:    link.URL,
+				URL:    &link.URL,
 			}
 			links = append(links, l)
 		}
@@ -234,13 +236,13 @@ func (r *Repo) CreateItem(ctx context.Context, userID string, i list.Item) error
 	}
 	qItem := `
 	INSERT INTO items (
-		item_id, list_id, name,
-		description, address,	point_id,
+		item_id, list_id, item_name,
+		description, address,	point,
 		image_links, links, is_visited,
 		date_created,	date_updated
 	)
-	SELECT 	:item_id, :list_id, :name,
-					:description, :address, :point_id,
+	SELECT 	:item_id, :list_id, :item_name,
+					:description, :address, :point,
 					:image_links, :links, :is_visited,
 					:date_created, :date_updated
 	WHERE EXISTS (
@@ -252,12 +254,17 @@ func (r *Repo) CreateItem(ctx context.Context, userID string, i list.Item) error
 	// TODO: refactor magical number
 	qPoint := `INSERT INTO points (
 							point_id, item_id, location
-						) 
+						)
 						VALUES (
 							:point_id, :item_id, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)
 						);
 	`
-	qLinks := `INSERT INTO links (link_id, item_id, name, url) VALUES (:link_id, :item_id, :name, :url)`
+	qLinks := `INSERT INTO links (
+							link_id, item_id, link_name, url
+						)
+						VALUES (
+							:link_id, :item_id, :link_name, :url
+						);`
 
 	_, err = tx.NamedExecContext(ctx, qItem, itemInsert)
 	if err != nil {
@@ -294,7 +301,7 @@ func (r *Repo) CreateItem(ctx context.Context, userID string, i list.Item) error
 	return nil
 }
 
-func (r *Repo) UpdateItemAdmin(ctx context.Context, i list.Item) error {
+func (r *Repo) UpdateItemAdmin(ctx context.Context, i list.Item) (err error) {
 	item := populateItem(i)
 	point := RepoPoint{
 		ID:     i.Point.ID,
@@ -303,13 +310,13 @@ func (r *Repo) UpdateItemAdmin(ctx context.Context, i list.Item) error {
 		Lng:    i.Point.Lng,
 	}
 	links := []RepoLink{}
-	if *i.Links != nil {
+	if i.Links != nil {
 		for _, link := range *i.Links {
 			l := RepoLink{
-				ID:     link.ID,
-				ItemID: link.ItemID,
+				ID:     &link.ID,
+				ItemID: &link.ItemID,
 				Name:   link.Name,
-				URL:    link.URL,
+				URL:    &link.URL,
 			}
 			links = append(links, l)
 		}
@@ -318,22 +325,29 @@ func (r *Repo) UpdateItemAdmin(ctx context.Context, i list.Item) error {
 	if err != nil {
 		return err
 	}
-	qItem := `UPDATE items SET 
-							name = :name,
+	defer func() {
+		if err != nil {
+			if rErr := tx.Rollback(); rErr != nil {
+				r.log.Err(rErr).Msg("failed to rollback after error")
+			}
+		}
+	}()
+	qItem := `UPDATE items SET
+							item_name = :item_name,
 							description = :description,
 							address = :address,
-							point_id = :point_id,
+							point = :point,
 							image_links = :image_links,
-							links, is_visited = :links, is_visited,
+							links = :links, is_visited = :is_visited,
 							date_created = :date_created,
-							date_update = :date_updated
+							date_updated = :date_updated
 						WHERE item_id = :item_id;`
 	qPoint := `UPDATE points SET
 							location = ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)
 						WHERE point_id = :point_id;`
 	qLinks := `UPDATE links SET
-							name = :name, url = :url
-						WHERE link_id = := link_id;`
+							link_name = :link_name, url = :url
+						WHERE link_id = :link_id;`
 	_, err = tx.NamedExecContext(ctx, qItem, item)
 	if err != nil {
 		if rErr := tx.Rollback(); rErr != nil {
@@ -343,30 +357,22 @@ func (r *Repo) UpdateItemAdmin(ctx context.Context, i list.Item) error {
 	}
 	_, err = tx.NamedExecContext(ctx, qPoint, point)
 	if err != nil {
-		if rErr := tx.Rollback(); rErr != nil {
-			r.log.Err(rErr).Msg("Failed to rollback after error")
-		}
 		return err
 	}
-	if len(links) > 0 {
-		_, err = tx.NamedExecContext(ctx, qLinks, links)
+	for _, link := range links {
+		_, err = tx.NamedExecContext(ctx, qLinks, link)
 		if err != nil {
-			if rErr := tx.Rollback(); rErr != nil {
-				r.log.Err(rErr).Msg("Failed to rollback after error")
-			}
 			return err
 		}
 	}
-	if err := tx.Commit(); err != nil {
-		if rErr := tx.Rollback(); rErr != nil {
-			r.log.Err(rErr).Msg("Failed to rollback after error")
-		}
+	err = tx.Commit()
+	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *Repo) UpdateItem(ctx context.Context, userID string, i list.Item) error {
+func (r *Repo) UpdateItem(ctx context.Context, userID string, i list.Item) (err error) {
 	item := populateItem(i)
 	itemUpdate := itemWithUserID{
 		RepoItem: item,
@@ -379,13 +385,13 @@ func (r *Repo) UpdateItem(ctx context.Context, userID string, i list.Item) error
 		Lng:    i.Point.Lng,
 	}
 	links := []RepoLink{}
-	if *i.Links != nil {
+	if i.Links != nil {
 		for _, link := range *i.Links {
 			l := RepoLink{
-				ID:     link.ID,
-				ItemID: link.ItemID,
+				ID:     &link.ID,
+				ItemID: &link.ItemID,
 				Name:   link.Name,
-				URL:    link.URL,
+				URL:    &link.URL,
 			}
 			links = append(links, l)
 		}
@@ -394,15 +400,22 @@ func (r *Repo) UpdateItem(ctx context.Context, userID string, i list.Item) error
 	if err != nil {
 		return err
 	}
-	qItem := `UPDATE items SET 
-							name = :name,
+	defer func() {
+		if err != nil {
+			if rErr := tx.Rollback(); rErr != nil {
+				r.log.Err(rErr).Msg("failed to rollback after error")
+			}
+		}
+	}()
+	qItem := `UPDATE items SET
+							item_name = :item_name,
 							description = :description,
 							address = :address,
-							point_id = :point_id,
+							point = :point,
 							image_links = :image_links,
-							links, is_visited = :links, is_visited,
+							links = :links, is_visited = :is_visited,
 							date_created = :date_created,
-							date_update = :date_updated
+							date_updated = :date_updated
 						WHERE item_id = :item_id
 						AND EXISTS (
 							SELECT 1 
@@ -414,39 +427,29 @@ func (r *Repo) UpdateItem(ctx context.Context, userID string, i list.Item) error
 							location = ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)
 						WHERE point_id = :point_id;`
 	qLinks := `UPDATE links SET
-							name = :name, url = :url
-						WHERE link_id = := link_id;`
+							link_name = :link_name, url = :url
+						WHERE link_id = :link_id;`
 	_, err = tx.NamedExecContext(ctx, qItem, itemUpdate)
 	if err != nil {
-		if rErr := tx.Rollback(); rErr != nil {
-			r.log.Err(rErr).Msg("Failed to rollback after error")
-		}
 		return err
 	}
 	_, err = tx.NamedExecContext(ctx, qPoint, point)
 	if err != nil {
-		if rErr := tx.Rollback(); rErr != nil {
-			r.log.Err(rErr).Msg("Failed to rollback after error")
-		}
 		return err
 	}
-	if len(links) > 0 {
-		_, err = tx.NamedExecContext(ctx, qLinks, links)
+	for _, link := range links {
+		_, err = tx.NamedExecContext(ctx, qLinks, link)
 		if err != nil {
-			if rErr := tx.Rollback(); rErr != nil {
-				r.log.Err(rErr).Msg("Failed to rollback after error")
-			}
 			return err
 		}
 	}
-	if err := tx.Commit(); err != nil {
-		if rErr := tx.Rollback(); rErr != nil {
-			r.log.Err(rErr).Msg("Failed to rollback after error")
-		}
+	err = tx.Commit()
+	if err != nil {
 		return err
 	}
 	return nil
 }
+
 func (r *Repo) DeleteItemAdmin(ctx context.Context, itemID string) error {
 	q := `DELETE FROM items WHERE item_id = $1;`
 	_, err := r.repo.ExecContext(ctx, q, itemID)
@@ -543,15 +546,12 @@ type rowItemsByListID struct {
 
 func fromRowsToMap(rows *sqlx.Rows) (map[string]*list.Item, error) {
 	itemsMap := make(map[string]*list.Item)
-
 	for rows.Next() {
 		row := rowItemsByListID{}
-
 		err := rows.StructScan(&row)
 		if err != nil {
 			return nil, err
 		}
-
 		if _, exists := itemsMap[row.RepoItem.ID]; !exists {
 			p := list.Point{
 				ID:     row.RepoPoint.ID,
@@ -575,12 +575,12 @@ func fromRowsToMap(rows *sqlx.Rows) (map[string]*list.Item, error) {
 				DateUpdated: row.DateUpdated,
 			}
 		}
-		if row.RepoLink.ID != "" {
+		if row.RepoLink.ID != nil {
 			link := list.Link{
-				ID:     row.RepoLink.ID,
-				ItemID: row.RepoLink.ItemID,
+				ID:     *row.RepoLink.ID,
+				ItemID: *row.RepoLink.ItemID,
 				Name:   row.RepoLink.Name,
-				URL:    row.RepoLink.URL,
+				URL:    *row.RepoLink.URL,
 			}
 			*itemsMap[row.RepoItem.ID].Links = append(*itemsMap[row.RepoItem.ID].Links, link)
 		}

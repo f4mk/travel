@@ -306,25 +306,20 @@ func (s *Service) UpdateItem(ctx context.Context, w http.ResponseWriter, r *http
 		s.log.Err(err).Msg(ErrItemValidateItemUUID.Error())
 		return err
 	}
-
 	var up *listUsecase.UpdatePoint
 	if ui.Point != nil {
 		up = &listUsecase.UpdatePoint{
-			ID:     ui.Point.ID,
-			ItemID: itemID,
-			Lat:    ui.Point.Lat,
-			Lng:    ui.Point.Lng,
+			Lat: ui.Point.Lat,
+			Lng: ui.Point.Lng,
 		}
 	}
-
 	ul := []listUsecase.UpdateLink{}
 	if ui.Links != nil {
 		for _, link := range *ui.Links {
 			l := listUsecase.UpdateLink{
-				ID:     link.ID,
-				ItemID: itemID,
-				Name:   link.Name,
-				URL:    link.URL,
+				ID:   link.ID,
+				Name: link.Name,
+				URL:  link.URL,
 			}
 			ul = append(ul, l)
 		}

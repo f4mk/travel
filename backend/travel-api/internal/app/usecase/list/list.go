@@ -49,12 +49,12 @@ func (c *Core) GetAllLists(ctx context.Context, userID string) ([]List, error) {
 }
 
 func (c *Core) GetListByID(ctx context.Context, userID string, listID string) (List, error) {
-	l, err := c.storer.QueryListByID(ctx, userID, listID)
+	list, err := c.storer.QueryListByID(ctx, userID, listID)
 	if err != nil {
 		c.log.Err(err).Msgf("lists: query: %s", database.ErrQueryDB.Error())
 		return List{}, database.WrapStorerError(err)
 	}
-	return l, nil
+	return list, nil
 }
 
 func (c *Core) GetItemsByListID(ctx context.Context, userID string, listID string) ([]Item, error) {
@@ -67,12 +67,12 @@ func (c *Core) GetItemsByListID(ctx context.Context, userID string, listID strin
 }
 
 func (c *Core) GetItemByID(ctx context.Context, userID, listID, itemID string) (Item, error) {
-	it, err := c.storer.QueryItemByID(ctx, userID, listID, itemID)
+	item, err := c.storer.QueryItemByID(ctx, userID, listID, itemID)
 	if err != nil {
 		c.log.Err(err).Msgf("lists: query: %s", database.ErrQueryDB.Error())
 		return Item{}, database.WrapStorerError(err)
 	}
-	return it, nil
+	return item, nil
 }
 
 func (c *Core) CreateList(ctx context.Context, nl NewList) (List, error) {
@@ -104,7 +104,7 @@ func (c *Core) CreateList(ctx context.Context, nl NewList) (List, error) {
 }
 
 func (c *Core) UpdateListByID(ctx context.Context, ul UpdateList) (List, error) {
-	l, err := c.storer.QueryListByID(ctx, ul.UserID, ul.ID)
+	list, err := c.storer.QueryListByID(ctx, ul.UserID, ul.ID)
 	if err != nil {
 		c.log.Err(err).Msgf("list: update: %s", database.ErrQueryDB.Error())
 		return List{}, database.WrapStorerError(err)
@@ -116,39 +116,39 @@ func (c *Core) UpdateListByID(ctx context.Context, ul UpdateList) (List, error) 
 		return List{}, auth.ErrGetClaims
 	}
 	if ul.Name != nil {
-		l.Name = *ul.Name
+		list.Name = *ul.Name
 	}
 	if ul.Description != nil {
-		l.Description = *ul.Description
+		list.Description = *ul.Description
 	}
 	if ul.Private != nil {
-		l.Private = *ul.Private
+		list.Private = *ul.Private
 	}
 	if ul.Favorite != nil {
-		l.Favorite = *ul.Favorite
+		list.Favorite = *ul.Favorite
 	}
 	if ul.Completed != nil {
-		l.Completed = *ul.Completed
+		list.Completed = *ul.Completed
 	}
 	if ul.ItemsID != nil {
-		l.ItemsID = ul.ItemsID
+		list.ItemsID = ul.ItemsID
 	}
-	l.DateUpdated = time.Now().UTC()
+	list.DateUpdated = time.Now().UTC()
 
 	if claims.Authorize(auth.RoleAdmin) {
-		if err := c.storer.UpdateListAdmin(ctx, l); err != nil {
-			c.log.Err(err).Msgf("list: update: %s", database.ErrQueryDB.Error())
+		if err := c.storer.UpdateListAdmin(ctx, list); err != nil {
+			c.log.Err(err).Msgf("list: update by admin: %s", database.ErrQueryDB.Error())
 			return List{}, database.WrapStorerError(err)
 		}
-		c.log.Warn().Msgf("list: update by admin: %s", l.ID)
-		return l, nil
+		c.log.Warn().Msgf("list: update by admin: %s", list.ID)
+		return list, nil
 	}
 
-	if err := c.storer.UpdateList(ctx, l); err != nil {
+	if err := c.storer.UpdateList(ctx, list); err != nil {
 		c.log.Err(err).Msgf("list: update: %s", database.ErrQueryDB.Error())
 		return List{}, database.WrapStorerError(err)
 	}
-	return l, nil
+	return list, nil
 }
 
 func (c *Core) DeleteListByID(ctx context.Context, userID string, listID string) error {
@@ -216,75 +216,67 @@ func (c *Core) CreateItem(ctx context.Context, userID string, ni NewItem) (Item,
 }
 
 func (c *Core) UpdateItemByID(ctx context.Context, userID string, ui UpdateItem) (Item, error) {
-	i, err := c.storer.QueryItemByID(ctx, userID, ui.ListID, ui.ID)
+	item, err := c.storer.QueryItemByID(ctx, userID, ui.ListID, ui.ID)
 	if err != nil {
 		c.log.Err(err).Msgf("item: update: %s", database.ErrQueryDB.Error())
 		return Item{}, database.WrapStorerError(err)
 	}
-
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
 		c.log.Err(err).Msgf("item: update: %s", auth.ErrGetClaims.Error())
 		return Item{}, auth.ErrGetClaims
 	}
-
 	if ui.Name != nil {
-		i.Name = *ui.Name
+		item.Name = *ui.Name
 	}
 	if ui.Description != nil {
-		i.Description = ui.Description
+		item.Description = ui.Description
 	}
 	if ui.Address != nil {
-		i.Address = ui.Address
+		item.Address = ui.Address
 	}
 	if ui.Point != nil {
-		i.Point = Point{
-			ID:     ui.Point.ID,
-			ItemID: ui.Point.ItemID,
-			Lat:    ui.Point.Lat,
-			Lng:    ui.Point.Lng,
-		}
+		item.Point.Lat = ui.Point.Lat
+		item.Point.Lng = ui.Point.Lng
 	}
 	if ui.ImageLinks != nil {
-		i.ImageLinks = ui.ImageLinks
+		item.ImageLinks = ui.ImageLinks
 	}
+	// TODO: handle proper update or remove links completely
 	if ui.Links != nil {
 		links := []Link{}
 		for _, link := range *ui.Links {
-
 			l := Link{
-				ID:     link.ID,
-				ItemID: link.ItemID,
+				ID:     uuid.New().String(),
+				ItemID: item.ID,
 			}
 			if link.Name != nil {
 				l.Name = link.Name
 			}
-			if link.URL != nil {
-				l.URL = *link.URL
-			}
+			l.URL = link.URL
 			links = append(links, l)
 		}
-		i.Links = &links
+		item.Links = &links
 	}
 	if ui.Visited != nil {
-		i.Visited = *ui.Visited
+		item.Visited = *ui.Visited
 	}
-	i.DateUpdated = time.Now().UTC()
+	item.DateUpdated = time.Now().UTC()
 	if claims.Authorize(auth.RoleAdmin) {
-		if err := c.storer.UpdateItemAdmin(ctx, i); err != nil {
-			c.log.Err(err).Msgf("item: update: %s", database.ErrQueryDB.Error())
+		if err := c.storer.UpdateItemAdmin(ctx, item); err != nil {
+			c.log.Err(err).Msgf("item: update by admin: %s", database.ErrQueryDB.Error())
 			return Item{}, database.WrapStorerError(err)
 		}
-		c.log.Warn().Msgf("item: update by admin: %s", i.ID)
-		return i, nil
+		c.log.Warn().Msgf("item: update by admin: %s", item.ID)
+		return item, nil
 	}
 	// TODO: userID was already checked during QueryItemByID
 	// but may be its better to keep it here as well
-	if err := c.storer.UpdateItem(ctx, userID, i); err != nil {
+	if err := c.storer.UpdateItem(ctx, userID, item); err != nil {
 		c.log.Err(err).Msgf("item: update: %s", database.ErrQueryDB.Error())
 		return Item{}, database.WrapStorerError(err)
 	}
-	return i, nil
+	return item, nil
 }
 
 func (c *Core) DeleteItemByID(ctx context.Context, userID string, listID string, itemID string) error {

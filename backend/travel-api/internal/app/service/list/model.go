@@ -110,7 +110,7 @@ type NewItem struct {
 	ImageLinks *[]string `json:"image_links,omitempty" validate:"omitempty"`
 
 	// Links new item's links array
-	Links *[]NewLink `json:"links,omitempty" validate:"omitempty"`
+	Links *[]NewLink `json:"links,omitempty" validate:"omitempty,dive"`
 
 	// Name new item name
 	Name string `json:"name" validate:"required,gte=1"`
@@ -176,7 +176,7 @@ type UpdateItem struct {
 	ImageLinks *[]string `json:"image_links,omitempty" validate:"omitempty"`
 
 	// Links updated item's links array
-	Links *[]UpdateLink `json:"links,omitempty" validate:"omitempty"`
+	Links *[]UpdateLink `json:"links,omitempty" validate:"omitempty,dive"`
 
 	// Name updated item name
 	Name *string `json:"name,omitempty" validate:"omitempty,gte=1"`
@@ -191,13 +191,13 @@ type UpdateItem struct {
 // UpdateLink new link object
 type UpdateLink struct {
 	// Id updated link id
-	ID string `json:"id" validate:"required"`
+	ID string `json:"id" validate:"omitempty"`
 
 	// Name new link name
 	Name *string `json:"name,omitempty" validate:"omitempty,gte=1"`
 
 	// Url new link url
-	URL *string `json:"url,omitempty" validate:"omitempty,startswith=http"`
+	URL string `json:"url" validate:"required,startswith=http"`
 }
 
 // UpdateList update list object

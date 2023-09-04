@@ -94,15 +94,12 @@ type UpdateItem struct {
 }
 
 type UpdateLink struct {
-	ID     string
-	ItemID string
-	Name   *string
-	URL    *string
+	ID   string
+	Name *string
+	URL  string
 }
 
 type UpdatePoint struct {
-	ID     string
-	ItemID string
-	Lat    float64
-	Lng    float64
+	Lat float64
+	Lng float64
 }
