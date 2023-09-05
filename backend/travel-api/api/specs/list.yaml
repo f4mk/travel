@@ -534,11 +534,6 @@ components:
           items:
             type: string
             description: "image url"
-        links:
-          type: array
-          description: "array of attached links"
-          items:
-            $ref: '#/components/schemas/LinkResponse'
         visited: 
           type: boolean
           description: "location is visited"
@@ -559,30 +554,6 @@ components:
         - date_created
         - date_updated
 
-    LinkResponse:
-      type: object
-      description: "link object"
-      properties:
-        id: 
-          type: string
-          description: "link id"
-          x-go-name: ID
-        item_id: 
-          type: string
-          description: "link parent id"
-          x-go-name: ItemID
-        name: 
-          type: string
-          description: "link display name"
-        url: 
-          type: string
-          description: "url"
-          x-go-name: URL
-      required:
-        - id
-        - item_id
-        - url
-    
     PointResponse:
       type: object
       description: "item location on map"
@@ -701,34 +672,9 @@ components:
           items:
             type: string
             description: new item's image url
-        links:
-          type: array
-          description: new item's links array
-          x-oapi-codegen-extra-tags:
-            validate: "omitempty,dive"
-          items:
-            $ref: '#/components/schemas/NewLink'
       required:
         - name
         - point
-
-    NewLink:
-      type: object
-      description: new link object
-      properties:
-        name:
-          type: string
-          description: new link name
-          x-oapi-codegen-extra-tags:
-            validate: "omitempty,gte=1"
-        url:
-          type: string
-          description: new link url
-          x-go-name: URL
-          x-oapi-codegen-extra-tags:
-            validate: "required,startswith=http"
-      required:
-        - url
 
     NewPoint:
       type: object
@@ -781,13 +727,6 @@ components:
           items:
             type: string
             description: updated item's image url
-        links:
-          type: array
-          description: updated item's links array
-          x-oapi-codegen-extra-tags:
-            validate: "omitempty,dive"
-          items:
-            $ref: '#/components/schemas/UpdateLink'
         visited:
           type: boolean
           description: updated item visited mark
@@ -797,41 +736,10 @@ components:
         - id
         - list_id
 
-    UpdateLink:
-      type: object
-      description: new link object
-      properties:
-        id:
-          type: string
-          description: updated link id
-          x-go-name: ID
-          x-oapi-codegen-extra-tags:
-            validate: "omitempty"
-        name:
-          type: string
-          description: new link name
-          x-oapi-codegen-extra-tags:
-            validate: "omitempty,gte=1"
-        url:
-          type: string
-          description: new link url
-          x-go-name: URL
-          x-oapi-codegen-extra-tags:
-            validate: "required,startswith=http"
-      required:
-        - id
-        - url
-
     UpdatePoint:
       type: object
       description: new point object
       properties:
-        id:
-          type: string
-          description: updated point id
-          x-go-name: ID
-          x-oapi-codegen-extra-tags:
-            validate: "required"
         lat:
           type: number
           description: new point's latitude

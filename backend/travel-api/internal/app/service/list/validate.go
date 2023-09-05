@@ -10,10 +10,6 @@ func (ni NewItem) Validate() error {
 	return web.Check(ni)
 }
 
-func (nl NewLink) Validate() error {
-	return web.Check(nl)
-}
-
 func (np NewPoint) Validate() error {
 	return web.Check(np)
 }
@@ -24,10 +20,6 @@ func (ul UpdateList) Validate() error {
 
 func (ui UpdateItem) Validate() error {
 	return web.Check(ui)
-}
-
-func (ul UpdateLink) Validate() error {
-	return web.Check(ul)
 }
 
 func (up UpdatePoint) Validate() error {

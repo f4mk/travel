@@ -34,9 +34,6 @@ type ItemResponse struct {
 	// ImageLinks array of attached image links
 	ImageLinks *[]string `json:"image_links,omitempty"`
 
-	// Links array of attached links
-	Links *[]LinkResponse `json:"links,omitempty"`
-
 	// ListId item parent id
 	ListID string `json:"list_id"`
 
@@ -48,21 +45,6 @@ type ItemResponse struct {
 
 	// Visited location is visited
 	Visited bool `json:"visited"`
-}
-
-// LinkResponse link object
-type LinkResponse struct {
-	// Id link id
-	ID string `json:"id"`
-
-	// ItemId link parent id
-	ItemID string `json:"item_id"`
-
-	// Name link display name
-	Name *string `json:"name,omitempty"`
-
-	// Url url
-	URL string `json:"url"`
 }
 
 // ListResponse defines model for ListResponse.
@@ -109,23 +91,11 @@ type NewItem struct {
 	// ImageLinks new item's image links array
 	ImageLinks *[]string `json:"image_links,omitempty" validate:"omitempty"`
 
-	// Links new item's links array
-	Links *[]NewLink `json:"links,omitempty" validate:"omitempty,dive"`
-
 	// Name new item name
 	Name string `json:"name" validate:"required,gte=1"`
 
 	// Point new point object
 	Point NewPoint `json:"point"`
-}
-
-// NewLink new link object
-type NewLink struct {
-	// Name new link name
-	Name *string `json:"name,omitempty" validate:"omitempty,gte=1"`
-
-	// Url new link url
-	URL string `json:"url" validate:"required,startswith=http"`
 }
 
 // NewList new list object
@@ -175,9 +145,6 @@ type UpdateItem struct {
 	// ImageLinks updated item's image links array
 	ImageLinks *[]string `json:"image_links,omitempty" validate:"omitempty"`
 
-	// Links updated item's links array
-	Links *[]UpdateLink `json:"links,omitempty" validate:"omitempty,dive"`
-
 	// Name updated item name
 	Name *string `json:"name,omitempty" validate:"omitempty,gte=1"`
 
@@ -186,18 +153,6 @@ type UpdateItem struct {
 
 	// Visited updated item visited mark
 	Visited *bool `json:"visited,omitempty" validate:"omitempty,boolean"`
-}
-
-// UpdateLink new link object
-type UpdateLink struct {
-	// Id updated link id
-	ID string `json:"id" validate:"omitempty"`
-
-	// Name new link name
-	Name *string `json:"name,omitempty" validate:"omitempty,gte=1"`
-
-	// Url new link url
-	URL string `json:"url" validate:"required,startswith=http"`
 }
 
 // UpdateList update list object
@@ -223,9 +178,6 @@ type UpdateList struct {
 
 // UpdatePoint new point object
 type UpdatePoint struct {
-	// Id updated point id
-	ID string `json:"id" validate:"required"`
-
 	// Lat new point's latitude
 	Lat float64 `json:"lat" validate:"required,number"`
 

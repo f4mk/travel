@@ -27,17 +27,9 @@ type RepoItem struct {
 	Address     *string         `db:"address"`
 	PointID     string          `db:"point"`
 	ImageLinks  *pq.StringArray `db:"image_links"`
-	LinksID     *pq.StringArray `db:"links"`
 	Visited     bool            `db:"is_visited"`
 	DateCreated time.Time       `db:"date_created"`
 	DateUpdated time.Time       `db:"date_updated"`
-}
-
-type RepoLink struct {
-	ID     *string `db:"link_id"`
-	ItemID *string `db:"item_id"`
-	Name   *string `db:"link_name"`
-	URL    *string `db:"url"`
 }
 
 type RepoPoint struct {

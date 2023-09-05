@@ -8,7 +8,6 @@ CREATE TABLE items (
   address TEXT,
   point UUID,
   image_links UUID [] DEFAULT ARRAY [] :: UUID [],
-  links UUID [] DEFAULT ARRAY [] :: UUID [],
   is_visited BOOLEAN NOT NULL DEFAULT FALSE,
   date_created TIMESTAMP NOT NULL,
   date_updated TIMESTAMP NOT NULL,

@@ -250,17 +250,6 @@ func (s *Service) CreateItem(ctx context.Context, w http.ResponseWriter, r *http
 		Lat: ni.Point.Lat,
 		Lng: ni.Point.Lng,
 	}
-	nl := []listUsecase.NewLink{}
-	if ni.Links != nil {
-		for _, link := range *ni.Links {
-			l := listUsecase.NewLink{
-				Name: link.Name,
-				URL:  link.URL,
-			}
-			nl = append(nl, l)
-		}
-	}
-
 	i := listUsecase.NewItem{
 		ListID:      listID,
 		Name:        ni.Name,
@@ -268,7 +257,6 @@ func (s *Service) CreateItem(ctx context.Context, w http.ResponseWriter, r *http
 		Address:     ni.Address,
 		Point:       np,
 		ImageLinks:  ni.ImageLinks,
-		Links:       &nl,
 	}
 	res, err := s.core.CreateItem(ctx, claims.Subject, i)
 	if err != nil {
@@ -313,17 +301,6 @@ func (s *Service) UpdateItem(ctx context.Context, w http.ResponseWriter, r *http
 			Lng: ui.Point.Lng,
 		}
 	}
-	ul := []listUsecase.UpdateLink{}
-	if ui.Links != nil {
-		for _, link := range *ui.Links {
-			l := listUsecase.UpdateLink{
-				ID:   link.ID,
-				Name: link.Name,
-				URL:  link.URL,
-			}
-			ul = append(ul, l)
-		}
-	}
 	i := listUsecase.UpdateItem{
 		ID:          itemID,
 		ListID:      listID,
@@ -332,9 +309,7 @@ func (s *Service) UpdateItem(ctx context.Context, w http.ResponseWriter, r *http
 		Address:     ui.Description,
 		Point:       up,
 		ImageLinks:  ui.ImageLinks,
-		// TODO:
-		Links:   &ul,
-		Visited: ui.Visited,
+		Visited:     ui.Visited,
 	}
 	res, err := s.core.UpdateItemByID(ctx, claims.Subject, i)
 	if err != nil {
@@ -420,18 +395,6 @@ func populateListResponse(res listUsecase.List) ListResponse {
 }
 
 func populateItemResponse(res listUsecase.Item) ItemResponse {
-	l := []LinkResponse{}
-	if res.Links != nil {
-		for _, link := range *res.Links {
-			l = append(l, LinkResponse{
-				ID:     link.ID,
-				ItemID: link.ItemID,
-				Name:   link.Name,
-				URL:    link.URL,
-			})
-		}
-	}
-
 	i := ItemResponse{
 		ID:          res.ID,
 		ListID:      res.ListID,
@@ -444,9 +407,7 @@ func populateItemResponse(res listUsecase.Item) ItemResponse {
 			Lat:    res.Point.Lat,
 			Lng:    res.Point.Lng,
 		},
-		ImageLinks: res.ImageLinks,
-		// TODO:
-		Links:       &l,
+		ImageLinks:  res.ImageLinks,
 		Visited:     res.Visited,
 		DateCreated: res.DateCreated,
 		DateUpdated: res.DateUpdated,

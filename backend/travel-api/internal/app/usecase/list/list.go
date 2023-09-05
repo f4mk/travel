@@ -181,19 +181,6 @@ func (c *Core) CreateItem(ctx context.Context, userID string, ni NewItem) (Item,
 		Lat:    ni.Point.Lat,
 		Lng:    ni.Point.Lng,
 	}
-	links := []Link{}
-	if ni.Links != nil {
-		for _, link := range *ni.Links {
-			l := Link{
-				ID:     uuid.New().String(),
-				ItemID: itemID,
-				Name:   link.Name,
-				URL:    link.URL,
-			}
-			links = append(links, l)
-		}
-	}
-
 	item := Item{
 		ID:          itemID,
 		ListID:      ni.ListID,
@@ -202,8 +189,6 @@ func (c *Core) CreateItem(ctx context.Context, userID string, ni NewItem) (Item,
 		Address:     ni.Address,
 		Point:       point,
 		ImageLinks:  ni.ImageLinks,
-		// TODO: handle all nil dereferencing in one place
-		Links:       &links,
 		Visited:     false,
 		DateCreated: now,
 		DateUpdated: now,
@@ -226,6 +211,10 @@ func (c *Core) UpdateItemByID(ctx context.Context, userID string, ui UpdateItem)
 		c.log.Err(err).Msgf("item: update: %s", auth.ErrGetClaims.Error())
 		return Item{}, auth.ErrGetClaims
 	}
+	if ui.Point != nil {
+		item.Point.Lat = ui.Point.Lat
+		item.Point.Lng = ui.Point.Lng
+	}
 	if ui.Name != nil {
 		item.Name = *ui.Name
 	}
@@ -235,28 +224,8 @@ func (c *Core) UpdateItemByID(ctx context.Context, userID string, ui UpdateItem)
 	if ui.Address != nil {
 		item.Address = ui.Address
 	}
-	if ui.Point != nil {
-		item.Point.Lat = ui.Point.Lat
-		item.Point.Lng = ui.Point.Lng
-	}
 	if ui.ImageLinks != nil {
 		item.ImageLinks = ui.ImageLinks
-	}
-	// TODO: handle proper update or remove links completely
-	if ui.Links != nil {
-		links := []Link{}
-		for _, link := range *ui.Links {
-			l := Link{
-				ID:     uuid.New().String(),
-				ItemID: item.ID,
-			}
-			if link.Name != nil {
-				l.Name = link.Name
-			}
-			l.URL = link.URL
-			links = append(links, l)
-		}
-		item.Links = &links
 	}
 	if ui.Visited != nil {
 		item.Visited = *ui.Visited
