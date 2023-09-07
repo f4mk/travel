@@ -36,10 +36,9 @@ export const ModalProvider = ({ children }: Props) => {
   const value = useMemo(() => {
     return {
       showModal,
-      hideModal,
-      isOpened: opened
+      hideModal
     }
-  }, [hideModal, showModal, opened])
+  }, [hideModal, showModal])
   return (
     <ModalContext.Provider value={value}>
       {children}

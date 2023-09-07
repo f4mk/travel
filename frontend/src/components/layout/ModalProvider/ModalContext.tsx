@@ -5,5 +5,4 @@ export const ModalContext = createContext({
   showModal: (_: ReactElement) => {},
   // eslint-disable-next-line
   hideModal: (_?:() => void) => {},
-  isOpened: false
 })
