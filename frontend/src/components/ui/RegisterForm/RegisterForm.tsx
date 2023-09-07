@@ -120,7 +120,7 @@ export const RegisterForm = ({ onClose }: Props) => {
             id="qEt3X4"
           />
         </Button>
-        <Button variant="outline" onClick={onClose}>
+        <Button variant="outline" onClick={() => onClose()}>
           <FormattedMessage
             description="Register form Close button text"
             defaultMessage="Close"

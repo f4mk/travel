@@ -2,6 +2,7 @@ import { IntlProvider } from 'react-intl'
 import { RouterProvider } from 'react-router-dom'
 import { MantineProvider } from '@mantine/core'
 
+import { ModalProvider } from '#/components/layout/ModalProvider'
 import { LocaleProvider, useLocale, useTheme } from '#/hooks'
 
 import { router } from './router'
@@ -13,7 +14,9 @@ export const App = () => {
     <MantineProvider theme={useTheme()} withGlobalStyles withNormalizeCSS>
       <IntlProvider locale={locale} messages={t}>
         <LocaleProvider value={locale}>
-          <RouterProvider router={router} />
+          <ModalProvider>
+            <RouterProvider router={router} />
+          </ModalProvider>
         </LocaleProvider>
       </IntlProvider>
     </MantineProvider>

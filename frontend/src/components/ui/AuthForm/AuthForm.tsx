@@ -57,7 +57,7 @@ export const AuthForm = ({ onClose }: Props) => {
             id="kqb0Va"
           />
         </Button>
-        <Button variant="outline" onClick={onClose}>
+        <Button variant="outline" onClick={() => onClose()}>
           <FormattedMessage
             description="Auth form Close button text"
             defaultMessage="Close"

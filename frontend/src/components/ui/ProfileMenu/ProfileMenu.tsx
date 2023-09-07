@@ -1,26 +1,26 @@
-import { useState } from 'react'
 import { FormattedMessage } from 'react-intl'
 import { Menu } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { Cog, LogOut, MessageSquare, Trash } from 'lucide-react'
 
-import { Auth } from '#/components/ui/Auth'
+import { useModal } from '#/components/layout/ModalProvider'
 import { ProfileButton } from '#/components/ui/ProfileButton'
+import { lazy } from '#/utils/lazy'
 
 import { SignIn } from './components/SignIn'
 import { SignUp } from './components/SignUp'
 import { EFormView, Props } from './types'
 
+const { Auth } = lazy(() => import('#/components/ui/Auth'))
+
 export const ProfileMenu = ({ isLoggedIn }: Props) => {
+  const { showModal, hideModal } = useModal()
+
   const [menuOpened, { open: menuOpen, close: menuClose }] =
     useDisclosure(false)
-  const [modalOpened, { open: modalOpen, close: modalClose }] =
-    useDisclosure(false)
-  const [view, setView] = useState<EFormView>(EFormView.SIGN_IN)
 
   const handleOpen = (view: EFormView) => {
-    setView(view)
-    modalOpen()
+    showModal(<Auth activeTab={view} onClose={hideModal} />)
   }
 
   return (
@@ -70,12 +70,6 @@ export const ProfileMenu = ({ isLoggedIn }: Props) => {
           </>
         )}
       </Menu.Dropdown>
-      <Auth
-        opened={modalOpened}
-        activeTab={view}
-        setActiveTab={setView}
-        onClose={modalClose}
-      />
     </Menu>
   )
 }
