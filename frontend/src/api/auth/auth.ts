@@ -1,18 +1,23 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, UseMutationOptions } from '@tanstack/react-query'
 
-import { createRequest } from '#/api/request/request'
+import { createRequest } from '#/api/request'
+import { useGetLocale } from '#/hooks'
 
-import { LoginRequest } from './types'
+import { LoginError, LoginRequest, LoginResponse } from './types'
 
-// TODO: add options
-export const useLogin = ({ email, password }: LoginRequest) => {
+export const useLogin = (
+  options?: UseMutationOptions<LoginResponse, LoginError, LoginRequest>
+) => {
   const url = '/api/auth/login'
-  return useQuery(
-    [url, email, password],
+  // TODO: check if it returs locale in proper format
+  const lang = useGetLocale()
+
+  return useMutation(
     createRequest({
       url,
-      method: 'POST',
-      body: { email, password }
-    })
+      lang,
+      method: 'POST'
+    }),
+    options
   )
 }

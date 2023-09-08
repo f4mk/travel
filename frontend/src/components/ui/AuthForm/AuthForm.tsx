@@ -2,13 +2,13 @@ import { FormattedMessage } from 'react-intl'
 import { Button, Group, PasswordInput, Space, TextInput } from '@mantine/core'
 import { useForm } from '@mantine/form'
 
+import { useLogin } from '#/api/auth'
 import { useMessage } from '#/hooks'
 
 import { FormValues, Props } from './types'
 
 export const AuthForm = ({ onClose }: Props) => {
   const message = useMessage()
-
   const form = useForm<FormValues>({
     initialValues: {
       email: '',
@@ -16,9 +16,14 @@ export const AuthForm = ({ onClose }: Props) => {
     }
   })
 
+  const { mutate } = useLogin({
+    onSuccess: (res) => {
+      console.log(res)
+    }
+  })
   const handleSubmit = (values: FormValues) => {
-    // eslint-disable-next-line
-    console.log(values)
+    mutate({ email: values.email, password: values.password })
+
     onClose()
   }
 

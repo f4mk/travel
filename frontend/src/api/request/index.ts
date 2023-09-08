@@ -1,1 +1,1 @@
-export { createRequest } from './request'
+export { createRequest } from './createRequest'

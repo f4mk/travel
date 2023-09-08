@@ -1,30 +1,21 @@
 import { getFreshToken } from '#/api/auth/utils/getFreshToken'
 
-import { RequestArgs } from './types'
-export const createRequest = <R, T = unknown>(args: RequestArgs<T>) => {
-  return () => request<T, R>(args)
-}
-export const request = async <T, R>({
-  url,
-  method = 'GET',
-  body
-}: RequestArgs<T>) => {
+import { HttpError } from './errors'
+import { Handler, Handlers, Result } from './types'
+
+export const request = async (request: Request, handlers: Handlers) => {
   const token = getFreshToken()
+  request.headers.set('Authorization', `Bearer ${token}`)
 
-  const headers = {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json'
+  const response = await fetch(request)
+
+  const handler = handlers[response.status]
+  if (handler) {
+    return handler(response) as Promise<Result<Handler>>
   }
 
-  const config = {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined
-  }
-
-  const response = await fetch(url, config)
   if (!response.ok) {
-    throw new Error(`HTTP error: ${response.status}`)
+    throw new HttpError(response)
   }
-  return response.json() as R
+  throw TypeError(`fetch: handler for code ${response.status} is not specified`)
 }
