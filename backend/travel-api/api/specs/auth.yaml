@@ -37,7 +37,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /auth/logout/:
+  /auth/logout:
     post:
       tags: ["auth","post","logout"]
       requestBody:

@@ -169,7 +169,6 @@ func (c *Core) ResetPasswordSubmit(ctx context.Context, sp SubmitPassword) (User
 	return u, nil
 }
 
-//revive:disable
 func (c *Core) LogoutAll(ctx context.Context, dt DeleteToken) (int32, error) {
 	u, err := c.storer.QueryByID(ctx, dt.Subject)
 	if err != nil {
@@ -184,10 +183,3 @@ func (c *Core) LogoutAll(ctx context.Context, dt DeleteToken) (int32, error) {
 	}
 	return u.TokenVersion, nil
 }
-
-func (c *Core) RefreshToken(ctx context.Context, email string, t string) error {
-	// TODO: find token in tokes, update the token with a new one
-	return nil
-}
-
-//revive:enable

@@ -13,7 +13,6 @@ type ctxKey int
 
 const key ctxKey = 1
 
-// Values represent state for each request.
 type Values struct {
 	TraceID    string
 	Tracer     trace.Tracer

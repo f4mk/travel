@@ -2,9 +2,7 @@ package database
 
 import (
 	"context"
-	"fmt"
 	"net/url"
-	"strings"
 	"time"
 
 	// using pgx driver
@@ -81,24 +79,7 @@ func StatusCheck(ctx context.Context, db *sqlx.DB) error {
 }
 
 // TODO: do the logging
+// revive:disable
 func Log(query string, args ...any) string {
-
-	for i, arg := range args {
-		n := fmt.Sprintf("$%d", i+1)
-		var a string
-		switch v := arg.(type) {
-		case string:
-			a = fmt.Sprintf("%q", v)
-		case []byte:
-			a = string(v)
-		case []string:
-			a = strings.Join(v, ",")
-		default:
-			a = fmt.Sprintf("%v", v)
-		}
-
-		query = strings.Replace(query, n, a, 1)
-	}
-
-	return query
+	return ""
 }

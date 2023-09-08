@@ -29,7 +29,6 @@ func init() {
 func Check(val any) error {
 	if err := validate.Struct(val); err != nil {
 
-		// Use a type assertion to get the real error value.
 		verrors, ok := err.(errValidator.ValidationErrors)
 		if !ok {
 			return err
