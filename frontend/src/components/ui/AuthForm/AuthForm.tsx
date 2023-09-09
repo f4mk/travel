@@ -16,11 +16,7 @@ export const AuthForm = ({ onClose }: Props) => {
     }
   })
 
-  const { mutate } = useLogin({
-    onSuccess: (res) => {
-      console.log(res)
-    }
-  })
+  const { mutate } = useLogin()
   const handleSubmit = (values: FormValues) => {
     mutate({ email: values.email, password: values.password })
 

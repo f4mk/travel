@@ -1,5 +1,4 @@
-import { getFreshToken } from '#/api/auth/utils/getFreshToken'
-
+import { getFreshToken } from './token/getFreshToken'
 import { HttpError } from './errors'
 import { Handler, Handlers, Result } from './types'
 
