@@ -232,6 +232,35 @@ func (s *Service) Refresh(ctx context.Context, w http.ResponseWriter, r *http.Re
 	return web.Respond(ctx, w, struct{}{}, http.StatusCreated)
 }
 
+func (s *Service) Validate(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	e := struct{}{}
+	if err := web.Decode(r, &e); err != nil {
+		s.log.Err(err).Msg(ErrLoginDecode.Error())
+		return web.NewRequestError(
+			err,
+			http.StatusBadRequest,
+		)
+	}
+	refreshToken, err := r.Cookie("refresh_token")
+	if err != nil {
+		s.log.Err(err).Msg(ErrRefreshReadRefreshToken.Error())
+		return web.NewRequestError(
+			web.ErrAuthFailed,
+			http.StatusUnauthorized,
+		)
+	}
+	_, err = s.auth.ValidateToken(ctx, refreshToken.Value)
+	if err != nil {
+		s.log.Err(err).Msg(ErrRefreshValidateRefreshToken.Error())
+		return web.NewRequestError(
+			web.ErrAuthFailed,
+			http.StatusUnauthorized,
+		)
+	}
+
+	return web.Respond(ctx, w, struct{}{}, http.StatusCreated)
+}
+
 func (s *Service) PasswordReset(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	rp := ResetPassword{}
 	if err := web.Decode(r, &rp); err != nil {

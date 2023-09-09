@@ -18,7 +18,7 @@ type AuthController struct {
 }
 
 func (ac *AuthController) RegisterRoutes(app *web.App) {
-	// TODO: login takes too long, need to do smth
+	// TODO: login takes too long
 	app.Handle(http.MethodPost, "/auth/login", ac.AuthService.Login)
 	app.Handle(
 		http.MethodPost,
@@ -36,6 +36,12 @@ func (ac *AuthController) RegisterRoutes(app *web.App) {
 		http.MethodPost,
 		"/auth/refresh",
 		ac.AuthService.Refresh,
+		middleware.RateLimit(ac.Log, ac.RateLimit),
+	)
+	app.Handle(
+		http.MethodPost,
+		"/auth/validate",
+		ac.AuthService.Validate,
 		middleware.RateLimit(ac.Log, ac.RateLimit),
 	)
 	app.Handle(

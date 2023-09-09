@@ -92,6 +92,12 @@ type UserResponse struct {
 // PostAuthLogoutJSONBody defines parameters for PostAuthLogout.
 type PostAuthLogoutJSONBody = map[string]interface{}
 
+// PostAuthRefreshJSONBody defines parameters for PostAuthRefresh.
+type PostAuthRefreshJSONBody = map[string]interface{}
+
+// PostAuthValidateJSONBody defines parameters for PostAuthValidate.
+type PostAuthValidateJSONBody = map[string]interface{}
+
 // PostAuthLoginJSONRequestBody defines body for PostAuthLogin for application/json ContentType.
 type PostAuthLoginJSONRequestBody = LoginUser
 
@@ -106,3 +112,9 @@ type PostAuthPasswordResetJSONRequestBody = ResetPassword
 
 // PostAuthPasswordResetSubmitJSONRequestBody defines body for PostAuthPasswordResetSubmit for application/json ContentType.
 type PostAuthPasswordResetSubmitJSONRequestBody = SubmitResetPassword
+
+// PostAuthRefreshJSONRequestBody defines body for PostAuthRefresh for application/json ContentType.
+type PostAuthRefreshJSONRequestBody = PostAuthRefreshJSONBody
+
+// PostAuthValidateJSONRequestBody defines body for PostAuthValidate for application/json ContentType.
+type PostAuthValidateJSONRequestBody = PostAuthValidateJSONBody
