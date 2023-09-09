@@ -27,82 +27,7 @@ export interface paths {
         }
       }
     }
-    post: {
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['NewUser']
-        }
-      }
-      responses: {
-        /** @description user created successfully */
-        201: {
-          content: {
-            'application/json': components['schemas']['UserResponse']
-          }
-        }
-        /** @description bad request */
-        400: {
-          content: {
-            'application/json': components['schemas']['ErrorResponse']
-          }
-        }
-        /** @description conflict */
-        409: {
-          content: {
-            'application/json': components['schemas']['ErrorResponse']
-          }
-        }
-        /** @description internal server error */
-        500: {
-          content: {
-            'application/json': components['schemas']['ErrorResponse']
-          }
-        }
-      }
-    }
-  }
-  '/user/{id}': {
-    get: {
-      parameters: {
-        path: {
-          /** @description ID of the user */
-          id: string
-        }
-      }
-      responses: {
-        /** @description returns a user with the specified ID */
-        200: {
-          content: {
-            'application/json': components['schemas']['UserResponse']
-          }
-        }
-        /** @description unauthorized */
-        401: {
-          content: {
-            'application/json': components['schemas']['ErrorResponse']
-          }
-        }
-        /** @description user not found */
-        404: {
-          content: {
-            'application/json': components['schemas']['ErrorResponse']
-          }
-        }
-        /** @description internal server error */
-        500: {
-          content: {
-            'application/json': components['schemas']['ErrorResponse']
-          }
-        }
-      }
-    }
     put: {
-      parameters: {
-        path: {
-          /** @description ID of the user */
-          id: string
-        }
-      }
       requestBody: {
         content: {
           'application/json': components['schemas']['UpdateUser']
@@ -147,13 +72,40 @@ export interface paths {
         }
       }
     }
-    delete: {
-      parameters: {
-        path: {
-          /** @description ID of the user */
-          id: string
+    post: {
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['NewUser']
         }
       }
+      responses: {
+        /** @description user created successfully */
+        201: {
+          content: {
+            'application/json': components['schemas']['UserResponse']
+          }
+        }
+        /** @description bad request */
+        400: {
+          content: {
+            'application/json': components['schemas']['ErrorResponse']
+          }
+        }
+        /** @description conflict */
+        409: {
+          content: {
+            'application/json': components['schemas']['ErrorResponse']
+          }
+        }
+        /** @description internal server error */
+        500: {
+          content: {
+            'application/json': components['schemas']['ErrorResponse']
+          }
+        }
+      }
+    }
+    delete: {
       requestBody: {
         content: {
           'application/json': Record<string, never>
@@ -185,6 +137,72 @@ export interface paths {
           }
         }
         /** @description not found */
+        404: {
+          content: {
+            'application/json': components['schemas']['ErrorResponse']
+          }
+        }
+        /** @description internal server error */
+        500: {
+          content: {
+            'application/json': components['schemas']['ErrorResponse']
+          }
+        }
+      }
+    }
+  }
+  '/user/me': {
+    get: {
+      responses: {
+        /** @description returns user self */
+        200: {
+          content: {
+            'application/json': components['schemas']['UserResponse']
+          }
+        }
+        /** @description unauthorized */
+        401: {
+          content: {
+            'application/json': components['schemas']['ErrorResponse']
+          }
+        }
+        /** @description user not found */
+        404: {
+          content: {
+            'application/json': components['schemas']['ErrorResponse']
+          }
+        }
+        /** @description internal server error */
+        500: {
+          content: {
+            'application/json': components['schemas']['ErrorResponse']
+          }
+        }
+      }
+    }
+  }
+  '/user/{id}': {
+    get: {
+      parameters: {
+        path: {
+          /** @description ID of the user */
+          id: string
+        }
+      }
+      responses: {
+        /** @description returns a user with the specified ID */
+        200: {
+          content: {
+            'application/json': components['schemas']['UserResponse']
+          }
+        }
+        /** @description unauthorized */
+        401: {
+          content: {
+            'application/json': components['schemas']['ErrorResponse']
+          }
+        }
+        /** @description user not found */
         404: {
           content: {
             'application/json': components['schemas']['ErrorResponse']
