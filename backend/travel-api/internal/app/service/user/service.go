@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	userUsecase "github.com/f4mk/travel/backend/travel-api/internal/app/usecase/user"
+	"github.com/f4mk/travel/backend/travel-api/internal/pkg/auth"
+	authPkg "github.com/f4mk/travel/backend/travel-api/internal/pkg/auth"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/web"
 	"github.com/rs/zerolog"
 )
@@ -27,16 +29,19 @@ import (
 type Service struct {
 	core *userUsecase.Core
 	log  *zerolog.Logger
+	auth *authPkg.Auth
 }
 
-func NewService(l *zerolog.Logger, c *userUsecase.Core) *Service {
+func NewService(l *zerolog.Logger, a *authPkg.Auth, c *userUsecase.Core) *Service {
 
 	return &Service{
 		core: c,
 		log:  l,
+		auth: a,
 	}
 }
 
+// TODO: should be in admin space or removed
 func (s *Service) GetUsers(ctx context.Context, w http.ResponseWriter, _ *http.Request) error {
 	res, err := s.core.QueryAll(ctx)
 	if err != nil {
@@ -68,6 +73,29 @@ func (s *Service) GetUser(ctx context.Context, w http.ResponseWriter, r *http.Re
 		)
 	}
 	res, err := s.core.QueryByID(ctx, id)
+	if err != nil {
+		s.log.Err(err).Msg(ErrGetUserBusiness.Error())
+		return fmt.Errorf(
+			"cannot get user: %w",
+			web.GetResponseErrorFromBusiness(err),
+		)
+	}
+	u := UserResponse{
+		ID:          res.ID,
+		Name:        res.Name,
+		Email:       res.Email,
+		DateCreated: res.DateCreated,
+	}
+	return web.Respond(ctx, w, u, http.StatusOK)
+}
+
+func (s *Service) GetMe(ctx context.Context, w http.ResponseWriter, _ *http.Request) error {
+	claims, err := auth.GetClaims(ctx)
+	if err != nil {
+		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		return auth.ErrGetClaims
+	}
+	res, err := s.core.QueryByID(ctx, claims.Subject)
 	if err != nil {
 		s.log.Err(err).Msg(ErrGetUserBusiness.Error())
 		return fmt.Errorf(
@@ -116,13 +144,10 @@ func (s *Service) CreateUser(ctx context.Context, w http.ResponseWriter, r *http
 }
 
 func (s *Service) UpdateUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	id := web.Param(r, "id")
-	if err := web.ValidateUUID(id); err != nil {
-		s.log.Err(err).Msg(ErrUpdateValidateUUID.Error())
-		return web.NewRequestError(
-			fmt.Errorf("invalid id: %w", err),
-			http.StatusBadRequest,
-		)
+	claims, err := auth.GetClaims(ctx)
+	if err != nil {
+		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		return auth.ErrGetClaims
 	}
 	u := UpdateUser{}
 	if err := web.Decode(r, &u); err != nil {
@@ -137,7 +162,7 @@ func (s *Service) UpdateUser(ctx context.Context, w http.ResponseWriter, r *http
 		Email:    u.Email,
 		Password: u.Password,
 	}
-	res, err := s.core.Update(ctx, id, uu)
+	res, err := s.core.Update(ctx, claims.Subject, uu)
 	if err != nil {
 		s.log.Err(err).Msg(ErrUpdateBusiness.Error())
 		return fmt.Errorf(
@@ -154,22 +179,23 @@ func (s *Service) UpdateUser(ctx context.Context, w http.ResponseWriter, r *http
 	return web.Respond(ctx, w, ur, http.StatusOK)
 }
 
-func (s *Service) DeleteUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	id := web.Param(r, "id")
-	if err := web.ValidateUUID(id); err != nil {
-		s.log.Err(err).Msg(ErrDeleteValidateUUID.Error())
-		return web.NewRequestError(
-			fmt.Errorf("invalid id: %w", err),
-			http.StatusBadRequest,
-		)
+func (s *Service) DeleteUser(ctx context.Context, w http.ResponseWriter, _ *http.Request) error {
+	claims, err := auth.GetClaims(ctx)
+	if err != nil {
+		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		return auth.ErrGetClaims
 	}
-	err := s.core.Delete(ctx, id)
+	u, err := s.core.Delete(ctx, claims.Subject)
 	if err != nil {
 		s.log.Err(err).Msg(ErrDeleteBusiness.Error())
 		return fmt.Errorf(
 			"cannot delete user: %w",
 			web.GetResponseErrorFromBusiness(err),
 		)
+	}
+	if err := s.auth.StoreUserTokenVersion(ctx, u.ID, u.TokenVersion); err != nil {
+		s.log.Err(err).Msg(ErrDeleteStoreTokenVersion.Error())
+		return ErrDeleteStoreTokenVersion
 	}
 	return web.Respond(ctx, w, nil, http.StatusOK)
 }

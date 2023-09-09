@@ -27,8 +27,8 @@ func (r *Repo) QueryAll(ctx context.Context) ([]user.User, error) {
 }
 
 func (r *Repo) Create(ctx context.Context, u user.User) error {
-	q := `INSERT INTO users(user_id, name, email, token_version, roles, password_hash, date_created, date_updated) 
-			VALUES(:user_id, :name, :email, :token_version, :roles, :password_hash, :date_created, :date_updated);`
+	q := `INSERT INTO users(user_id, name, email, is_active, token_version, roles, password_hash, date_created, date_updated) 
+			VALUES(:user_id, :name, :email, :is_active, :token_version, :roles, :password_hash, :date_created, :date_updated);`
 	_, err := r.repo.NamedExecContext(ctx, q, u)
 	if err != nil {
 		return err
@@ -46,8 +46,11 @@ func (r *Repo) QueryByID(ctx context.Context, userID string) (user.User, error) 
 }
 
 func (r *Repo) Update(ctx context.Context, u user.User) error {
-	q := `UPDATE users SET name = :name, email = :email, roles = :roles, password_hash = :password_hash, date_updated = :date_updated
-			WHERE user_id = :user_id;`
+	q := `UPDATE users SET 
+					name = :name, email = :email, 
+					roles = :roles, password_hash = :password_hash, 
+					date_updated = :date_updated
+				WHERE user_id = :user_id;`
 	_, err := r.repo.NamedExecContext(ctx, q, u)
 	if err != nil {
 		return err
@@ -55,9 +58,13 @@ func (r *Repo) Update(ctx context.Context, u user.User) error {
 	return nil
 }
 
-func (r *Repo) Delete(ctx context.Context, userID string) error {
-	q := `DELETE from users WHERE user_id = $1;`
-	_, err := r.repo.ExecContext(ctx, q, userID)
+func (r *Repo) Delete(ctx context.Context, user user.User) error {
+	q := `UPDATE users SET 
+					is_active = :is_active, 
+					date_updated = :date_updated,
+					token_version = :token_version
+				WHERE user_id = :user_id`
+	_, err := r.repo.NamedExecContext(ctx, q, user)
 	if err != nil {
 		return err
 	}

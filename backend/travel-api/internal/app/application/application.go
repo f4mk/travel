@@ -228,7 +228,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	listStorer := listRepo.NewRepo(log, db)
 
 	userCore := userUsecase.NewCore(log, userStorer)
-	userService := userService.NewService(log, userCore)
+	userService := userService.NewService(log, auth, userCore)
 
 	authCore := authUsecase.NewCore(log, authStorer)
 	authService := authService.NewService(log, auth, authCore, mq)

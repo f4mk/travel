@@ -60,51 +60,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-
-  /user/{id}:
-    get:
-      tags: ["user","get"]
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: ID of the user
-          schema:
-            type: string
-      responses:
-        '200':
-          description: returns a user with the specified ID
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserResponse'
-        '401':
-          description: unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: user not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
     put:
       tags: ["user","put","update"]
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: ID of the user
-          schema:
-            type: string
       requestBody:
         required: true
         content:
@@ -150,13 +107,6 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
     delete:
       tags: ["user","delete"]
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: ID of the user
-          schema:
-            type: string
       requestBody:
         required: true
         content:
@@ -192,6 +142,70 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /user/me:
+    get:
+      tags: ["user","get"]
+      responses:
+        '200':
+          description: returns user self
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /user/{id}:
+    get:
+      tags: ["user","get"]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the user
+          schema:
+            type: string
+      responses:
+        '200':
+          description: returns a user with the specified ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: user not found
           content:
             application/json:
               schema:

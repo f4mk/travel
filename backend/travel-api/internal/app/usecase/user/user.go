@@ -15,7 +15,7 @@ import (
 type Storer interface {
 	Create(ctx context.Context, u User) error
 	Update(ctx context.Context, u User) error
-	Delete(ctx context.Context, uID string) error
+	Delete(ctx context.Context, u User) error
 	QueryAll(ctx context.Context) ([]User, error)
 	QueryByID(ctx context.Context, uID string) (User, error)
 }
@@ -57,6 +57,7 @@ func (c *Core) Create(ctx context.Context, nu NewUser) (User, error) {
 		ID:           uuid.New().String(),
 		Name:         nu.Name,
 		Email:        nu.Email,
+		IsActive:     true,
 		TokenVersion: 0,
 		PasswordHash: hash,
 		// TODO: may be find a better place
@@ -123,19 +124,27 @@ func (c *Core) QueryByID(ctx context.Context, uID string) (User, error) {
 	return u, nil
 }
 
-func (c *Core) Delete(ctx context.Context, uID string) error {
+func (c *Core) Delete(ctx context.Context, uID string) (User, error) {
+	u, err := c.storer.QueryByID(ctx, uID)
+	if err != nil {
+		c.log.Err(err).Msgf("user: delete: %s", database.ErrQueryDB.Error())
+		return User{}, database.WrapStorerError(err)
+	}
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
 		c.log.Err(err).Msgf("user: delete: %s", auth.ErrGetClaims.Error())
-		return auth.ErrGetClaims
+		return User{}, auth.ErrGetClaims
 	}
 	if !claims.Authorize(auth.RoleAdmin) && claims.Subject != uID {
 		c.log.Err(err).Msgf("user: delete: %s", web.ErrForbidden.Error())
-		return web.ErrForbidden
+		return User{}, web.ErrForbidden
 	}
-	if err := c.storer.Delete(ctx, uID); err != nil {
+	u.DateUpdated = time.Now().UTC()
+	u.IsActive = false
+	u.TokenVersion = u.TokenVersion + 1
+	if err := c.storer.Delete(ctx, u); err != nil {
 		c.log.Err(err).Msgf("user: delete: %s", database.ErrQueryDB.Error())
-		return database.WrapStorerError(err)
+		return User{}, database.WrapStorerError(err)
 	}
-	return nil
+	return u, nil
 }

@@ -43,6 +43,10 @@ func (c *Core) Login(ctx context.Context, lu LoginUser) (AuthenticatedUser, erro
 		c.log.Err(err).Msgf("auth: login: %s", database.ErrQueryDB.Error())
 		return AuthenticatedUser{}, web.ErrAuthFailed
 	}
+	if !u.IsActive {
+		c.log.Error().Msgf("auth: login: user is inactive")
+		return AuthenticatedUser{}, web.ErrAuthFailed
+	}
 	if err := bcrypt.CompareHashAndPassword(u.PasswordHash, []byte(lu.Password)); err != nil {
 		c.log.Err(err).Msgf("auth: login: %s", web.ErrAuthFailed.Error())
 		return AuthenticatedUser{}, web.ErrAuthFailed

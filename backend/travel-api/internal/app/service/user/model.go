@@ -56,14 +56,14 @@ type UserResponse struct {
 	Name string `json:"name"`
 }
 
-// DeleteUserIdJSONBody defines parameters for DeleteUserId.
-type DeleteUserIdJSONBody = map[string]interface{}
+// DeleteUserJSONBody defines parameters for DeleteUser.
+type DeleteUserJSONBody = map[string]interface{}
+
+// DeleteUserJSONRequestBody defines body for DeleteUser for application/json ContentType.
+type DeleteUserJSONRequestBody = DeleteUserJSONBody
 
 // PostUserJSONRequestBody defines body for PostUser for application/json ContentType.
 type PostUserJSONRequestBody = NewUser
 
-// DeleteUserIdJSONRequestBody defines body for DeleteUserId for application/json ContentType.
-type DeleteUserIdJSONRequestBody = DeleteUserIdJSONBody
-
-// PutUserIdJSONRequestBody defines body for PutUserId for application/json ContentType.
-type PutUserIdJSONRequestBody = UpdateUser
+// PutUserJSONRequestBody defines body for PutUser for application/json ContentType.
+type PutUserJSONRequestBody = UpdateUser

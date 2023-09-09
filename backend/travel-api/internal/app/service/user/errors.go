@@ -14,6 +14,7 @@ var (
 	ErrUpdateValidate     = errors.New("error update parsing user input")
 	ErrUpdateBusiness     = errors.New("error update user from business layer")
 
-	ErrDeleteValidateUUID = errors.New("error delete user validate uuid")
-	ErrDeleteBusiness     = errors.New("error delete user from business layer")
+	ErrDeleteValidateUUID      = errors.New("error delete user validate uuid")
+	ErrDeleteBusiness          = errors.New("error delete user from business layer")
+	ErrDeleteStoreTokenVersion = errors.New("error delete user storing token version")
 )
