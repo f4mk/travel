@@ -39,6 +39,76 @@ export interface paths {
       }
     }
   }
+  '/auth/refresh': {
+    post: {
+      requestBody: {
+        content: {
+          'application/json': Record<string, never>
+        }
+      }
+      responses: {
+        /** @description token was refreshed successfully */
+        201: {
+          content: {
+            'application/json': Record<string, never>
+          }
+        }
+        /** @description bad request */
+        400: {
+          content: {
+            'application/json': components['schemas']['ErrorResponse']
+          }
+        }
+        /** @description unauthorized */
+        401: {
+          content: {
+            'application/json': components['schemas']['ErrorResponse']
+          }
+        }
+        /** @description internal server error */
+        500: {
+          content: {
+            'application/json': components['schemas']['ErrorResponse']
+          }
+        }
+      }
+    }
+  }
+  '/auth/validate': {
+    post: {
+      requestBody: {
+        content: {
+          'application/json': Record<string, never>
+        }
+      }
+      responses: {
+        /** @description token was validated successfully */
+        201: {
+          content: {
+            'application/json': Record<string, never>
+          }
+        }
+        /** @description bad request */
+        400: {
+          content: {
+            'application/json': components['schemas']['ErrorResponse']
+          }
+        }
+        /** @description unauthorized */
+        401: {
+          content: {
+            'application/json': components['schemas']['ErrorResponse']
+          }
+        }
+        /** @description internal server error */
+        500: {
+          content: {
+            'application/json': components['schemas']['ErrorResponse']
+          }
+        }
+      }
+    }
+  }
   '/auth/logout': {
     post: {
       requestBody: {
@@ -47,7 +117,48 @@ export interface paths {
         }
       }
       responses: {
-        /** @description user logged in successfully */
+        /** @description user logged out successfully */
+        201: {
+          content: {
+            'application/json': Record<string, never>
+          }
+        }
+        /** @description bad request */
+        400: {
+          content: {
+            'application/json': components['schemas']['ErrorResponse']
+          }
+        }
+        /** @description unauthorized */
+        401: {
+          content: {
+            'application/json': components['schemas']['ErrorResponse']
+          }
+        }
+        /** @description not found */
+        404: {
+          content: {
+            'application/json': components['schemas']['ErrorResponse']
+          }
+        }
+        /** @description internal server error */
+        500: {
+          content: {
+            'application/json': components['schemas']['ErrorResponse']
+          }
+        }
+      }
+    }
+  }
+  '/auth/logout/all': {
+    post: {
+      requestBody: {
+        content: {
+          'application/json': Record<string, never>
+        }
+      }
+      responses: {
+        /** @description user logged out on all devices successfully */
         201: {
           content: {
             'application/json': Record<string, never>

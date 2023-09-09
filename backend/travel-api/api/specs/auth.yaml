@@ -37,6 +37,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
   /auth/refresh:
     post:
       tags: ["auth","post","refresh"]
@@ -126,7 +127,7 @@ paths:
 
       responses:
         '201':
-          description: user logged in successfully
+          description: user logged out successfully
           content:
             application/json:
               schema:
@@ -156,6 +157,51 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/logout/all:
+    post:
+      tags: ["auth","post","logout","all"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+
+      responses:
+        '201':
+          description: user logged out on all devices successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+        '400':
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /auth/password/change:
     post:
       tags: ["auth","post","change-password"]
@@ -196,6 +242,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
   /auth/password/reset:
     post:
       tags: ["auth","post","reset-password"]
@@ -225,6 +272,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
   /auth/password/reset/submit:
     post:
       requestBody:

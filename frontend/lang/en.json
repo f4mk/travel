@@ -1,39 +1,11 @@
 {
-  "+BKGrr": {
-    "defaultMessage": "Repeat password",
-    "description": "Register form password repeat field label"
-  },
-  "06sNqJ": {
-    "defaultMessage": "Password",
-    "description": "Auth form password lable"
-  },
   "0JzVNd": {
     "defaultMessage": "Authentication",
     "description": "Authentication window title"
   },
-  "5V6R/N": {
-    "defaultMessage": "Username",
-    "description": "Register form last name field placeholder"
-  },
   "70PPhl": {
     "defaultMessage": "Registration",
     "description": "Registration window title"
-  },
-  "75g0FC": {
-    "defaultMessage": "Invalid email",
-    "description": "Register form email error message"
-  },
-  "7lT95G": {
-    "defaultMessage": "Email",
-    "description": "Auth form email label"
-  },
-  "AohQXw": {
-    "defaultMessage": "user@example.com",
-    "description": "Auth form email placeholder"
-  },
-  "AyMd2C": {
-    "defaultMessage": "Email",
-    "description": "Register form email field label"
   },
   "BXXnPK": {
     "defaultMessage": "Home",
@@ -43,14 +15,6 @@
     "defaultMessage": "Map",
     "description": "Map tab"
   },
-  "JtqjO1": {
-    "defaultMessage": "Password must include at least 6 characters",
-    "description": "Register form password error message"
-  },
-  "MPtkD8": {
-    "defaultMessage": "Field should be equal to password",
-    "description": "Register form password repeat error message"
-  },
   "OCx2dO": {
     "defaultMessage": "Blog",
     "description": "Blog page title"
@@ -59,25 +23,13 @@
     "defaultMessage": "Messages",
     "description": "Profile menu Messages button text"
   },
-  "R14xEd": {
-    "defaultMessage": "user@example.com",
-    "description": "Register form email field placeholder"
-  },
   "RpRPPn": {
     "defaultMessage": "Settings",
     "description": "Profile menu Settings button text"
   },
-  "SnPjw3": {
-    "defaultMessage": "SuperJohn3000",
-    "description": "Register form username field placeholder"
-  },
   "TOEbd7": {
     "defaultMessage": "Sign Out",
     "description": "Profile menu Sign Out button text"
-  },
-  "TQEu8X": {
-    "defaultMessage": "Password",
-    "description": "Register form password field label"
   },
   "XaZp23": {
     "defaultMessage": "Delete my account",
@@ -99,14 +51,6 @@
     "defaultMessage": "Home",
     "description": "Home page title"
   },
-  "iZRk5H": {
-    "defaultMessage": "First name",
-    "description": "Register form name field label"
-  },
-  "jI32/e": {
-    "defaultMessage": "profile",
-    "description": "Alt description on user avatar"
-  },
   "jRdArt": {
     "defaultMessage": "Close",
     "description": "Auth form Close button text"
@@ -115,32 +59,12 @@
     "defaultMessage": "Sign In",
     "description": "Auth form Sign in button text"
   },
-  "mp6K2g": {
-    "defaultMessage": "Last name",
-    "description": "Register form last name field label"
-  },
-  "oWGSmJ": {
-    "defaultMessage": "Username",
-    "description": "Register form username field label"
-  },
   "qEt3X4": {
     "defaultMessage": "Sign Up",
     "description": "Register form Sign Up button text"
   },
-  "sHDcWI": {
-    "defaultMessage": "Name must include at least 2 characters",
-    "description": "Register form name error message"
-  },
   "tOTXPP": {
     "defaultMessage": "Close",
     "description": "Register form Close button text"
-  },
-  "v3oysd": {
-    "defaultMessage": "Username must include at least 6 characters",
-    "description": "Register form username error message"
-  },
-  "zw4spD": {
-    "defaultMessage": "John",
-    "description": "Register form name field placeholder"
   }
 }
