@@ -18,9 +18,9 @@ type Service struct {
 	mq     *queue.Channel
 }
 
-func NewService(l *zerolog.Logger, sender mailUsecase.Sender, mq *queue.Channel) *Service {
+func NewService(l *zerolog.Logger, c *mailUsecase.Core, mq *queue.Channel) *Service {
 	return &Service{
-		core:   mailUsecase.NewCore(l, sender),
+		core:   c,
 		log:    l,
 		doneCh: make(chan struct{}),
 		mq:     mq,

@@ -7,7 +7,7 @@ import (
 )
 
 type Sender interface {
-	Send(l Letter) error
+	SendResetPwdEmail(l Letter) error
 }
 
 type Core struct {
@@ -39,5 +39,5 @@ func (c *Core) SendMessage(m Message) error {
 		Token:   m.ResetToken,
 		Body:    body,
 	}
-	return c.sender.Send(l)
+	return c.sender.SendResetPwdEmail(l)
 }

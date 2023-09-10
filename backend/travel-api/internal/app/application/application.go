@@ -24,6 +24,7 @@ import (
 	userService "github.com/f4mk/travel/backend/travel-api/internal/app/service/user"
 	authUsecase "github.com/f4mk/travel/backend/travel-api/internal/app/usecase/auth"
 	listUsecase "github.com/f4mk/travel/backend/travel-api/internal/app/usecase/list"
+	mailUsecase "github.com/f4mk/travel/backend/travel-api/internal/app/usecase/mail"
 	userUsecase "github.com/f4mk/travel/backend/travel-api/internal/app/usecase/user"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/auth"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/database"
@@ -94,18 +95,17 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	// -------------------------------------------------------------------------
 	// Starting Mail service
 
-	mr := mailSender.NewSender(
+	mailSender := mailSender.NewSender(
 		log,
 		cfg.MailService.PublicKey,
 		cfg.MailService.PrivateKey,
 		cfg.Service.DomainName,
 	)
-
-	ms := mailService.NewService(log, mr, mq)
-
+	mailCore := mailUsecase.NewCore(log, mailSender)
+	mailService := mailService.NewService(log, mailCore, mq)
 	mailAgent, err := mail.New(mail.Config{
 		Log:         log,
-		MailService: ms,
+		MailService: mailService,
 	})
 	if err != nil {
 		log.Err(err).Msg(ErrCreateMailServer.Error())

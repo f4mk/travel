@@ -11,7 +11,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-//go:embed letter_template.html
+//go:embed reset_pwd_template.html
 var content embed.FS
 
 type Sender struct {
@@ -25,9 +25,9 @@ func NewSender(l *zerolog.Logger, pb string, pr string, dn string) *Sender {
 	return &Sender{log: l, dName: dn, publicKey: pb, privateKey: pr}
 }
 
-func (s *Sender) Send(l mailUsecase.Letter) error {
+func (s *Sender) SendResetPwdEmail(l mailUsecase.Letter) error {
 
-	tmpl, err := template.ParseFS(content, "letter_template.html")
+	tmpl, err := template.ParseFS(content, "reset_pwd_template.html")
 	if err != nil {
 		s.log.Err(err).Msg("error parsing letter template from file")
 	}
@@ -35,6 +35,7 @@ func (s *Sender) Send(l mailUsecase.Letter) error {
 	q := make(url.Values)
 	q.Set("token", l.Token)
 
+	// TODO: path should be provided
 	u := &url.URL{
 		Scheme:   "https",
 		Host:     s.dName,
@@ -76,7 +77,7 @@ func (s *Sender) Send(l mailUsecase.Letter) error {
 	// TODO: refactor this
 	email := &mailjet.InfoSendMail{
 		FromEmail:  "noreply@traillyst.com",
-		FromName:   "CoolApp",
+		FromName:   "Traillyst",
 		Subject:    l.Subject,
 		TextPart:   l.Header + "\n" + l.Body + "\n" + link,
 		HTMLPart:   buf.String(),
