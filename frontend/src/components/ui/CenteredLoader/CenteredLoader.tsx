@@ -1,7 +1,7 @@
 import { Loader } from '@mantine/core'
 
 import * as S from './styled'
-export const ModalLoader = () => {
+export const CenteredLoader = () => {
   return (
     <S.Div>
       <Loader />
