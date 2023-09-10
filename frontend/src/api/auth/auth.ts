@@ -63,7 +63,8 @@ export const useLogout = (
     createRequest({
       url,
       method: 'POST',
-      lang
+      lang,
+      handleErrorCodes: [400, 401, 404, 500]
     }),
     options
   )
@@ -83,7 +84,8 @@ export const useLogoutAll = (
     createRequest({
       url,
       method: 'POST',
-      lang
+      lang,
+      handleErrorCodes: [400, 401, 404, 500]
     }),
     options
   )
@@ -103,7 +105,8 @@ export const usePasswordReset = (
     createRequest({
       url,
       method: 'POST',
-      lang
+      lang,
+      handleErrorCodes: [400, 500]
     }),
     options
   )
@@ -123,7 +126,8 @@ export const usePasswordResetSubmit = (
     createRequest({
       url,
       method: 'POST',
-      lang
+      lang,
+      handleErrorCodes: [400, 403, 500]
     }),
     options
   )
@@ -143,7 +147,8 @@ export const usePasswordChange = (
     createRequest({
       url,
       method: 'POST',
-      lang
+      lang,
+      handleErrorCodes: [400, 401, 404, 500]
     }),
     options
   )
