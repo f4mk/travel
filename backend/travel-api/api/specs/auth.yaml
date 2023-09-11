@@ -295,7 +295,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '403':
-          description: bad request
+          description: unauthorized
           content:
             application/json:
               schema:

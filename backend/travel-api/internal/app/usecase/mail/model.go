@@ -9,8 +9,14 @@ type Letter struct {
 	Token   string
 }
 
-type Message struct {
-	Email      string `json:"email"`
-	Name       string `json:"name"`
-	ResetToken string `json:"reset_token"`
+type MessageReset struct {
+	Email      string
+	Name       string
+	ResetToken string
+}
+
+type MessageVerify struct {
+	Email       string
+	Name        string
+	VerifyToken string
 }

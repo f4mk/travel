@@ -70,15 +70,6 @@ func (r *Repo) QueryResetTokenByID(ctx context.Context, t string) (authUsecase.R
 	return rt, nil
 }
 
-func (r *Repo) QueryLastResetTokenByUserID(ctx context.Context, uID string) (*authUsecase.ResetToken, error) {
-	rt := authUsecase.ResetToken{}
-	q := `SELECT * FROM reset_tokens WHERE user_id = $1 ORDER BY issued_at DESC LIMIT 1`
-	if err := r.repo.GetContext(ctx, &rt, q, uID); err != nil {
-		return nil, err
-	}
-	return &rt, nil
-}
-
 func (r *Repo) DeleteToken(ctx context.Context, t authUsecase.DeleteToken) error {
 	q := `INSERT INTO revoked_tokens (token_id, subject, token_version, issued_at, expires_at, revoked_at) 
 	VALUES (:token_id, :subject, :token_version, :issued_at, :expires_at, :revoked_at)`

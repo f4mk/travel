@@ -39,4 +39,10 @@ func (uc *UserController) RegisterRoutes(app *web.App) {
 		uc.UserService.DeleteUser,
 		middleware.Authenticate(uc.Auth),
 	)
+	app.Handle(
+		http.MethodPost,
+		"/auth/verify",
+		uc.UserService.VerifyUser,
+		middleware.RateLimit(uc.Log, uc.RateLimit),
+	)
 }

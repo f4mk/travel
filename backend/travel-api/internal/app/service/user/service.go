@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"net/http"
 
+	queue "github.com/f4mk/travel/backend/pkg/mb"
 	userUsecase "github.com/f4mk/travel/backend/travel-api/internal/app/usecase/user"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/auth"
 	authPkg "github.com/f4mk/travel/backend/travel-api/internal/pkg/auth"
+	"github.com/f4mk/travel/backend/travel-api/internal/pkg/messages"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/web"
 	"github.com/rs/zerolog"
 )
@@ -30,14 +32,15 @@ type Service struct {
 	core *userUsecase.Core
 	log  *zerolog.Logger
 	auth *authPkg.Auth
+	mq   *queue.Channel
 }
 
-func NewService(l *zerolog.Logger, a *authPkg.Auth, c *userUsecase.Core) *Service {
-
+func NewService(l *zerolog.Logger, a *authPkg.Auth, c *userUsecase.Core, mq *queue.Channel) *Service {
 	return &Service{
 		core: c,
 		log:  l,
 		auth: a,
+		mq:   mq,
 	}
 }
 
@@ -126,7 +129,7 @@ func (s *Service) CreateUser(ctx context.Context, w http.ResponseWriter, r *http
 		Email:    u.Email,
 		Password: u.Password,
 	}
-	res, err := s.core.Create(ctx, nu)
+	user, token, err := s.core.Create(ctx, nu)
 	if err != nil {
 		s.log.Err(err).Msg(ErrCreateBusiness.Error())
 		return fmt.Errorf(
@@ -134,13 +137,54 @@ func (s *Service) CreateUser(ctx context.Context, w http.ResponseWriter, r *http
 			web.GetResponseErrorFromBusiness(err),
 		)
 	}
+	m := messages.Message{
+		Email: user.Email,
+		Name:  user.Name,
+		Token: token,
+		Type:  messages.RegisterVerify,
+	}
+	err = s.mq.Publish(ctx, m)
+	if err != nil {
+		s.log.Err(err).Msg(ErrCreateSendMessage.Error())
+		return fmt.Errorf("cannot send message: %w", err)
+	}
 	cu := UserResponse{
+		ID:          user.ID,
+		Name:        user.Name,
+		Email:       user.Email,
+		DateCreated: user.DateCreated,
+	}
+	return web.Respond(ctx, w, cu, http.StatusCreated)
+}
+
+func (s *Service) VerifyUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	vu := VerifyUser{}
+	if err := web.Decode(r, &vu); err != nil {
+		s.log.Err(err).Msg(ErrVerifyValidate.Error())
+		return web.NewRequestError(
+			err,
+			http.StatusBadRequest,
+		)
+	}
+	uu := userUsecase.VerifyUser{
+		Email: vu.Email,
+		Token: vu.Token,
+	}
+	res, err := s.core.Verify(ctx, uu)
+	if err != nil {
+		s.log.Err(err).Msg(ErrVerifyBusiness.Error())
+		return fmt.Errorf(
+			"cannot verify user: %w",
+			web.GetResponseErrorFromBusiness(err),
+		)
+	}
+	ur := UserResponse{
 		ID:          res.ID,
 		Name:        res.Name,
 		Email:       res.Email,
 		DateCreated: res.DateCreated,
 	}
-	return web.Respond(ctx, w, cu, http.StatusCreated)
+	return web.Respond(ctx, w, ur, http.StatusOK)
 }
 
 func (s *Service) UpdateUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {

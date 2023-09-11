@@ -11,30 +11,36 @@ import (
 	"github.com/rs/zerolog"
 )
 
-//go:embed reset_pwd_template.html
-var content embed.FS
+//go:embed letter_template.html
+var letterTmpl embed.FS
 
 type Sender struct {
-	log        *zerolog.Logger
-	dName      string
-	publicKey  string
-	privateKey string
+	log   *zerolog.Logger
+	dName string
+	mail  *mailjet.Client
 }
 
-func NewSender(l *zerolog.Logger, pb string, pr string, dn string) *Sender {
-	return &Sender{log: l, dName: dn, publicKey: pb, privateKey: pr}
+type Letter struct {
+	To      string
+	Name    string
+	Subject string
+	Header  string
+	Body    string
+	Link    string
+	Domain  string
+}
+
+func NewSender(l *zerolog.Logger, m *mailjet.Client, dn string) *Sender {
+	return &Sender{log: l, mail: m, dName: dn}
 }
 
 func (s *Sender) SendResetPwdEmail(l mailUsecase.Letter) error {
-
-	tmpl, err := template.ParseFS(content, "reset_pwd_template.html")
+	tmpl, err := template.ParseFS(letterTmpl, "letter_template.html")
 	if err != nil {
 		s.log.Err(err).Msg("error parsing letter template from file")
 	}
-
 	q := make(url.Values)
 	q.Set("token", l.Token)
-
 	// TODO: path should be provided
 	u := &url.URL{
 		Scheme:   "https",
@@ -42,17 +48,8 @@ func (s *Sender) SendResetPwdEmail(l mailUsecase.Letter) error {
 		Path:     "/password/reset",
 		RawQuery: q.Encode(),
 	}
-
 	link := u.String()
-	letter := struct {
-		To      string
-		Name    string
-		Subject string
-		Header  string
-		Body    string
-		Link    string
-		Domain  string
-	}{
+	letter := Letter{
 		To:      l.To,
 		Name:    l.Name,
 		Subject: l.Subject,
@@ -60,20 +57,14 @@ func (s *Sender) SendResetPwdEmail(l mailUsecase.Letter) error {
 		Body:    l.Body,
 		Link:    link,
 	}
-
 	var buf bytes.Buffer
 	if err := tmpl.Execute(&buf, letter); err != nil {
 		panic(err)
 	}
-
-	mailjetClient := mailjet.NewMailjetClient(s.publicKey, s.privateKey)
-
-	var recipients []mailjet.Recipient
-	recipients = append(recipients, mailjet.Recipient{
+	recipients := []mailjet.Recipient{{
 		Email: l.To,
 		Name:  l.Name,
-	})
-
+	}}
 	// TODO: refactor this
 	email := &mailjet.InfoSendMail{
 		FromEmail:  "noreply@traillyst.com",
@@ -83,15 +74,62 @@ func (s *Sender) SendResetPwdEmail(l mailUsecase.Letter) error {
 		HTMLPart:   buf.String(),
 		Recipients: recipients,
 	}
-
-	_, err = mailjetClient.SendMail(email)
+	_, err = s.mail.SendMail(email)
 	if err != nil {
 		s.log.Err(err).Msg("error sending email")
 		return err
 	}
-
 	// TODO: log original trace id
 	s.log.Info().Msgf("email sent successfully")
+	return nil
+}
 
+func (s *Sender) SendRegisterEmail(l mailUsecase.Letter) error {
+	tmpl, err := template.ParseFS(letterTmpl, "letter_template.html")
+	if err != nil {
+		s.log.Err(err).Msg("error parsing letter template from file")
+	}
+	q := make(url.Values)
+	q.Set("token", l.Token)
+	// TODO: path should be provided
+	u := &url.URL{
+		Scheme:   "https",
+		Host:     s.dName,
+		Path:     "/user/verify",
+		RawQuery: q.Encode(),
+	}
+	link := u.String()
+	letter := Letter{
+		To:      l.To,
+		Name:    l.Name,
+		Subject: l.Subject,
+		Header:  l.Header,
+		Body:    l.Body,
+		Link:    link,
+	}
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, letter); err != nil {
+		panic(err)
+	}
+	recipients := []mailjet.Recipient{{
+		Email: l.To,
+		Name:  l.Name,
+	}}
+	// TODO: refactor this
+	email := &mailjet.InfoSendMail{
+		FromEmail:  "noreply@traillyst.com",
+		FromName:   "Traillyst",
+		Subject:    l.Subject,
+		TextPart:   l.Header + "\n" + l.Body + "\n" + link,
+		HTMLPart:   buf.String(),
+		Recipients: recipients,
+	}
+	_, err = s.mail.SendMail(email)
+	if err != nil {
+		s.log.Err(err).Msg("error sending email")
+		return err
+	}
+	// TODO: log original trace id
+	s.log.Info().Msgf("email sent successfully")
 	return nil
 }

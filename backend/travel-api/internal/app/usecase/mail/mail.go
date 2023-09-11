@@ -8,6 +8,7 @@ import (
 
 type Sender interface {
 	SendResetPwdEmail(l Letter) error
+	SendRegisterEmail(l Letter) error
 }
 
 type Core struct {
@@ -22,7 +23,7 @@ func NewCore(l *zerolog.Logger, s Sender) *Core {
 	}
 }
 
-func (c *Core) SendMessage(m Message) error {
+func (c *Core) SendResetMessage(m MessageReset) error {
 
 	sub := "Password reset"
 	head := fmt.Sprintf("Hello %s", m.Name)
@@ -40,4 +41,23 @@ func (c *Core) SendMessage(m Message) error {
 		Body:    body,
 	}
 	return c.sender.SendResetPwdEmail(l)
+}
+
+func (c *Core) SendVerifyMessage(m MessageVerify) error {
+
+	sub := "Account created"
+	head := fmt.Sprintf("Hello %s", m.Name)
+	body := `You (or somebody on your behalf)
+	 have registered on Traillyst. This is yout verification letter.
+	 Please, follow the provided link in order to verife your account.`
+
+	l := Letter{
+		To:      m.Email,
+		Name:    m.Name,
+		Subject: sub,
+		Header:  head,
+		Token:   m.VerifyToken,
+		Body:    body,
+	}
+	return c.sender.SendRegisterEmail(l)
 }

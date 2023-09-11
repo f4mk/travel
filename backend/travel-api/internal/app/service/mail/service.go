@@ -8,6 +8,7 @@ import (
 
 	queue "github.com/f4mk/travel/backend/pkg/mb"
 	mailUsecase "github.com/f4mk/travel/backend/travel-api/internal/app/usecase/mail"
+	"github.com/f4mk/travel/backend/travel-api/internal/pkg/messages"
 	"github.com/rs/zerolog"
 )
 
@@ -45,7 +46,7 @@ func (s *Service) Serve(ctx context.Context, errMsgCh chan<- ServeError, errServ
 				return
 			}
 
-			m := mailUsecase.Message{}
+			m := messages.Message{}
 			err := json.Unmarshal(msg.Body, &m)
 
 			if err != nil {
@@ -61,12 +62,25 @@ func (s *Service) Serve(ctx context.Context, errMsgCh chan<- ServeError, errServ
 				}
 			}
 
+			if m.Type == messages.ResetPassword {
+				mReset := mailUsecase.MessageReset{
+					Email:      m.Email,
+					Name:       m.Name,
+					ResetToken: m.Token,
+				}
+				err = s.core.SendResetMessage(mReset)
+			} else if m.Type == messages.RegisterVerify {
+				mVerify := mailUsecase.MessageVerify{
+					Email:       m.Email,
+					Name:        m.Name,
+					VerifyToken: m.Token,
+				}
+				err = s.core.SendVerifyMessage(mVerify)
+			}
 			// process the letter
-			if err := s.core.SendMessage(m); err != nil {
+			if err != nil {
 				s.log.Err(err).Msg(ErrUsecaseLayer.Error())
-
 				// TODO: handle retries here
-
 				// if reached here, it means the retry limit is exceeded
 				if err := msg.Nack(false, false); err != nil {
 					s.log.Err(err).Msg(ErrNackMessage.Error())

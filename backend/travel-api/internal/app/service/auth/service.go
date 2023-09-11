@@ -288,10 +288,11 @@ func (s *Service) PasswordReset(ctx context.Context, w http.ResponseWriter, r *h
 			web.GetResponseErrorFromBusiness(err),
 		)
 	}
-	m := messages.ResetEmail{
-		Email:      res.Email,
-		Name:       res.Name,
-		ResetToken: res.ResetToken,
+	m := messages.Message{
+		Email: res.Email,
+		Name:  res.Name,
+		Token: res.ResetToken,
+		Type:  messages.ResetPassword,
 	}
 	err = s.mq.Publish(ctx, m)
 	if err != nil {

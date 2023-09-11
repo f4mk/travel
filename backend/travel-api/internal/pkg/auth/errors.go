@@ -30,6 +30,7 @@ var (
 	ErrGenHash                 = errors.New("error generate hash")
 	ErrGenResetToken           = errors.New("error generate reset token")
 	ErrValidateResetToken      = errors.New("error validate reset token")
+	ErrValidateVerifyToken     = errors.New("error validate verify token")
 	ErrResetTokenReqLimit      = errors.New("error request reset token too often")
 	ErrGetClaims               = errors.New("error get claims")
 	ErrAuthHeaderFormat        = errors.New("error auth header format")

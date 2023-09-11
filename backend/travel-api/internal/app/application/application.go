@@ -32,6 +32,7 @@ import (
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/middleware"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/tracer"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/web"
+	"github.com/mailjet/mailjet-apiv3-go/v3"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 	"golang.org/x/net/http2"
@@ -84,7 +85,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	defer cm.Close()
 
 	mq, err := cm.NewChannel(mb.ChConfig{
-		QName:   "resetPasswordLetter",
+		QName:   "sendLetterQ",
 		WithDLQ: true,
 	})
 	if err != nil {
@@ -94,11 +95,10 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	defer mq.Close()
 	// -------------------------------------------------------------------------
 	// Starting Mail service
-
+	mailClient := mailjet.NewMailjetClient(cfg.MailService.PublicKey, cfg.MailService.PrivateKey)
 	mailSender := mailSender.NewSender(
 		log,
-		cfg.MailService.PublicKey,
-		cfg.MailService.PrivateKey,
+		mailClient,
 		cfg.Service.DomainName,
 	)
 	mailCore := mailUsecase.NewCore(log, mailSender)
@@ -228,7 +228,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	listStorer := listRepo.NewRepo(log, db)
 
 	userCore := userUsecase.NewCore(log, userStorer)
-	userService := userService.NewService(log, auth, userCore)
+	userService := userService.NewService(log, auth, userCore, mq)
 
 	authCore := authUsecase.NewCore(log, authStorer)
 	authService := authService.NewService(log, auth, authCore, mq)

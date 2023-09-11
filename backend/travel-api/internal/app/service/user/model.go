@@ -56,6 +56,15 @@ type UserResponse struct {
 	Name string `json:"name"`
 }
 
+// VerifyUser defines model for VerifyUser.
+type VerifyUser struct {
+	// Email user email
+	Email string `json:"email" validate:"required,email"`
+
+	// Token user verification token
+	Token string `json:"token" validate:"required"`
+}
+
 // DeleteUserJSONBody defines parameters for DeleteUser.
 type DeleteUserJSONBody = map[string]interface{}
 
@@ -67,3 +76,6 @@ type PostUserJSONRequestBody = NewUser
 
 // PutUserJSONRequestBody defines body for PutUser for application/json ContentType.
 type PutUserJSONRequestBody = UpdateUser
+
+// PostUserVerifyJSONRequestBody defines body for PostUserVerify for application/json ContentType.
+type PostUserVerifyJSONRequestBody = VerifyUser

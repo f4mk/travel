@@ -12,6 +12,7 @@ type User struct {
 	Name         string         `db:"name"`
 	Email        string         `db:"email"`
 	IsActive     bool           `db:"is_active"`
+	IsDeleted    bool           `db:"is_deleted"`
 	TokenVersion int32          `db:"token_version"`
 	Roles        pq.StringArray `db:"roles"`
 	PasswordHash []byte         `db:"password_hash"`

@@ -18,7 +18,6 @@ type Storer interface {
 	StoreResetToken(ctx context.Context, rt ResetToken) error
 	DeleteResetTokensByUserID(ctx context.Context, uID string) error
 	QueryResetTokenByID(ctx context.Context, token string) (ResetToken, error)
-	QueryLastResetTokenByUserID(ctx context.Context, uID string) (*ResetToken, error)
 	QueryByEmail(ctx context.Context, email string) (User, error)
 	QueryByID(ctx context.Context, uID string) (User, error)
 	Update(ctx context.Context, u User) error
