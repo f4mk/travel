@@ -48,7 +48,7 @@ func (c *Core) SendVerifyMessage(m MessageVerify) error {
 	sub := "Account created"
 	head := fmt.Sprintf("Hello %s", m.Name)
 	body := `You (or somebody on your behalf)
-	 have registered on Traillyst. This is yout verification letter.
+	 have registered on Traillyst. This is your verification letter.
 	 Please, follow the provided link in order to verife your account.`
 
 	l := Letter{

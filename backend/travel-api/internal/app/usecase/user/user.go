@@ -91,6 +91,7 @@ func (c *Core) Create(ctx context.Context, nu NewUser) (User, string, error) {
 		ExpiresAt: time.Now().UTC().Add(24 * time.Hour),
 		IssuedAt:  time.Now().UTC(),
 	}
+	// TODO: make a cron to clear the table
 	err = c.storer.StoreVerifyToken(ctx, vt)
 	if err != nil {
 		c.log.Err(err).Msgf("user: create: %s", database.ErrQueryDB.Error())
@@ -153,6 +154,8 @@ func (c *Core) Verify(ctx context.Context, vu VerifyUser) (User, error) {
 		c.log.Err(err).Msgf("user: verify: %s", database.ErrQueryDB.Error())
 		return User{}, database.WrapStorerError(err)
 	}
+	u.IsActive = true
+	u.DateUpdated = time.Now().UTC()
 	if err := c.storer.Verify(ctx, u); err != nil {
 		c.log.Err(err).Msgf("user: verify: %s", database.ErrQueryDB.Error())
 		return User{}, database.WrapStorerError(err)

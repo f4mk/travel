@@ -41,7 +41,7 @@ func (uc *UserController) RegisterRoutes(app *web.App) {
 	)
 	app.Handle(
 		http.MethodPost,
-		"/auth/verify",
+		"/users/verify",
 		uc.UserService.VerifyUser,
 		middleware.RateLimit(uc.Log, uc.RateLimit),
 	)

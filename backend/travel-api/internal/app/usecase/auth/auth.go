@@ -46,6 +46,10 @@ func (c *Core) Login(ctx context.Context, lu LoginUser) (AuthenticatedUser, erro
 		c.log.Error().Msgf("auth: login: user is inactive")
 		return AuthenticatedUser{}, web.ErrAuthFailed
 	}
+	if !u.IsDeleted {
+		c.log.Error().Msgf("auth: login: user is deleted")
+		return AuthenticatedUser{}, web.ErrNotFound
+	}
 	if err := bcrypt.CompareHashAndPassword(u.PasswordHash, []byte(lu.Password)); err != nil {
 		c.log.Err(err).Msgf("auth: login: %s", web.ErrAuthFailed.Error())
 		return AuthenticatedUser{}, web.ErrAuthFailed
@@ -156,6 +160,9 @@ func (c *Core) ResetPasswordSubmit(ctx context.Context, sp SubmitPassword) (User
 		c.log.Err(err).Msgf("auth: reset password validate: %s", database.ErrQueryDB.Error())
 		return User{}, database.WrapStorerError(err)
 	}
+	if u.IsDeleted {
+		return User{}, web.ErrNotFound
+	}
 	hash, err := bcrypt.GenerateFromPassword([]byte(sp.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.log.Err(err).Msgf("auth: reset password submit: %s", auth.ErrGenHash.Error())
@@ -165,6 +172,9 @@ func (c *Core) ResetPasswordSubmit(ctx context.Context, sp SubmitPassword) (User
 	u.PasswordHash = hash
 	u.DateUpdated = time.Now().UTC()
 	u.TokenVersion = u.TokenVersion + 1
+	// NOTE: if user didnt get verification email, they can ask for reset pwd
+	// TODO: maybe need a separate handler
+	u.IsActive = true
 	if err := c.storer.Update(ctx, u); err != nil {
 		c.log.Err(err).Msgf("auth: reset password submit: %s", database.ErrQueryDB.Error())
 		return User{}, database.WrapStorerError(err)

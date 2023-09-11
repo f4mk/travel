@@ -91,6 +91,7 @@ func (s *Sender) SendRegisterEmail(l mailUsecase.Letter) error {
 	}
 	q := make(url.Values)
 	q.Set("token", l.Token)
+	q.Set("email", l.To)
 	// TODO: path should be provided
 	u := &url.URL{
 		Scheme:   "https",
