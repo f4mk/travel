@@ -29,19 +29,18 @@
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
     "plugin:jsx-a11y/recommended",
-    "plugin:prettier/recommended",
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
-    "prettier"
+    "plugin:prettier/recommended"
   ],
   "plugins": [
     "@typescript-eslint",
     "react",
     "react-hooks",
     "jsx-a11y",
-    "prettier",
     "simple-import-sort",
-    "formatjs"
+    "formatjs",
+    "prettier"
   ],
   "rules": {
     "react/react-in-jsx-scope": "off",
@@ -80,7 +79,15 @@
         "idInterpolationPattern": "[sha512:contenthash:base64:6]"
       }
     ],
-    "prettier/prettier": 2,
+    "prettier/prettier": [
+      "error",
+      {
+        "semi": false,
+        "trailingComma": "es5",
+        "singleQuote": true,
+        "printWidth": 80
+      }
+    ],
     "simple-import-sort/imports": [
       "error",
       {

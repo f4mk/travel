@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import {
   OverlayView as DefaultOverlayView,
-  OverlayViewF
+  OverlayViewF,
 } from '@react-google-maps/api'
 
 import type { Props } from './types'
@@ -9,7 +9,7 @@ import type { Props } from './types'
 export const OverlayView = ({
   position,
   children,
-  preventInteraction
+  preventInteraction,
 }: Props) => {
   const containerRef = useRef(null)
   useEffect(() => {

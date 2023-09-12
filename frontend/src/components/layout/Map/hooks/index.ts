@@ -1,6 +1,6 @@
 const DEFAULT_CENTER = {
   lat: -3.745,
-  lng: -38.523
+  lng: -38.523,
 }
 
 export const useCurrentLocation = () => {
@@ -10,7 +10,7 @@ export const useCurrentLocation = () => {
       (position: GeolocationPosition) => {
         pos = {
           lat: position.coords.latitude,
-          lng: position.coords.longitude
+          lng: position.coords.longitude,
         }
       }
     )

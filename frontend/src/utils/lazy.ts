@@ -1,7 +1,7 @@
 import {
   type ComponentType,
   lazy as reactLazy,
-  type LazyExoticComponent
+  type LazyExoticComponent,
 } from 'react'
 
 type Ns = {
@@ -25,10 +25,10 @@ export const lazy = <T extends Ns>(fn: () => Promise<T>): LazyNs<T> => {
         return reactLazy(async () => {
           promise = promise || fn()
           return {
-            default: Reflect.get(await promise, key) as any
+            default: Reflect.get(await promise, key) as any,
           }
         })
-      }
+      },
     }
   ) as LazyNs<T>
 }

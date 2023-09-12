@@ -10,7 +10,7 @@ export const loadTranslation = async (
         const translations = await import('#/translations/en.json')
         return cb((dict: Dict) => ({
           ...dict,
-          [langCode]: translations.default
+          [langCode]: translations.default,
         }))
       }
     }

@@ -2,7 +2,7 @@ import { Suspense } from 'react'
 import {
   createBrowserRouter,
   createRoutesFromElements,
-  Route
+  Route,
 } from 'react-router-dom'
 
 import { MainLayout } from '#/components/layout/MainLayout'

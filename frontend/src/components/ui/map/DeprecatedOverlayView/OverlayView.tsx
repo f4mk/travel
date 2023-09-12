@@ -9,7 +9,7 @@ export const OverlayView = ({
   map,
   zIndex,
   preventInteraction,
-  children
+  children,
 }: Props) => {
   const container = useMemo(() => {
     const div = document.createElement('div')

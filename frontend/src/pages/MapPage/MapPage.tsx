@@ -8,26 +8,26 @@ const pins = [
   {
     id: '1',
     lat: 40,
-    lng: 41
+    lng: 41,
   },
   {
     id: '2',
     lat: 40.02,
-    lng: 41.02
-  }
+    lng: 41.02,
+  },
 ]
 
 const cards = [
   {
     id: '3',
     lat: 39.025,
-    lng: 42.015
+    lng: 42.015,
   },
   {
     id: '4',
     lat: 44.12,
-    lng: 45.12
-  }
+    lng: 45.12,
+  },
 ]
 
 export const MapPage = () => {

@@ -16,6 +16,6 @@ export const useLocale = (loc: string) => {
   return {
     locale,
     setLocale,
-    t: translations[locale]
+    t: translations[locale],
   }
 }

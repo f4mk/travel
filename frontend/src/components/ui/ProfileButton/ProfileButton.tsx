@@ -19,7 +19,7 @@ export const ProfileButton = forwardRef<HTMLButtonElement, Props>(
           alt={message({
             description: 'Alt description on user avatar',
             defaultMessage: 'profile',
-            id: 'jI32/e'
+            id: 'jI32/e',
           })}
         />
       </RoundButton>

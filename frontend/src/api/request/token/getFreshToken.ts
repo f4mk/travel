@@ -12,7 +12,7 @@ export const getFreshToken = async () => {
     const newReq = new Request(url, {
       method: 'POST',
       body: JSON.stringify({}),
-      headers: { 'Accept-Language': defaultLang }
+      headers: { 'Accept-Language': defaultLang },
     })
     const res = await fetch(newReq)
     if (!res.ok) {

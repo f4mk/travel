@@ -9,7 +9,7 @@ export class ErrorBoundary extends Component<Props, State> {
     super(props)
     this.state = {
       error: undefined,
-      resetList: props.resetList
+      resetList: props.resetList,
     }
   }
   static getDerivedStateFromError(error: Error, prevState: State) {

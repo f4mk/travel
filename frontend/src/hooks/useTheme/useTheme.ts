@@ -7,17 +7,16 @@ export const useTheme = (): Partial<Theme> => {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)')
 
   const theme = prefersDarkMode ? DARK_MODE : LIGHT_MODE
-
   return {
     colorScheme: theme,
     globalStyles: (_) => ({
       '*, *::before, *::after': {
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
       },
-
       body: {
-        fontFamily: 'Roboto'
-      }
-    })
+        fontFamily: 'Roboto',
+      },
+    }),
+    defaultRadius: 'md',
   }
 }

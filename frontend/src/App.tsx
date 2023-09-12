@@ -13,11 +13,11 @@ const queryClient = new QueryClient()
 
 export const App = () => {
   const { locale, t } = useLocale(navigator.language)
-
+  const theme = useTheme()
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
-        <MantineProvider theme={useTheme()} withGlobalStyles withNormalizeCSS>
+        <MantineProvider theme={theme} withGlobalStyles withNormalizeCSS>
           <IntlProvider locale={locale} messages={t}>
             <LocaleProvider value={locale}>
               <ModalProvider>

@@ -13,7 +13,7 @@ export const Map = ({ children }: Props) => {
   const { isLoaded, loadError } = useLoadScript({
     id: 'google-map-script',
     language: useGetLocale(),
-    googleMapsApiKey: import.meta.env.VITE_MAP_API_KEY
+    googleMapsApiKey: import.meta.env.VITE_MAP_API_KEY,
   })
   const mapRef = useRef<Nullable<google.maps.Map>>(null)
   const [zoom, setZoom] = useState(10)

@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 const startServer = async () => {
   const fastify = Fastify({
-    logger: false
+    logger: false,
   })
 
   const indexPath = path.resolve('./dist/index.html')
@@ -13,7 +13,7 @@ const startServer = async () => {
 
   await fastify.register(import('@fastify/static'), {
     root: path.resolve('./dist/assets'),
-    prefix: '/assets/'
+    prefix: '/assets/',
   })
 
   fastify.get('*', (_, reply) => {

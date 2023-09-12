@@ -10,25 +10,25 @@ export default defineConfig({
       '/api': {
         target: 'https://localhost',
         changeOrigin: true,
-        secure: false
-      }
-    }
+        secure: false,
+      },
+    },
   },
   plugins: [
     react(),
     check({
       overlay: {
-        initialIsOpen: false
+        initialIsOpen: false,
       },
       typescript: true,
       eslint: {
-        lintCommand: 'eslint "./src/**/*.{ts,tsx}"'
-      }
-    })
+        lintCommand: 'eslint "./src/**/*.{ts,tsx}"',
+      },
+    }),
   ],
   resolve: {
     alias: {
-      '#': path.resolve(__dirname, './src')
-    }
-  }
+      '#': path.resolve(__dirname, './src'),
+    },
+  },
 })

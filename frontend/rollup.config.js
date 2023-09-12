@@ -7,13 +7,13 @@ export default {
   input: 'server/index.ts',
   output: {
     file: 'distServer/index.js',
-    inlineDynamicImports: true
+    inlineDynamicImports: true,
   },
   plugins: [
     typescript({ tsconfig: './tsconfig.server.json' }),
     resolve({ preferBuiltins: true }),
     commonjs(),
-    json()
+    json(),
   ],
-  external: ['path', 'fs']
+  external: ['path', 'fs'],
 }

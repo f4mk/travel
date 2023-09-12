@@ -35,11 +35,9 @@ export const Modal = ({ opened, onClose, children }: Props) => {
     >
       {/* NOTE: Focus trap by mantine doesnt work here */}
       <FocusTrap active={mounted}>
-        <div ref={ref} tabIndex={-1}>
+        <div ref={ref}>
           <Suspense fallback={<CenteredLoader />}>
-            <ModalMounter onMount={() => setMounted(true)}>
-              {children}
-            </ModalMounter>
+            <ModalMounter onMount={setMounted}>{children}</ModalMounter>
           </Suspense>
         </div>
       </FocusTrap>

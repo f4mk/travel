@@ -3,7 +3,7 @@ import { Handler, RequestArgs } from './types'
 import {
   createUrlOrThrow,
   handleErrorWithPayload,
-  handleSuccessWithPayload
+  handleSuccessWithPayload,
 } from './utils'
 export const createRequest =
   <Res, Req = void>({
@@ -13,7 +13,7 @@ export const createRequest =
     handleErrorCodes = [],
     handleSuccessCodes = [],
     headers = {},
-    body
+    body,
   }: RequestArgs<Res, Req>) =>
   (data?: Req) => {
     const payload = body || data
@@ -21,7 +21,7 @@ export const createRequest =
     const newReq = new Request(uri, {
       method,
       headers: { 'Accept-Language': lang, ...headers },
-      body: payload && JSON.stringify(payload)
+      body: payload && JSON.stringify(payload),
     })
 
     const handlers: Record<number, Handler | undefined> = {}

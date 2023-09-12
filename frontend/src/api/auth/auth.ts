@@ -4,7 +4,7 @@ import {
   createRequest,
   getTokenFromHeader,
   HttpError,
-  setToken
+  setToken,
 } from '#/api/request'
 import { useGetLocale } from '#/hooks'
 
@@ -26,7 +26,7 @@ import {
   PasswordResetResponse,
   PasswordResetSubmitError,
   PasswordResetSubmitRequest,
-  PasswordResetSubmitResponse
+  PasswordResetSubmitResponse,
 } from './types'
 
 export const useLogin = (
@@ -40,7 +40,7 @@ export const useLogin = (
     const newReq = new Request(url, {
       method: 'POST',
       body: JSON.stringify(body),
-      headers: { 'Accept-Language': lang }
+      headers: { 'Accept-Language': lang },
     })
     const res = await fetch(newReq)
     if (!res.ok) {
@@ -64,7 +64,7 @@ export const useLogout = (
       url,
       method: 'POST',
       lang,
-      handleErrorCodes: [400, 401, 404, 500]
+      handleErrorCodes: [400, 401, 404, 500],
     }),
     options
   )
@@ -85,7 +85,7 @@ export const useLogoutAll = (
       url,
       method: 'POST',
       lang,
-      handleErrorCodes: [400, 401, 404, 500]
+      handleErrorCodes: [400, 401, 404, 500],
     }),
     options
   )
@@ -106,7 +106,7 @@ export const usePasswordReset = (
       url,
       method: 'POST',
       lang,
-      handleErrorCodes: [400, 500]
+      handleErrorCodes: [400, 500],
     }),
     options
   )
@@ -127,7 +127,7 @@ export const usePasswordResetSubmit = (
       url,
       method: 'POST',
       lang,
-      handleErrorCodes: [400, 403, 500]
+      handleErrorCodes: [400, 403, 500],
     }),
     options
   )
@@ -148,7 +148,7 @@ export const usePasswordChange = (
       url,
       method: 'POST',
       lang,
-      handleErrorCodes: [400, 401, 404, 500]
+      handleErrorCodes: [400, 401, 404, 500],
     }),
     options
   )

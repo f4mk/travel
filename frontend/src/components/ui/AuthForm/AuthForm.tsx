@@ -12,8 +12,8 @@ export const AuthForm = ({ onClose }: Props) => {
   const form = useForm<FormValues>({
     initialValues: {
       email: '',
-      password: ''
-    }
+      password: '',
+    },
   })
 
   const { mutate } = useLogin()
@@ -29,12 +29,12 @@ export const AuthForm = ({ onClose }: Props) => {
         placeholder={message({
           description: 'Auth form email placeholder',
           defaultMessage: 'user@example.com',
-          id: 'AohQXw'
+          id: 'AohQXw',
         })}
         label={message({
           description: 'Auth form email label',
           defaultMessage: 'Email',
-          id: '7lT95G'
+          id: '7lT95G',
         })}
         withAsterisk
         {...form.getInputProps('email')}
@@ -44,7 +44,7 @@ export const AuthForm = ({ onClose }: Props) => {
         label={message({
           description: 'Auth form password label',
           defaultMessage: 'Password',
-          id: '06sNqJ'
+          id: '06sNqJ',
         })}
         withAsterisk
         {...form.getInputProps('password')}

@@ -2,7 +2,7 @@ import {
   useMutation,
   UseMutationOptions,
   useQuery,
-  UseQueryOptions
+  UseQueryOptions,
 } from '@tanstack/react-query'
 
 import { createRequest } from '#/api/request'
@@ -20,7 +20,7 @@ import {
   GetUserResponse,
   UpdateUserError,
   UpdateUserRequest,
-  UpdateUserResponse
+  UpdateUserResponse,
 } from './types'
 
 export const useCreateUser = (
@@ -37,7 +37,7 @@ export const useCreateUser = (
       url,
       method: 'POST',
       lang,
-      handleErrorCodes: [400, 409, 500]
+      handleErrorCodes: [400, 409, 500],
     }),
     options
   )
@@ -57,7 +57,7 @@ export const useDeleteUser = (
       url,
       method: 'DELETE',
       lang,
-      handleErrorCodes: [400, 401, 403, 404, 500]
+      handleErrorCodes: [400, 401, 403, 404, 500],
     }),
     options
   )
@@ -77,7 +77,7 @@ export const useUpdateUser = (
       url,
       method: 'PUT',
       lang,
-      handleErrorCodes: [400, 401, 403, 404, 500]
+      handleErrorCodes: [400, 401, 403, 404, 500],
     }),
     options
   )
@@ -94,9 +94,9 @@ export const useGetUser = (
     queryFn: createRequest({
       url,
       lang,
-      handleErrorCodes: [401, 404, 500]
+      handleErrorCodes: [401, 404, 500],
     }),
-    ...options
+    ...options,
   })
 }
 
@@ -108,8 +108,8 @@ export const useGetMe = (options?: UseQueryOptions<GetMeResponse>) => {
     queryFn: createRequest({
       url,
       lang,
-      handleErrorCodes: [401, 404, 500]
+      handleErrorCodes: [401, 404, 500],
     }),
-    ...options
+    ...options,
   })
 }

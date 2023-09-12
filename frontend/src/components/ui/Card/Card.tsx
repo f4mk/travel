@@ -4,7 +4,7 @@ import {
   Card as CardUI,
   Group,
   Image,
-  Text
+  Text,
 } from '@mantine/core'
 
 import * as S from './styled'

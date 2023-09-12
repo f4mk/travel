@@ -8,7 +8,7 @@ export const Marker = ({ lat, lng, preventInteraction, children }: Props) => {
     <OverlayView
       position={{
         lat: lat,
-        lng: lng
+        lng: lng,
       }}
       preventInteraction={preventInteraction}
     >

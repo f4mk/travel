@@ -15,7 +15,7 @@ export const RegisterForm = ({ onClose }: Props) => {
       passwordRepeat: '',
       name: '',
       lastname: '',
-      email: ''
+      email: '',
     },
 
     validate: (values) => {
@@ -25,7 +25,7 @@ export const RegisterForm = ({ onClose }: Props) => {
             ? message({
                 description: 'Register form username error message',
                 defaultMessage: 'Username must include at least  characters',
-                id: 'v3oysd'
+                id: 'v3oysd',
               })
             : null,
         password:
@@ -33,7 +33,7 @@ export const RegisterForm = ({ onClose }: Props) => {
             ? message({
                 description: 'Register form password error message',
                 defaultMessage: 'Password must include at least 8 characters',
-                id: 'JtqjO1'
+                id: 'JtqjO1',
               })
             : null,
         passwordRepeat:
@@ -41,7 +41,7 @@ export const RegisterForm = ({ onClose }: Props) => {
             ? message({
                 description: 'Register form password repeat error message',
                 defaultMessage: 'Field should be equal to password',
-                id: 'MPtkD8'
+                id: 'MPtkD8',
               })
             : null,
         email: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(values.email)
@@ -49,10 +49,10 @@ export const RegisterForm = ({ onClose }: Props) => {
           : message({
               description: 'Register form email error message',
               defaultMessage: 'Invalid email',
-              id: '75g0FC'
-            })
+              id: '75g0FC',
+            }),
       }
-    }
+    },
   })
 
   const handleSubmit = (values: FormValues) => {
@@ -67,12 +67,12 @@ export const RegisterForm = ({ onClose }: Props) => {
         placeholder={message({
           description: 'Register form username field placeholder',
           defaultMessage: 'SuperJohn3000',
-          id: 'SnPjw3'
+          id: 'SnPjw3',
         })}
         label={message({
           description: 'Register form username field label',
           defaultMessage: 'Username',
-          id: 'oWGSmJ'
+          id: 'oWGSmJ',
         })}
         withAsterisk
         {...form.getInputProps('username')}
@@ -81,12 +81,12 @@ export const RegisterForm = ({ onClose }: Props) => {
         placeholder={message({
           description: 'Register form email field placeholder',
           defaultMessage: 'user@example.com',
-          id: 'R14xEd'
+          id: 'R14xEd',
         })}
         label={message({
           description: 'Register form email field label',
           defaultMessage: 'Email',
-          id: 'AyMd2C'
+          id: 'AyMd2C',
         })}
         withAsterisk
         {...form.getInputProps('email')}
@@ -96,7 +96,7 @@ export const RegisterForm = ({ onClose }: Props) => {
         label={message({
           description: 'Register form password field label',
           defaultMessage: 'Password',
-          id: 'TQEu8X'
+          id: 'TQEu8X',
         })}
         withAsterisk
         {...form.getInputProps('password')}
@@ -106,7 +106,7 @@ export const RegisterForm = ({ onClose }: Props) => {
         label={message({
           description: 'Register form password repeat field label',
           defaultMessage: 'Repeat password',
-          id: '+BKGrr'
+          id: '+BKGrr',
         })}
         withAsterisk
         {...form.getInputProps('passwordRepeat')}

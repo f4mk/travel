@@ -3,7 +3,7 @@ import {
   ReactElement,
   useCallback,
   useMemo,
-  useState
+  useState,
 } from 'react'
 import { useDisclosure } from '@mantine/hooks'
 
@@ -36,7 +36,7 @@ export const ModalProvider = ({ children }: Props) => {
   const value = useMemo(() => {
     return {
       showModal,
-      hideModal
+      hideModal,
     }
   }, [hideModal, showModal])
   return (
