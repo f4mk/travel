@@ -29,8 +29,7 @@ func (c *Core) SendResetMessage(m MessageReset) error {
 	head := fmt.Sprintf("Hello %s", m.Name)
 	body := `You (or somebody on your behalf)
 	 have requested a password reset. Is that was not you, just ignore this letter.
-	 Otherwise, please, follow the provided link to set a new password.
-	 Keep in mind that you cannot request this letter more than once per 10 minutes`
+	 Otherwise, please, follow the provided link to set a new password.`
 
 	l := Letter{
 		To:      m.Email,

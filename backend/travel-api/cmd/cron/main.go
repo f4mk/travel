@@ -45,18 +45,30 @@ func main() {
 
 	c := cron.New()
 
-	_, err = c.AddFunc("0 0 * * *", removeExpiredRecords)
+	_, err = c.AddFunc("0 0 * * *", removeExpiredRevokedTokens)
 	if err != nil {
-		fmt.Println("error scheduling task:", err)
+		fmt.Println("error scheduling removeExpiredRevokedTokens task:", err)
+		return
+	}
+
+	_, err = c.AddFunc("0 1 * * *", removeExpiredResetTokens)
+	if err != nil {
+		fmt.Println("error scheduling removeExpiredResetTokens task:", err)
+		return
+	}
+
+	_, err = c.AddFunc("0 2 * * *", removeExpiredVerificationTokens)
+	if err != nil {
+		fmt.Println("error scheduling removeExpiredVerificationTokens task:", err)
 		return
 	}
 
 	c.Start()
-	fmt.Println("revoke cron has starter")
+	fmt.Println("cron has starter")
 	select {}
 }
 
-func removeExpiredRecords() {
+func removeExpiredRevokedTokens() {
 	for {
 		q := `
 		DELETE FROM revoked_tokens
@@ -66,16 +78,74 @@ func removeExpiredRecords() {
 				LIMIT $2);`
 		result, err := db.Exec(q, time.Now(), batchSize)
 		if err != nil {
-			fmt.Println("error removing records:", err)
+			fmt.Println("error removing revoked_tokens records:", err)
 			return
 		}
 		removed, err := result.RowsAffected()
 		if err != nil {
-			fmt.Println("error getting rows affected:", err)
+			fmt.Println("error getting revoked_tokens rows affected:", err)
 			return
 		}
 
-		fmt.Println("cron removed entries:", removed)
+		fmt.Println("cron removed entries from revoked_tokens:", removed)
+
+		if removed < batchSize {
+			break
+		}
+
+		time.Sleep(2 * time.Second)
+	}
+}
+
+func removeExpiredResetTokens() {
+	for {
+		q := `
+		DELETE FROM reset_tokens
+		WHERE token_id IN 
+				(SELECT token_id FROM reset_tokens
+				WHERE expires_at < $1
+				LIMIT $2);`
+		result, err := db.Exec(q, time.Now(), batchSize)
+		if err != nil {
+			fmt.Println("error removing reset_tokens records:", err)
+			return
+		}
+		removed, err := result.RowsAffected()
+		if err != nil {
+			fmt.Println("error getting reset_tokens rows affected:", err)
+			return
+		}
+
+		fmt.Println("cron removed entries from reset_tokens:", removed)
+
+		if removed < batchSize {
+			break
+		}
+
+		time.Sleep(2 * time.Second)
+	}
+}
+
+func removeExpiredVerificationTokens() {
+	for {
+		q := `
+		DELETE FROM verify_tokens
+		WHERE token_id IN 
+				(SELECT token_id FROM verify_tokens
+				WHERE expires_at < $1
+				LIMIT $2);`
+		result, err := db.Exec(q, time.Now(), batchSize)
+		if err != nil {
+			fmt.Println("error removing verify_tokens records:", err)
+			return
+		}
+		removed, err := result.RowsAffected()
+		if err != nil {
+			fmt.Println("error getting verify_tokens rows affected:", err)
+			return
+		}
+
+		fmt.Println("cron removed entries from verify_tokens:", removed)
 
 		if removed < batchSize {
 			break
