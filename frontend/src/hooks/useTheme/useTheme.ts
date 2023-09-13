@@ -13,8 +13,15 @@ export const useTheme = (): Partial<Theme> => {
       '*, *::before, *::after': {
         boxSizing: 'border-box',
       },
+      html: {
+        height: '100%',
+      },
       body: {
+        height: '100%',
         fontFamily: 'Roboto',
+      },
+      '#root': {
+        height: '100%',
       },
     }),
     defaultRadius: 'md',

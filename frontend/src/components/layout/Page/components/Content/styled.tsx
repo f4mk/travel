@@ -1,7 +1,6 @@
 import styled from '@emotion/styled'
 
 export const Main = styled('main')`
-  grid-area: content;
   overflow: scroll;
   display: grid;
   width: 100%;

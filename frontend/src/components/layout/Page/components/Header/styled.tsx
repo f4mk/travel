@@ -11,7 +11,6 @@ to {
 `
 export const Header = styled('header')`
   padding: 8px 16px;
-  grid-area: header;
   display: grid;
   align-items: center;
   grid-template-columns: min-content auto min-content;

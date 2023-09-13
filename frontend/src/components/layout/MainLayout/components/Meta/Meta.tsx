@@ -10,7 +10,7 @@ export const Meta = () => {
         href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap"
       />
       <link rel="icon" type="image/x-icon" href="/favicon.ico"></link>
-      <title>Cool App</title>
+      <title>Traillyst</title>
     </Helmet>
   )
 }
