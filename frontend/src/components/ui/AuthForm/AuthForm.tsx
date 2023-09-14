@@ -1,31 +1,46 @@
+import { useState } from 'react'
 import { FormattedMessage } from 'react-intl'
+import { useNavigate } from 'react-router-dom'
 import { Button, Group, PasswordInput, Space, TextInput } from '@mantine/core'
-import { useForm } from '@mantine/form'
+import { hasLength, isEmail, useForm } from '@mantine/form'
 
 import { useLogin } from '#/api/auth'
+import { ERoutes } from '#/constants/routes'
 import { useMessage } from '#/hooks'
 
 import { FormValues, Props } from './types'
 
 export const AuthForm = ({ onClose }: Props) => {
+  const navigate = useNavigate()
   const message = useMessage()
-  const form = useForm<FormValues>({
+  const [hasErrors, setHasErrors] = useState(false)
+  const { onSubmit, getInputProps } = useForm<FormValues>({
     initialValues: {
       email: '',
       password: '',
     },
+    validate: {
+      email: isEmail(),
+      password: hasLength({ min: 1 }),
+    },
+  })
+  const handleSuccess = () => {
+    navigate(ERoutes.MAP)
+    onClose()
+  }
+  const { mutate, isLoading } = useLogin({
+    onSuccess: handleSuccess,
+    onError: () => setHasErrors(true),
   })
 
-  const { mutate } = useLogin()
   const handleSubmit = (values: FormValues) => {
     mutate({ email: values.email, password: values.password })
-
-    onClose()
   }
 
   return (
-    <form onSubmit={form.onSubmit(handleSubmit)}>
+    <form onSubmit={onSubmit(handleSubmit)}>
       <TextInput
+        {...getInputProps('email')}
         placeholder={message({
           description: 'Auth form email placeholder',
           defaultMessage: 'user@example.com',
@@ -36,22 +51,23 @@ export const AuthForm = ({ onClose }: Props) => {
           defaultMessage: 'Email',
           id: '7lT95G',
         })}
+        error={hasErrors}
         withAsterisk
-        {...form.getInputProps('email')}
       />
       <PasswordInput
+        {...getInputProps('password')}
         placeholder="********"
         label={message({
           description: 'Auth form password label',
           defaultMessage: 'Password',
           id: '06sNqJ',
         })}
+        error={hasErrors}
         withAsterisk
-        {...form.getInputProps('password')}
       />
       <Space h="xs" />
       <Group position="center">
-        <Button type="submit">
+        <Button type="submit" loading={isLoading}>
           <FormattedMessage
             description="Auth form Sign in button text"
             defaultMessage="Sign In"

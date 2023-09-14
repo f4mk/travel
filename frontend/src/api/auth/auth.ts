@@ -1,15 +1,11 @@
 import { useMutation, UseMutationOptions } from '@tanstack/react-query'
 
-import {
-  createRequest,
-  getTokenFromHeader,
-  HttpError,
-  setToken,
-} from '#/api/request'
+import { createRequest, getTokenFromHeader, setToken } from '#/api/request'
+import { HttpError, HttpErrorWithPayload } from '#/api/request/errors'
+import { handleErrorWithPayload } from '#/api/request/utils'
 import { useGetLocale } from '#/hooks'
 
 import {
-  LoginError,
   LoginRequest,
   LoginResponse,
   LogoutAllError,
@@ -30,10 +26,13 @@ import {
 } from './types'
 
 export const useLogin = (
-  options?: UseMutationOptions<LoginResponse, LoginError, LoginRequest>
+  options?: UseMutationOptions<
+    LoginResponse,
+    HttpErrorWithPayload,
+    LoginRequest
+  >
 ) => {
   const url = '/api/auth/login'
-  // TODO: check if this provides a proper locale value
   const lang = useGetLocale()
 
   return useMutation(async (body: LoginRequest) => {
@@ -44,6 +43,9 @@ export const useLogin = (
     })
     const res = await fetch(newReq)
     if (!res.ok) {
+      if (res.status === 400) {
+        return handleErrorWithPayload(res)
+      }
       throw new HttpError(res)
     }
     const authHeader = res.headers.get('Authorization')

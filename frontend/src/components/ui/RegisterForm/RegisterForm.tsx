@@ -2,6 +2,8 @@ import { FormattedMessage } from 'react-intl'
 import { Button, Group, PasswordInput, Space, TextInput } from '@mantine/core'
 import { useForm } from '@mantine/form'
 
+import { useCreateUser } from '#/api/user'
+import { CreateUserRequest } from '#/api/user/types'
 import { useMessage } from '#/hooks'
 
 import { FormValues, Props } from './types'
@@ -13,8 +15,6 @@ export const RegisterForm = ({ onClose }: Props) => {
       username: '',
       password: '',
       passwordRepeat: '',
-      name: '',
-      lastname: '',
       email: '',
     },
 
@@ -55,10 +55,26 @@ export const RegisterForm = ({ onClose }: Props) => {
     },
   })
 
+  const handleSuccess = () => {
+    // TODO: add redirect to confirm page
+    // navigate(ERoutes.MAP)
+    onClose()
+  }
+
+  const { mutate, isLoading } = useCreateUser({
+    onSuccess: handleSuccess,
+    // TODO: handle errors
+    // onError: () => setHasErrors(true),
+  })
+
   const handleSubmit = (values: FormValues) => {
-    // eslint-disable-next-line
-    console.log(values)
-    onClose?.()
+    const data: CreateUserRequest = {
+      name: values.username,
+      password_confirm: values.passwordRepeat,
+      password: values.password,
+      email: values.email,
+    }
+    mutate(data)
   }
 
   return (
@@ -113,7 +129,7 @@ export const RegisterForm = ({ onClose }: Props) => {
       />
       <Space h="xs" />
       <Group position="center">
-        <Button type="submit">
+        <Button type="submit" loading={isLoading}>
           <FormattedMessage
             description="Register form Sign Up button text"
             defaultMessage="Sign Up"

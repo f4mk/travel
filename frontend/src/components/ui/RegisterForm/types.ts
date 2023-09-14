@@ -3,8 +3,6 @@ export type Props = {
 }
 export type FormValues = {
   username: string
-  name: string
-  lastname: string
   email: string
   password: string
   passwordRepeat: string

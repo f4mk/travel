@@ -3,12 +3,10 @@ import { FormattedMessage } from 'react-intl'
 import { Tabs } from '@mantine/core'
 import { LogIn, Milestone } from 'lucide-react'
 
-import { EFormView } from '#/components/ui/ProfileMenu'
-
 import { AuthForm } from '../AuthForm'
 import { RegisterForm } from '../RegisterForm'
 
-import { Props } from './types'
+import { EFormView, Props } from './types'
 
 export const Auth = ({ activeTab, onClose }: Props) => {
   const [view, setView] = useState<EFormView>(activeTab)

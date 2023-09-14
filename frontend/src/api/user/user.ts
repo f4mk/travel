@@ -5,7 +5,7 @@ import {
   UseQueryOptions,
 } from '@tanstack/react-query'
 
-import { createRequest } from '#/api/request'
+import { createRequest, HttpError } from '#/api/request'
 import { useGetLocale } from '#/hooks'
 
 import {
@@ -100,7 +100,9 @@ export const useGetUser = (
   })
 }
 
-export const useGetMe = (options?: UseQueryOptions<GetMeResponse>) => {
+export const useGetMe = (
+  options?: UseQueryOptions<GetMeResponse, HttpError>
+) => {
   const url = '/api/user/me'
   const lang = useGetLocale()
   return useQuery({
