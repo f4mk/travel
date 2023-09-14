@@ -30,7 +30,7 @@ export const useCreateUser = (
     CreateUserRequest
   >
 ) => {
-  const url = '/api/user'
+  const url = '/api/users'
   const lang = useGetLocale()
   return useMutation(
     createRequest({
@@ -50,7 +50,7 @@ export const useDeleteUser = (
     DeleteUserRequest
   >
 ) => {
-  const url = '/api/user'
+  const url = '/api/users'
   const lang = useGetLocale()
   return useMutation(
     createRequest({
@@ -70,7 +70,7 @@ export const useUpdateUser = (
     UpdateUserRequest
   >
 ) => {
-  const url = '/api/user'
+  const url = '/api/users'
   const lang = useGetLocale()
   return useMutation(
     createRequest({
@@ -87,7 +87,7 @@ export const useGetUser = (
   userId: GetUserRequest,
   options?: UseQueryOptions<GetUserResponse>
 ) => {
-  const url = `/api/user/${userId}`
+  const url = `/api/users/${userId}`
   const lang = useGetLocale()
   return useQuery({
     queryKey: [url, lang],
@@ -103,7 +103,7 @@ export const useGetUser = (
 export const useGetMe = (
   options?: UseQueryOptions<GetMeResponse, HttpError>
 ) => {
-  const url = '/api/user/me'
+  const url = '/api/users/me'
   const lang = useGetLocale()
   return useQuery({
     queryKey: [url, lang],

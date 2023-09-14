@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { FormattedMessage } from 'react-intl'
 import { useNavigate } from 'react-router-dom'
 import { Button, Group, PasswordInput, Space, TextInput } from '@mantine/core'
@@ -13,8 +12,7 @@ import { FormValues, Props } from './types'
 export const AuthForm = ({ onClose }: Props) => {
   const navigate = useNavigate()
   const message = useMessage()
-  const [hasErrors, setHasErrors] = useState(false)
-  const { onSubmit, getInputProps } = useForm<FormValues>({
+  const { onSubmit, getInputProps, isValid, setErrors } = useForm<FormValues>({
     initialValues: {
       email: '',
       password: '',
@@ -30,11 +28,11 @@ export const AuthForm = ({ onClose }: Props) => {
   }
   const { mutate, isLoading } = useLogin({
     onSuccess: handleSuccess,
-    onError: () => setHasErrors(true),
+    onError: () => setErrors({ email: true, password: true }),
   })
 
   const handleSubmit = (values: FormValues) => {
-    mutate({ email: values.email, password: values.password })
+    mutate(values)
   }
 
   return (
@@ -51,7 +49,6 @@ export const AuthForm = ({ onClose }: Props) => {
           defaultMessage: 'Email',
           id: '7lT95G',
         })}
-        error={hasErrors}
         withAsterisk
       />
       <PasswordInput
@@ -62,12 +59,11 @@ export const AuthForm = ({ onClose }: Props) => {
           defaultMessage: 'Password',
           id: '06sNqJ',
         })}
-        error={hasErrors}
         withAsterisk
       />
       <Space h="xs" />
       <Group position="center">
-        <Button type="submit" loading={isLoading}>
+        <Button type="submit" loading={isLoading} disabled={!isValid()}>
           <FormattedMessage
             description="Auth form Sign in button text"
             defaultMessage="Sign In"

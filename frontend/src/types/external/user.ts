@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-  '/user': {
+  '/users': {
     get: {
       responses: {
         /** @description returns all users */
@@ -82,7 +82,7 @@ export interface paths {
         /** @description user created successfully */
         201: {
           content: {
-            'application/json': components['schemas']['UserResponse']
+            'application/json': Record<string, never>
           }
         }
         /** @description bad request */
@@ -151,7 +151,7 @@ export interface paths {
       }
     }
   }
-  '/user/me': {
+  '/users/me': {
     get: {
       responses: {
         /** @description returns user self */
@@ -181,7 +181,7 @@ export interface paths {
       }
     }
   }
-  '/user/{id}': {
+  '/users/{id}': {
     get: {
       parameters: {
         path: {
@@ -204,6 +204,41 @@ export interface paths {
         }
         /** @description user not found */
         404: {
+          content: {
+            'application/json': components['schemas']['ErrorResponse']
+          }
+        }
+        /** @description internal server error */
+        500: {
+          content: {
+            'application/json': components['schemas']['ErrorResponse']
+          }
+        }
+      }
+    }
+  }
+  '/users/verify': {
+    post: {
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['VerifyUser']
+        }
+      }
+      responses: {
+        /** @description ruser verified successfully */
+        201: {
+          content: {
+            'application/json': components['schemas']['UserResponse']
+          }
+        }
+        /** @description bad request */
+        400: {
+          content: {
+            'application/json': components['schemas']['ErrorResponse']
+          }
+        }
+        /** @description unauthorized */
+        403: {
           content: {
             'application/json': components['schemas']['ErrorResponse']
           }
@@ -240,6 +275,12 @@ export interface components {
       email?: string
       /** @description user password */
       password: string
+    }
+    VerifyUser: {
+      /** @description user email */
+      email: string
+      /** @description user verification token */
+      token: string
     }
     UserResponse: {
       /** @description user unique id */

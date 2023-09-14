@@ -65,17 +65,17 @@ type VerifyUser struct {
 	Token string `json:"token" validate:"required"`
 }
 
-// DeleteUserJSONBody defines parameters for DeleteUser.
-type DeleteUserJSONBody = map[string]interface{}
+// DeleteUsersJSONBody defines parameters for DeleteUsers.
+type DeleteUsersJSONBody = map[string]interface{}
 
-// DeleteUserJSONRequestBody defines body for DeleteUser for application/json ContentType.
-type DeleteUserJSONRequestBody = DeleteUserJSONBody
+// DeleteUsersJSONRequestBody defines body for DeleteUsers for application/json ContentType.
+type DeleteUsersJSONRequestBody = DeleteUsersJSONBody
 
-// PostUserJSONRequestBody defines body for PostUser for application/json ContentType.
-type PostUserJSONRequestBody = NewUser
+// PostUsersJSONRequestBody defines body for PostUsers for application/json ContentType.
+type PostUsersJSONRequestBody = NewUser
 
-// PutUserJSONRequestBody defines body for PutUser for application/json ContentType.
-type PutUserJSONRequestBody = UpdateUser
+// PutUsersJSONRequestBody defines body for PutUsers for application/json ContentType.
+type PutUsersJSONRequestBody = UpdateUser
 
-// PostUserVerifyJSONRequestBody defines body for PostUserVerify for application/json ContentType.
-type PostUserVerifyJSONRequestBody = VerifyUser
+// PostUsersVerifyJSONRequestBody defines body for PostUsersVerify for application/json ContentType.
+type PostUsersVerifyJSONRequestBody = VerifyUser

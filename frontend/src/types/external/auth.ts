@@ -281,7 +281,7 @@ export interface paths {
             'application/json': components['schemas']['ErrorResponse']
           }
         }
-        /** @description bad request */
+        /** @description unauthorized */
         403: {
           content: {
             'application/json': components['schemas']['ErrorResponse']

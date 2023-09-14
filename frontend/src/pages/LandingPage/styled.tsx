@@ -35,7 +35,7 @@ export const ButtonContainer = styled.div`
   gap: 8px;
 `
 export const Sup = styled.h3`
-  margin: 0;
+  margin: auto;
   font-size: 36px;
   color: ${({ theme }) => theme.colors.gray[0]};
 `

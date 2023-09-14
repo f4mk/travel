@@ -18,18 +18,18 @@ export const Auth = ({ activeTab, onClose }: Props) => {
       onTabChange={(tab) => setView(tab as EFormView)}
     >
       <Tabs.List>
-        <Tabs.Tab value={EFormView.SIGN_IN} icon={<LogIn />}>
-          <FormattedMessage
-            description="Authentication window title"
-            defaultMessage="Authentication"
-            id="0JzVNd"
-          />
-        </Tabs.Tab>
         <Tabs.Tab value={EFormView.SIGN_UP} icon={<Milestone />}>
           <FormattedMessage
             description="Registration window title"
             defaultMessage="Registration"
             id="70PPhl"
+          />
+        </Tabs.Tab>
+        <Tabs.Tab value={EFormView.SIGN_IN} icon={<LogIn />}>
+          <FormattedMessage
+            description="Authentication window title"
+            defaultMessage="Authentication"
+            id="0JzVNd"
           />
         </Tabs.Tab>
       </Tabs.List>

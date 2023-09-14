@@ -10,9 +10,9 @@
     "build:server": "rollup -c",
     "preview": "vite preview",
     "server:prod": "NODE_ENV=production node ./distServer/index.js",
-    "types": "npm run generate-types && npm run lint --fix ./src/types/external && npm run prettier --write ./src/types/external",
+    "types": "npm run generate-types && npm run lint -- ./src/types/external",
     "generate-types": "openapi-typescript \"../backend/travel-api/api/specs/**/*.yaml\" --output ./src/types/external/",
-    "lint": "eslint --fix ./",
+    "lint": "eslint --fix",
     "prettier": "prettier --write",
     "extract": "formatjs extract",
     "compile": "formatjs compile"

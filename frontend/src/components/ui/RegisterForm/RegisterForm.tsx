@@ -18,40 +18,41 @@ export const RegisterForm = ({ onClose }: Props) => {
       email: '',
     },
 
-    validate: (values) => {
-      return {
-        username:
-          values.username.trim().length < 2
-            ? message({
-                description: 'Register form username error message',
-                defaultMessage: 'Username must include at least  characters',
-                id: 'v3oysd',
-              })
-            : null,
-        password:
-          values.password.length < 8
-            ? message({
-                description: 'Register form password error message',
-                defaultMessage: 'Password must include at least 8 characters',
-                id: 'JtqjO1',
-              })
-            : null,
-        passwordRepeat:
-          values.password !== values.passwordRepeat
-            ? message({
-                description: 'Register form password repeat error message',
-                defaultMessage: 'Field should be equal to password',
-                id: 'MPtkD8',
-              })
-            : null,
-        email: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(values.email)
+    validate: {
+      username: (value) =>
+        value.trim().length < 2
+          ? message({
+              description: 'Register form username error message',
+              defaultMessage:
+                'Username must include at least 2 characters and not start or end with space',
+              id: 'v3oysd',
+            })
+          : null,
+      password: (value) =>
+        value.trim().length < 8 || value.trim().length !== value.length
+          ? message({
+              description: 'Register form password error message',
+              defaultMessage:
+                'Password must include at least 8 characters and not start or end with space',
+              id: 'JtqjO1',
+            })
+          : null,
+      passwordRepeat: (value, values) =>
+        value.trim() !== values.passwordRepeat.trim()
+          ? message({
+              description: 'Register form password repeat error message',
+              defaultMessage: 'Field must be equal to password',
+              id: 'MPtkD8',
+            })
+          : null,
+      email: (value) =>
+        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(value.trim())
           ? null
           : message({
               description: 'Register form email error message',
               defaultMessage: 'Invalid email',
               id: '75g0FC',
             }),
-      }
     },
   })
 
