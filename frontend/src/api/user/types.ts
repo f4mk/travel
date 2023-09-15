@@ -34,3 +34,10 @@ export type GetMeError =
   paths['/users/me']['get']['responses']['401']['content']['application/json']
 export type GetMeResponse =
   paths['/users/me']['get']['responses']['200']['content']['application/json']
+
+export type VerifyUserRequest =
+  paths['/users/verify']['post']['requestBody']['content']['application/json']
+export type VerifyUserError =
+  paths['/users/verify']['post']['responses']['403']['content']['application/json']
+export type VerifyUserResponse =
+  paths['/users/verify']['post']['responses']['201']['content']['application/json']

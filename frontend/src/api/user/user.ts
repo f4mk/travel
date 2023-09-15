@@ -21,6 +21,9 @@ import {
   UpdateUserError,
   UpdateUserRequest,
   UpdateUserResponse,
+  VerifyUserError,
+  VerifyUserRequest,
+  VerifyUserResponse,
 } from './types'
 
 export const useCreateUser = (
@@ -114,4 +117,24 @@ export const useGetMe = (
     }),
     ...options,
   })
+}
+
+export const useVerifyUser = (
+  options?: UseMutationOptions<
+    VerifyUserResponse,
+    VerifyUserError,
+    VerifyUserRequest
+  >
+) => {
+  const url = '/api/users/verify'
+  const lang = useGetLocale()
+  return useMutation(
+    createRequest({
+      url,
+      method: 'POST',
+      lang,
+      handleErrorCodes: [400, 409, 500],
+    }),
+    options
+  )
 }

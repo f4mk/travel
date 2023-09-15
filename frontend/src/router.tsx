@@ -14,11 +14,37 @@ const { BlogPage } = lazy(() => import('#/pages/BlogPage'))
 const { IndexPage } = lazy(() => import('#/pages/IndexPage'))
 const { MapPage } = lazy(() => import('#/pages/MapPage'))
 const { LandingPage } = lazy(() => import('#/pages/LandingPage'))
+const { VerifyPage } = lazy(() => import('#/pages/VerifyPage'))
+const { ResetPage } = lazy(() => import('#/pages/ResetPage'))
+const { NotFoundPage } = lazy(() => import('#/pages/NotFoundPage'))
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<MainLayout />}>
-      <Route index element={<LandingPage />} />
+      <Route
+        index
+        element={
+          <Suspense fallback={<CenteredLoader />}>
+            <LandingPage />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/user/verify"
+        element={
+          <Suspense fallback={<CenteredLoader />}>
+            <VerifyPage />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/password/reset"
+        element={
+          <Suspense fallback={<CenteredLoader />}>
+            <ResetPage />
+          </Suspense>
+        }
+      />
       <Route path="/app" element={<Page />}>
         <Route
           index
@@ -45,6 +71,14 @@ export const router = createBrowserRouter(
           }
         />
       </Route>
+      <Route
+        path="*"
+        element={
+          <Suspense fallback={<CenteredLoader />}>
+            <NotFoundPage />
+          </Suspense>
+        }
+      />
     </Route>
   )
 )
