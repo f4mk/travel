@@ -1,17 +1,16 @@
-import { FormattedMessage } from 'react-intl'
+import { FormattedMessage, useIntl } from 'react-intl'
 import { useNavigate } from 'react-router-dom'
 import { Button, Group, PasswordInput, Space, TextInput } from '@mantine/core'
 import { hasLength, isEmail, useForm } from '@mantine/form'
 
 import { useLogin } from '#/api/auth'
 import { ERoutes } from '#/constants/routes'
-import { useMessage } from '#/hooks'
 
 import { FormValues, Props } from './types'
 
 export const AuthForm = ({ onClose }: Props) => {
   const navigate = useNavigate()
-  const message = useMessage()
+  const { formatMessage } = useIntl()
   const { onSubmit, getInputProps, isValid, setErrors } = useForm<FormValues>({
     initialValues: {
       email: '',
@@ -39,12 +38,12 @@ export const AuthForm = ({ onClose }: Props) => {
     <form onSubmit={onSubmit(handleSubmit)}>
       <TextInput
         {...getInputProps('email')}
-        placeholder={message({
+        placeholder={formatMessage({
           description: 'Auth form email placeholder',
           defaultMessage: 'user@example.com',
           id: 'AohQXw',
         })}
-        label={message({
+        label={formatMessage({
           description: 'Auth form email label',
           defaultMessage: 'Email',
           id: '7lT95G',
@@ -54,10 +53,10 @@ export const AuthForm = ({ onClose }: Props) => {
       <PasswordInput
         {...getInputProps('password')}
         placeholder="********"
-        label={message({
+        label={formatMessage({
           description: 'Auth form password label',
           defaultMessage: 'Password',
-          id: '06sNqJ',
+          id: 'wSggLf',
         })}
         withAsterisk
       />

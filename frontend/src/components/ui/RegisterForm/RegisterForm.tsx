@@ -1,15 +1,19 @@
-import { FormattedMessage } from 'react-intl'
+import { FormattedMessage, useIntl } from 'react-intl'
 import { Button, Group, PasswordInput, Space, TextInput } from '@mantine/core'
 import { useForm } from '@mantine/form'
 
 import { useCreateUser } from '#/api/user'
 import { CreateUserRequest } from '#/api/user/types'
-import { useMessage } from '#/hooks'
 
+import {
+  PASSWROD_MIN_LENGTH,
+  USERNAME_MAX_LENGTH,
+  USERNAME_MIN_LENGTH,
+} from './consts'
 import { FormValues, Props } from './types'
 
 export const RegisterForm = ({ onClose }: Props) => {
-  const message = useMessage()
+  const { formatMessage } = useIntl()
   const form = useForm<FormValues>({
     initialValues: {
       username: '',
@@ -20,35 +24,49 @@ export const RegisterForm = ({ onClose }: Props) => {
 
     validate: {
       username: (value) =>
-        value.trim().length < 2
-          ? message({
-              description: 'Register form username error message',
-              defaultMessage:
-                'Username must include at least 2 characters and not start or end with space',
-              id: 'v3oysd',
-            })
+        value.trim().length < USERNAME_MIN_LENGTH ||
+        value.trim().length > USERNAME_MAX_LENGTH
+          ? formatMessage(
+              {
+                description: 'Register form username error message',
+                defaultMessage: `Username must be {minValue} - {maxValue} characters and 
+                not start or end with space`,
+                id: 'xsMslr',
+              },
+              {
+                minValue: USERNAME_MIN_LENGTH,
+                maxValue: USERNAME_MAX_LENGTH,
+              }
+            )
           : null,
       password: (value) =>
-        value.trim().length < 8 || value.trim().length !== value.length
-          ? message({
-              description: 'Register form password error message',
-              defaultMessage:
-                'Password must include at least 8 characters and not start or end with space',
-              id: 'JtqjO1',
-            })
+        value.trim().length < PASSWROD_MIN_LENGTH ||
+        value.trim().length !== value.length
+          ? formatMessage(
+              {
+                description: 'Register form password error message',
+                defaultMessage: `Password must include at 
+                least {value} characters and 
+                not start or end with space`,
+                id: 'xqSIWB',
+              },
+              {
+                value: PASSWROD_MIN_LENGTH,
+              }
+            )
           : null,
       passwordRepeat: (value, values) =>
         value.trim() !== values.passwordRepeat.trim()
-          ? message({
+          ? formatMessage({
               description: 'Register form password repeat error message',
               defaultMessage: 'Field must be equal to password',
-              id: 'MPtkD8',
+              id: 'C9oQvf',
             })
           : null,
       email: (value) =>
         /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(value.trim())
           ? null
-          : message({
+          : formatMessage({
               description: 'Register form email error message',
               defaultMessage: 'Invalid email',
               id: '75g0FC',
@@ -81,12 +99,18 @@ export const RegisterForm = ({ onClose }: Props) => {
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
       <TextInput
-        placeholder={message({
-          description: 'Register form username field placeholder',
-          defaultMessage: 'SuperJohn3000',
-          id: 'SnPjw3',
-        })}
-        label={message({
+        placeholder={formatMessage(
+          {
+            description: 'Register form username field placeholder',
+            defaultMessage: 'Must be {minValue} - {maxValue} characters long',
+            id: 'oq79wm',
+          },
+          {
+            minValue: USERNAME_MIN_LENGTH,
+            maxValue: USERNAME_MAX_LENGTH,
+          }
+        )}
+        label={formatMessage({
           description: 'Register form username field label',
           defaultMessage: 'Username',
           id: 'oWGSmJ',
@@ -95,12 +119,12 @@ export const RegisterForm = ({ onClose }: Props) => {
         {...form.getInputProps('username')}
       />
       <TextInput
-        placeholder={message({
+        placeholder={formatMessage({
           description: 'Register form email field placeholder',
-          defaultMessage: 'user@example.com',
-          id: 'R14xEd',
+          defaultMessage: 'Must be valid email address',
+          id: 'FX4z2/',
         })}
-        label={message({
+        label={formatMessage({
           description: 'Register form email field label',
           defaultMessage: 'Email',
           id: 'AyMd2C',
@@ -109,8 +133,15 @@ export const RegisterForm = ({ onClose }: Props) => {
         {...form.getInputProps('email')}
       />
       <PasswordInput
-        placeholder="********"
-        label={message({
+        placeholder={formatMessage(
+          {
+            description: 'Register form password field placeholder',
+            defaultMessage: 'Must include at least {value} characters',
+            id: 'M4y+WF',
+          },
+          { value: PASSWROD_MIN_LENGTH }
+        )}
+        label={formatMessage({
           description: 'Register form password field label',
           defaultMessage: 'Password',
           id: 'TQEu8X',
@@ -119,8 +150,8 @@ export const RegisterForm = ({ onClose }: Props) => {
         {...form.getInputProps('password')}
       />
       <PasswordInput
-        placeholder="********"
-        label={message({
+        placeholder="Must match Password field"
+        label={formatMessage({
           description: 'Register form password repeat field label',
           defaultMessage: 'Repeat password',
           id: '+BKGrr',
