@@ -10,6 +10,8 @@ import { Page } from '#/components/layout/Page'
 import { CenteredLoader } from '#/components/ui/CenteredLoader'
 import { lazy } from '#/utils'
 
+import { ERoutes } from './constants/routes'
+
 const { BlogPage } = lazy(() => import('#/pages/BlogPage'))
 const { IndexPage } = lazy(() => import('#/pages/IndexPage'))
 const { MapPage } = lazy(() => import('#/pages/MapPage'))
@@ -21,7 +23,7 @@ const { NotFoundPage } = lazy(() => import('#/pages/NotFoundPage'))
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route path="/" element={<MainLayout />}>
+    <Route path={ERoutes.ROOT} element={<MainLayout />}>
       <Route
         index
         element={
@@ -31,7 +33,7 @@ export const router = createBrowserRouter(
         }
       />
       <Route
-        path="/user/verify"
+        path={ERoutes.USER_VERIFY}
         element={
           <Suspense fallback={<CenteredLoader />}>
             <VerifyPage />
@@ -39,7 +41,7 @@ export const router = createBrowserRouter(
         }
       />
       <Route
-        path="/user/create"
+        path={ERoutes.USER_CREATE}
         element={
           <Suspense fallback={<CenteredLoader />}>
             <ConfirmCreatePage />
@@ -47,14 +49,14 @@ export const router = createBrowserRouter(
         }
       />
       <Route
-        path="/password/reset"
+        path={ERoutes.PASSWORD_RESET}
         element={
           <Suspense fallback={<CenteredLoader />}>
             <ResetPasswordPage />
           </Suspense>
         }
       />
-      <Route path="/app" element={<Page />}>
+      <Route path={ERoutes.APP} element={<Page />}>
         <Route
           index
           element={
@@ -64,7 +66,7 @@ export const router = createBrowserRouter(
           }
         />
         <Route
-          path="map"
+          path={ERoutes.MAP}
           element={
             <Suspense fallback={<CenteredLoader />}>
               <MapPage />
@@ -72,7 +74,7 @@ export const router = createBrowserRouter(
           }
         />
         <Route
-          path="blog"
+          path={ERoutes.BLOG}
           element={
             <Suspense fallback={<CenteredLoader />}>
               <BlogPage />

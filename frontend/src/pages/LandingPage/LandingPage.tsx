@@ -35,8 +35,8 @@ export const LandingPage = () => {
         <S.Sup>
           <FormattedMessage
             description="Landing title slogan"
-            defaultMessage="Leave trails. Keep memories"
-            id="+Pny/y"
+            defaultMessage="Leave trails. Keep memories."
+            id="wvJNFB"
           />
         </S.Sup>
         <S.Title>

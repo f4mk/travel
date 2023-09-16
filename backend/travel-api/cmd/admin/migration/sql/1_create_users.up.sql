@@ -2,7 +2,7 @@ BEGIN;
 
 CREATE TABLE users (
 	user_id UUID NOT NULL,
-	name TEXT NOT NULL,
+	name TEXT UNIQUE NOT NULL,
 	email TEXT UNIQUE NOT NULL,
 	is_active BOOLEAN NOT NULL DEFAULT false,
 	is_deleted BOOLEAN NOT NULL DEFAULT false,

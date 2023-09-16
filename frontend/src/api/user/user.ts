@@ -9,7 +9,6 @@ import { createRequest, HttpError } from '#/api/request'
 import { useGetLocale } from '#/hooks'
 
 import {
-  CreateUserError,
   CreateUserRequest,
   CreateUserResponse,
   DeleteUserError,
@@ -27,23 +26,23 @@ import {
 } from './types'
 
 export const useCreateUser = (
-  options?: UseMutationOptions<
-    CreateUserResponse,
-    CreateUserError,
-    CreateUserRequest
-  >
+  options?: UseMutationOptions<CreateUserResponse, HttpError, CreateUserRequest>
 ) => {
   const url = '/api/users'
   const lang = useGetLocale()
-  return useMutation(
-    createRequest({
-      url,
+  return useMutation(async (body: CreateUserRequest) => {
+    const newReq = new Request(url, {
       method: 'POST',
-      lang,
-      handleErrorCodes: [400, 409, 500],
-    }),
-    options
-  )
+      body: JSON.stringify(body),
+      headers: { 'Accept-Language': lang },
+    })
+    const res = await fetch(newReq)
+    if (!res.ok) {
+      throw new HttpError(res)
+    }
+
+    return res.json() as Promise<CreateUserResponse>
+  }, options)
 }
 
 export const useDeleteUser = (

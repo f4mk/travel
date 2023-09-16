@@ -37,9 +37,9 @@ func (r *Repo) QueryByID(ctx context.Context, id string) (authUsecase.User, erro
 }
 
 func (r *Repo) Update(ctx context.Context, u authUsecase.User) error {
-	q := `UPDATE users SET 
-	name = :name, email = :email, 
-	token_version = :token_version, 
+	q := `UPDATE users SET
+	name = :name, email = :email, is_active = :is_active,
+	token_version = :token_version,
 	roles = :roles, password_hash = :password_hash,
 	date_updated = :date_updated
 	WHERE user_id = :user_id;`

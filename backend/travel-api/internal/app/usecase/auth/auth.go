@@ -105,14 +105,15 @@ func (c *Core) ChangePassword(ctx context.Context, cp ChangePassword) (User, err
 	return u, nil
 }
 
-// TODO: cron to clean the table every day for unclaimed tokens
 func (c *Core) ResetPasswordRequest(ctx context.Context, email string) (ResetPassword, error) {
 	u, err := c.storer.QueryByEmail(ctx, email)
 	if err != nil {
 		c.log.Err(err).Msgf("auth: reset password request: %s", database.ErrQueryDB.Error())
 		return ResetPassword{}, database.WrapStorerError(err)
 	}
-
+	if u.IsDeleted {
+		return ResetPassword{}, web.ErrNotFound
+	}
 	token := make([]byte, 32)
 	_, err = rand.Read(token)
 	if err != nil {
