@@ -8,10 +8,10 @@ import { Errors } from '../Errors'
 import { Content } from './components/Content'
 import { Footer } from './components/Footer'
 import { Header } from './components/Header'
-
+import * as S from './styled'
 export const Page = () => {
   return (
-    <div>
+    <S.Div>
       <Errors>
         <Suspense fallback={<CenteredLoader />}>
           <Header />
@@ -21,6 +21,6 @@ export const Page = () => {
         <Outlet />
       </Content>
       <Footer />
-    </div>
+    </S.Div>
   )
 }

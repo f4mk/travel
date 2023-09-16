@@ -108,7 +108,7 @@ export interface paths {
     delete: {
       requestBody: {
         content: {
-          'application/json': Record<string, never>
+          'application/json': components['schemas']['DeleteUser']
         }
       }
       responses: {
@@ -273,6 +273,10 @@ export interface components {
       name?: string
       /** @description user email */
       email?: string
+      /** @description user password */
+      password: string
+    }
+    DeleteUser: {
       /** @description user password */
       password: string
     }
