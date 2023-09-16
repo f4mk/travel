@@ -184,7 +184,7 @@ func (s *Service) VerifyUser(ctx context.Context, w http.ResponseWriter, r *http
 		Email:       res.Email,
 		DateCreated: res.DateCreated,
 	}
-	return web.Respond(ctx, w, ur, http.StatusOK)
+	return web.Respond(ctx, w, ur, http.StatusCreated)
 }
 
 func (s *Service) UpdateUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
