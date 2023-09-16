@@ -1,4 +1,4 @@
-import { Suspense } from 'react'
+import { ComponentType, Suspense } from 'react'
 import {
   createBrowserRouter,
   createRoutesFromElements,
@@ -21,75 +21,79 @@ const { ResetPasswordPage } = lazy(() => import('#/pages/ResetPasswordPage'))
 const { ConfirmCreatePage } = lazy(() => import('#/pages/ConfirmCreatePage'))
 const { NotFoundPage } = lazy(() => import('#/pages/NotFoundPage'))
 
-export const router = createBrowserRouter(
-  createRoutesFromElements(
-    <Route path={ROUTES.ROOT} element={<MainLayout />}>
+export const createRouter = (ModalProvider: ComponentType) =>
+  createBrowserRouter(
+    createRoutesFromElements(
       <Route
-        index
-        element={
-          <Suspense fallback={<CenteredLoader />}>
-            <LandingPage />
-          </Suspense>
-        }
-      />
-      <Route
-        path={ROUTES.USER_VERIFY}
-        element={
-          <Suspense fallback={<CenteredLoader />}>
-            <VerifyPage />
-          </Suspense>
-        }
-      />
-      <Route
-        path={ROUTES.USER_CREATE}
-        element={
-          <Suspense fallback={<CenteredLoader />}>
-            <ConfirmCreatePage />
-          </Suspense>
-        }
-      />
-      <Route
-        path={ROUTES.PASSWORD_RESET}
-        element={
-          <Suspense fallback={<CenteredLoader />}>
-            <ResetPasswordPage />
-          </Suspense>
-        }
-      />
-      <Route path={ROUTES.APP.ROOT} element={<Page />}>
+        path={ROUTES.ROOT}
+        element={<MainLayout ModalProvider={ModalProvider} />}
+      >
         <Route
           index
           element={
             <Suspense fallback={<CenteredLoader />}>
-              <IndexPage />
+              <LandingPage />
             </Suspense>
           }
         />
         <Route
-          path={ROUTES.APP.MAP}
+          path={ROUTES.USER_VERIFY}
           element={
             <Suspense fallback={<CenteredLoader />}>
-              <MapPage />
+              <VerifyPage />
             </Suspense>
           }
         />
         <Route
-          path={ROUTES.APP.BLOG}
+          path={ROUTES.USER_CREATE}
           element={
             <Suspense fallback={<CenteredLoader />}>
-              <BlogPage />
+              <ConfirmCreatePage />
+            </Suspense>
+          }
+        />
+        <Route
+          path={ROUTES.PASSWORD_RESET}
+          element={
+            <Suspense fallback={<CenteredLoader />}>
+              <ResetPasswordPage />
+            </Suspense>
+          }
+        />
+        <Route path={ROUTES.APP.ROOT} element={<Page />}>
+          <Route
+            index
+            element={
+              <Suspense fallback={<CenteredLoader />}>
+                <IndexPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path={ROUTES.APP.MAP}
+            element={
+              <Suspense fallback={<CenteredLoader />}>
+                <MapPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path={ROUTES.APP.BLOG}
+            element={
+              <Suspense fallback={<CenteredLoader />}>
+                <BlogPage />
+              </Suspense>
+            }
+          />
+        </Route>
+        <Route
+          path="*"
+          element={
+            <Suspense fallback={<CenteredLoader />}>
+              <NotFoundPage />
             </Suspense>
           }
         />
       </Route>
-      <Route
-        path="*"
-        element={
-          <Suspense fallback={<CenteredLoader />}>
-            <NotFoundPage />
-          </Suspense>
-        }
-      />
-    </Route>
+    )
   )
-)

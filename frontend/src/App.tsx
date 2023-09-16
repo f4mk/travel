@@ -4,9 +4,10 @@ import { RouterProvider } from 'react-router-dom'
 import { MantineProvider } from '@mantine/core'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
+import { ModalProvider } from '#/components/layout/ModalProvider'
 import { LocaleProvider, useLocale, useTheme } from '#/hooks'
 
-import { router } from './router'
+import { createRouter } from './router'
 
 const queryClient = new QueryClient()
 
@@ -19,7 +20,10 @@ export const App = () => {
         <MantineProvider theme={theme} withGlobalStyles withNormalizeCSS>
           <IntlProvider locale={locale} messages={t}>
             <LocaleProvider value={locale}>
-              <RouterProvider router={router} />
+              {/* TODO: find a better way to provide Modal as a child to router
+                yet keep it declared in <App/>
+              */}
+              <RouterProvider router={createRouter(ModalProvider)} />
             </LocaleProvider>
           </IntlProvider>
         </MantineProvider>
