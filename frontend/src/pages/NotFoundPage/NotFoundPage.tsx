@@ -16,7 +16,7 @@ export const NotFoundPage = () => {
           id="NAkyhe"
         />
       </Title>
-      <Button variant="subtle" onClick={() => navigate(ERoutes.ROOT)}>
+      <Button variant="subtle" onClick={() => navigate(ERoutes.APP)}>
         <FormattedMessage
           defaultMessage="Go home"
           description="Not found page redirect home button"

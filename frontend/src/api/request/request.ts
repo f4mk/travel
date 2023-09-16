@@ -3,7 +3,7 @@ import { HttpError } from './errors'
 import { Handler, Handlers, Result } from './types'
 
 export const request = async (request: Request, handlers: Handlers) => {
-  const token = getFreshToken()
+  const token = await getFreshToken()
   request.headers.set('Authorization', `Bearer ${token}`)
 
   const response = await fetch(request)

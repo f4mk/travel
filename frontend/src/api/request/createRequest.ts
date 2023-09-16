@@ -16,7 +16,7 @@ export const createRequest =
     body,
   }: RequestArgs<Res, Req>) =>
   (data?: Req) => {
-    const payload = body || data
+    const payload = body
     const uri = typeof url === 'function' ? createUrlOrThrow(url, data) : url
     const newReq = new Request(uri, {
       method,

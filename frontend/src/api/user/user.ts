@@ -20,7 +20,6 @@ import {
   UpdateUserError,
   UpdateUserRequest,
   UpdateUserResponse,
-  VerifyUserError,
   VerifyUserRequest,
   VerifyUserResponse,
 } from './types'
@@ -119,21 +118,21 @@ export const useGetMe = (
 }
 
 export const useVerifyUser = (
-  options?: UseMutationOptions<
-    VerifyUserResponse,
-    VerifyUserError,
-    VerifyUserRequest
-  >
+  options?: UseMutationOptions<VerifyUserResponse, HttpError, VerifyUserRequest>
 ) => {
   const url = '/api/users/verify'
   const lang = useGetLocale()
-  return useMutation(
-    createRequest({
-      url,
+
+  return useMutation(async (body: VerifyUserRequest) => {
+    const newReq = new Request(url, {
       method: 'POST',
-      lang,
-      handleErrorCodes: [400, 409, 500],
-    }),
-    options
-  )
+      body: JSON.stringify(body),
+      headers: { 'Accept-Language': lang },
+    })
+    const res = await fetch(newReq)
+    if (!res.ok) {
+      throw new HttpError(res)
+    }
+    return res.json() as Promise<VerifyUserResponse>
+  }, options)
 }

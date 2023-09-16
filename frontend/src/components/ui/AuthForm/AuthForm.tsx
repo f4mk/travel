@@ -22,7 +22,7 @@ export const AuthForm = ({ onClose }: Props) => {
     },
   })
   const handleSuccess = () => {
-    navigate(ERoutes.MAP)
+    navigate(`${ERoutes.APP}/${ERoutes.MAP}`)
     onClose()
   }
   const { mutate, isLoading } = useLogin({

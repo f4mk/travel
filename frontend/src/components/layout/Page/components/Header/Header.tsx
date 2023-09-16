@@ -3,35 +3,37 @@ import { FormattedMessage } from 'react-intl'
 import { useNavigate } from 'react-router-dom'
 import { Button, Loader } from '@mantine/core'
 
-import { HttpError } from '#/api/request'
+import { useGetMe } from '#/api/user'
 import logo from '#/assets/coggers.png'
 import { RoundButton } from '#/components/ui/RoundButton'
 import { ERoutes } from '#/constants/routes'
 import { lazy } from '#/utils'
 
-import { useData } from './queries'
 import * as S from './styled'
 
 const { ProfileMenu } = lazy(() => import('#/components/ui/ProfileMenu'))
 
 export const Header = () => {
   const navigate = useNavigate()
-  const handleError = (e: HttpError) => {
-    if (e.response.status === 403) {
-      navigate('/')
-    }
-  }
-  const { name, email } = useData({ onError: handleError })
-  console.log(name, email)
+
+  const { data } = useGetMe({
+    onError: (error) => {
+      if (error.response.status === 401) {
+        navigate(ERoutes.ROOT)
+      }
+    },
+    suspense: true,
+  })
+  console.log(data)
   const handleTabChange = useCallback(
-    (path: ERoutes) => {
+    (path: string) => {
       navigate(path)
     },
     [navigate]
   )
 
   const handleLogoClick = useCallback(() => {
-    navigate(ERoutes.ROOT)
+    navigate(ERoutes.APP)
   }, [navigate])
 
   return (
@@ -41,21 +43,27 @@ export const Header = () => {
       </RoundButton>
 
       <S.Tabs>
-        <Button variant="subtle" onClick={() => handleTabChange(ERoutes.ROOT)}>
+        <Button variant="subtle" onClick={() => handleTabChange(ERoutes.APP)}>
           <FormattedMessage
             description="Home tab"
             defaultMessage="Home"
             id="BXXnPK"
           />
         </Button>
-        <Button variant="subtle" onClick={() => handleTabChange(ERoutes.MAP)}>
+        <Button
+          variant="subtle"
+          onClick={() => handleTabChange(`${ERoutes.APP}/${ERoutes.MAP}`)}
+        >
           <FormattedMessage
             description="Map tab"
             defaultMessage="Map"
             id="JrIBeU"
           />
         </Button>
-        <Button variant="subtle" onClick={() => handleTabChange(ERoutes.BLOG)}>
+        <Button
+          variant="subtle"
+          onClick={() => handleTabChange(`${ERoutes.APP}/${ERoutes.BLOG}`)}
+        >
           <FormattedMessage
             description="Blog tab"
             defaultMessage="Blog"
