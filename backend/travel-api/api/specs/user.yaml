@@ -113,8 +113,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
+              $ref: '#/components/schemas/DeleteUser'
       responses:
         '200':
           description: user deleted successfully
@@ -297,6 +296,17 @@ components:
           description: "user email"
           x-oapi-codegen-extra-tags:
             validate: "omitempty,email"
+        password:
+          type: string
+          description: "user password"
+          x-oapi-codegen-extra-tags:
+            validate: "required"
+      required:
+        - password
+  
+    DeleteUser:
+      type: object
+      properties:
         password:
           type: string
           description: "user password"

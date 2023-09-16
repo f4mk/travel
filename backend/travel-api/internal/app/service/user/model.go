@@ -7,6 +7,12 @@ import (
 	"time"
 )
 
+// DeleteUser defines model for DeleteUser.
+type DeleteUser struct {
+	// Password user password
+	Password string `json:"password" validate:"required"`
+}
+
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	// Error error message
@@ -65,11 +71,8 @@ type VerifyUser struct {
 	Token string `json:"token" validate:"required"`
 }
 
-// DeleteUsersJSONBody defines parameters for DeleteUsers.
-type DeleteUsersJSONBody = map[string]interface{}
-
 // DeleteUsersJSONRequestBody defines body for DeleteUsers for application/json ContentType.
-type DeleteUsersJSONRequestBody = DeleteUsersJSONBody
+type DeleteUsersJSONRequestBody = DeleteUser
 
 // PostUsersJSONRequestBody defines body for PostUsers for application/json ContentType.
 type PostUsersJSONRequestBody = NewUser

@@ -33,8 +33,14 @@ type NewUser struct {
 }
 
 type UpdateUser struct {
+	ID       string
 	Name     *string
 	Email    *string
+	Password string
+}
+
+type DeleteUser struct {
+	ID       string
 	Password string
 }
 

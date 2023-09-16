@@ -202,11 +202,12 @@ func (s *Service) UpdateUser(ctx context.Context, w http.ResponseWriter, r *http
 		)
 	}
 	uu := userUsecase.UpdateUser{
+		ID:       claims.Subject,
 		Name:     u.Name,
 		Email:    u.Email,
 		Password: u.Password,
 	}
-	res, err := s.core.Update(ctx, claims.Subject, uu)
+	res, err := s.core.Update(ctx, uu)
 	if err != nil {
 		s.log.Err(err).Msg(ErrUpdateBusiness.Error())
 		return fmt.Errorf(
@@ -223,13 +224,25 @@ func (s *Service) UpdateUser(ctx context.Context, w http.ResponseWriter, r *http
 	return web.Respond(ctx, w, ur, http.StatusOK)
 }
 
-func (s *Service) DeleteUser(ctx context.Context, w http.ResponseWriter, _ *http.Request) error {
+func (s *Service) DeleteUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
 		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
-	u, err := s.core.Delete(ctx, claims.Subject)
+	u := DeleteUser{}
+	if err := web.Decode(r, &u); err != nil {
+		s.log.Err(err).Msg(ErrUpdateValidate.Error())
+		return web.NewRequestError(
+			err,
+			http.StatusBadRequest,
+		)
+	}
+	du := userUsecase.DeleteUser{
+		ID:       claims.Subject,
+		Password: u.Password,
+	}
+	res, err := s.core.Delete(ctx, du)
 	if err != nil {
 		s.log.Err(err).Msg(ErrDeleteBusiness.Error())
 		return fmt.Errorf(
@@ -237,7 +250,7 @@ func (s *Service) DeleteUser(ctx context.Context, w http.ResponseWriter, _ *http
 			web.GetResponseErrorFromBusiness(err),
 		)
 	}
-	if err := s.auth.StoreUserTokenVersion(ctx, u.ID, u.TokenVersion); err != nil {
+	if err := s.auth.StoreUserTokenVersion(ctx, res.ID, res.TokenVersion); err != nil {
 		s.log.Err(err).Msg(ErrDeleteStoreTokenVersion.Error())
 		return ErrDeleteStoreTokenVersion
 	}

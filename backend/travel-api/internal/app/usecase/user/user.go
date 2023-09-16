@@ -100,8 +100,8 @@ func (c *Core) Create(ctx context.Context, nu NewUser) (User, string, error) {
 	return u, et, nil
 }
 
-func (c *Core) Update(ctx context.Context, uID string, uu UpdateUser) (User, error) {
-	u, err := c.storer.QueryByID(ctx, uID)
+func (c *Core) Update(ctx context.Context, uu UpdateUser) (User, error) {
+	u, err := c.storer.QueryByID(ctx, uu.ID)
 	if err != nil {
 		c.log.Err(err).Msgf("user: update: %s", database.ErrQueryDB.Error())
 		return User{}, database.WrapStorerError(err)
@@ -116,7 +116,7 @@ func (c *Core) Update(ctx context.Context, uID string, uu UpdateUser) (User, err
 		c.log.Err(err).Msgf("user: update: %s", auth.ErrGetClaims.Error())
 		return User{}, auth.ErrGetClaims
 	}
-	if !claims.Authorize(auth.RoleAdmin) && uID != u.ID {
+	if !claims.Authorize(auth.RoleAdmin) && uu.ID != u.ID {
 		c.log.Error().Msgf("user: update: %s", web.ErrForbidden.Error())
 		return User{}, web.ErrForbidden
 	}
@@ -181,18 +181,22 @@ func (c *Core) QueryByID(ctx context.Context, uID string) (User, error) {
 	return u, nil
 }
 
-func (c *Core) Delete(ctx context.Context, uID string) (User, error) {
-	u, err := c.storer.QueryByID(ctx, uID)
+func (c *Core) Delete(ctx context.Context, du DeleteUser) (User, error) {
+	u, err := c.storer.QueryByID(ctx, du.ID)
 	if err != nil {
 		c.log.Err(err).Msgf("user: delete: %s", database.ErrQueryDB.Error())
 		return User{}, database.WrapStorerError(err)
+	}
+	if err := bcrypt.CompareHashAndPassword(u.PasswordHash, []byte(du.Password)); err != nil {
+		c.log.Err(err).Msgf("auth: login: %s", web.ErrAuthFailed.Error())
+		return User{}, web.ErrAuthFailed
 	}
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
 		c.log.Err(err).Msgf("user: delete: %s", auth.ErrGetClaims.Error())
 		return User{}, auth.ErrGetClaims
 	}
-	if !claims.Authorize(auth.RoleAdmin) && claims.Subject != uID {
+	if !claims.Authorize(auth.RoleAdmin) && claims.Subject != du.ID {
 		c.log.Err(err).Msgf("user: delete: %s", web.ErrForbidden.Error())
 		return User{}, web.ErrForbidden
 	}
