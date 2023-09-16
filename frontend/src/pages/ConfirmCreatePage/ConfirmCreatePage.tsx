@@ -2,7 +2,7 @@ import { FormattedMessage } from 'react-intl'
 import { useNavigate } from 'react-router-dom'
 import { Button, Text, Title } from '@mantine/core'
 
-import { ERoutes } from '#/constants/routes'
+import { ROUTES } from '#/constants/routes'
 
 import * as S from './styled'
 export const ConfirmCreatePage = () => {
@@ -12,7 +12,7 @@ export const ConfirmCreatePage = () => {
     const param = new URLSearchParams({
       auth: 'true',
     }).toString()
-    navigate(`${ERoutes.ROOT}?${param}`)
+    navigate(`${ROUTES.ROOT}?${param}`)
   }
 
   return (

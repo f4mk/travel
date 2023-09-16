@@ -5,7 +5,7 @@ import { Button, Title } from '@mantine/core'
 
 import { useVerifyUser } from '#/api/user'
 import { CenteredLoader } from '#/components/ui/CenteredLoader'
-import { ERoutes } from '#/constants/routes'
+import { ROUTES } from '#/constants/routes'
 import { getUrlParams } from '#/utils'
 
 import * as S from './styled'
@@ -18,7 +18,7 @@ export const VerifyPage = () => {
     const param = new URLSearchParams({
       auth: 'true',
     }).toString()
-    navigate(`${ERoutes.ROOT}?${param}`)
+    navigate(`${ROUTES.ROOT}?${param}`)
   }
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export const VerifyPage = () => {
     return <CenteredLoader />
   }
   if (isError) {
-    navigate(ERoutes.NOT_FOUND)
+    navigate(ROUTES.NOT_FOUND)
   }
   return (
     <S.Div>

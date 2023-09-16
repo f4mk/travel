@@ -5,7 +5,7 @@ import { useForm } from '@mantine/form'
 
 import { usePasswordResetSubmit } from '#/api/auth'
 import { PASSWORD_MIN_LENGTH } from '#/components/ui/RegisterForm'
-import { ERoutes } from '#/constants/routes'
+import { ROUTES } from '#/constants/routes'
 import { getUrlParams } from '#/utils'
 
 import * as S from './styled'
@@ -52,7 +52,7 @@ export const ResetPasswordPage = () => {
     const param = new URLSearchParams({
       auth: 'true',
     }).toString()
-    navigate(`${ERoutes.ROOT}?${param}`)
+    navigate(`${ROUTES.ROOT}?${param}`)
   }
 
   const { mutate, isLoading, isError, isSuccess } = usePasswordResetSubmit()
@@ -64,7 +64,7 @@ export const ResetPasswordPage = () => {
   }
 
   if (isError) {
-    navigate(ERoutes.NOT_FOUND)
+    navigate(ROUTES.NOT_FOUND)
   }
 
   if (isSuccess) {

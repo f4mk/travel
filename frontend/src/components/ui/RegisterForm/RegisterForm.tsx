@@ -4,7 +4,7 @@ import { Button, Group, PasswordInput, Space, TextInput } from '@mantine/core'
 import { useForm } from '@mantine/form'
 
 import { useCreateUser } from '#/api/user'
-import { ERoutes } from '#/constants/routes'
+import { ROUTES } from '#/constants/routes'
 
 import {
   PASSWORD_MIN_LENGTH,
@@ -78,7 +78,7 @@ export const RegisterForm = ({ onClose }: Props) => {
     })
 
   const handleSuccess = () => {
-    navigate(ERoutes.USER_CREATE)
+    navigate(ROUTES.USER_CREATE)
     onClose()
   }
 

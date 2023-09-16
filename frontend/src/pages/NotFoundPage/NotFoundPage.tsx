@@ -2,7 +2,7 @@ import { FormattedMessage } from 'react-intl'
 import { useNavigate } from 'react-router-dom'
 import { Button, Title } from '@mantine/core'
 
-import { ERoutes } from '#/constants/routes'
+import { ROUTES } from '#/constants/routes'
 
 import * as S from './styled'
 export const NotFoundPage = () => {
@@ -16,7 +16,7 @@ export const NotFoundPage = () => {
           id="NAkyhe"
         />
       </Title>
-      <Button variant="subtle" onClick={() => navigate(ERoutes.APP)}>
+      <Button variant="subtle" onClick={() => navigate(ROUTES.APP.ROOT)}>
         <FormattedMessage
           defaultMessage="Go home"
           description="Not found page redirect home button"

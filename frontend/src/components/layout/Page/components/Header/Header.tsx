@@ -6,7 +6,7 @@ import { Button, Loader } from '@mantine/core'
 import { useGetMe } from '#/api/user'
 import logo from '#/assets/coggers.png'
 import { RoundButton } from '#/components/ui/RoundButton'
-import { ERoutes } from '#/constants/routes'
+import { ROUTES } from '#/constants/routes'
 import { lazy } from '#/utils'
 
 import * as S from './styled'
@@ -19,7 +19,7 @@ export const Header = () => {
   const { data } = useGetMe({
     onError: (error) => {
       if (error.response.status === 401) {
-        navigate(ERoutes.ROOT)
+        navigate(ROUTES.ROOT)
       }
     },
     suspense: true,
@@ -33,7 +33,7 @@ export const Header = () => {
   )
 
   const handleLogoClick = useCallback(() => {
-    navigate(ERoutes.APP)
+    navigate(ROUTES.APP.ROOT)
   }, [navigate])
 
   return (
@@ -43,7 +43,10 @@ export const Header = () => {
       </RoundButton>
 
       <S.Tabs>
-        <Button variant="subtle" onClick={() => handleTabChange(ERoutes.APP)}>
+        <Button
+          variant="subtle"
+          onClick={() => handleTabChange(ROUTES.APP.ROOT)}
+        >
           <FormattedMessage
             description="Home tab"
             defaultMessage="Home"
@@ -52,7 +55,7 @@ export const Header = () => {
         </Button>
         <Button
           variant="subtle"
-          onClick={() => handleTabChange(`${ERoutes.APP}/${ERoutes.MAP}`)}
+          onClick={() => handleTabChange(ROUTES.APP.MAP)}
         >
           <FormattedMessage
             description="Map tab"
@@ -62,7 +65,7 @@ export const Header = () => {
         </Button>
         <Button
           variant="subtle"
-          onClick={() => handleTabChange(`${ERoutes.APP}/${ERoutes.BLOG}`)}
+          onClick={() => handleTabChange(ROUTES.APP.BLOG)}
         >
           <FormattedMessage
             description="Blog tab"

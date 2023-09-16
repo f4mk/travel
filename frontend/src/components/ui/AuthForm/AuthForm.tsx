@@ -4,7 +4,7 @@ import { Button, Group, PasswordInput, Space, TextInput } from '@mantine/core'
 import { hasLength, isEmail, useForm } from '@mantine/form'
 
 import { useLogin } from '#/api/auth'
-import { ERoutes } from '#/constants/routes'
+import { ROUTES } from '#/constants/routes'
 
 import { FormValues, Props } from './types'
 
@@ -22,7 +22,7 @@ export const AuthForm = ({ onClose }: Props) => {
     },
   })
   const handleSuccess = () => {
-    navigate(`${ERoutes.APP}/${ERoutes.MAP}`)
+    navigate(ROUTES.APP.MAP)
     onClose()
   }
   const { mutate, isLoading } = useLogin({
