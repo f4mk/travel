@@ -46,7 +46,7 @@ func (c *Core) Login(ctx context.Context, lu LoginUser) (AuthenticatedUser, erro
 		c.log.Error().Msgf("auth: login: user is inactive")
 		return AuthenticatedUser{}, web.ErrAuthFailed
 	}
-	if !u.IsDeleted {
+	if u.IsDeleted {
 		c.log.Error().Msgf("auth: login: user is deleted")
 		return AuthenticatedUser{}, web.ErrNotFound
 	}
