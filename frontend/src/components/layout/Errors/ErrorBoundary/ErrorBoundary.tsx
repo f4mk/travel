@@ -1,6 +1,6 @@
 import { Component, ErrorInfo } from 'react'
 
-import { isEqualArrays } from '#/utils/isEqualArrays'
+import { isEqualArrays } from '#/utils'
 
 import { Props, State } from './types'
 

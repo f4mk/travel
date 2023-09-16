@@ -7,7 +7,7 @@ import { HttpError } from '#/api/request'
 import logo from '#/assets/coggers.png'
 import { RoundButton } from '#/components/ui/RoundButton'
 import { ERoutes } from '#/constants/routes'
-import { lazy } from '#/utils/lazy'
+import { lazy } from '#/utils'
 
 import { useData } from './queries'
 import * as S from './styled'

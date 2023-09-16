@@ -3,10 +3,9 @@ import { Button, Group, PasswordInput, Space, TextInput } from '@mantine/core'
 import { useForm } from '@mantine/form'
 
 import { useCreateUser } from '#/api/user'
-import { CreateUserRequest } from '#/api/user/types'
 
 import {
-  PASSWROD_MIN_LENGTH,
+  PASSWORD_MIN_LENGTH,
   USERNAME_MAX_LENGTH,
   USERNAME_MIN_LENGTH,
 } from './consts'
@@ -14,16 +13,16 @@ import { FormValues, Props } from './types'
 
 export const RegisterForm = ({ onClose }: Props) => {
   const { formatMessage } = useIntl()
-  const form = useForm<FormValues>({
+  const { getInputProps, onSubmit, isValid } = useForm<FormValues>({
     initialValues: {
-      username: '',
+      name: '',
       password: '',
-      passwordRepeat: '',
+      password_confirm: '',
       email: '',
     },
 
     validate: {
-      username: (value) =>
+      name: (value) =>
         value.trim().length < USERNAME_MIN_LENGTH ||
         value.trim().length > USERNAME_MAX_LENGTH
           ? formatMessage(
@@ -40,7 +39,7 @@ export const RegisterForm = ({ onClose }: Props) => {
             )
           : null,
       password: (value) =>
-        value.trim().length < PASSWROD_MIN_LENGTH ||
+        value.trim().length < PASSWORD_MIN_LENGTH ||
         value.trim().length !== value.length
           ? formatMessage(
               {
@@ -51,12 +50,12 @@ export const RegisterForm = ({ onClose }: Props) => {
                 id: 'xqSIWB',
               },
               {
-                value: PASSWROD_MIN_LENGTH,
+                value: PASSWORD_MIN_LENGTH,
               }
             )
           : null,
-      passwordRepeat: (value, values) =>
-        value.trim() !== values.passwordRepeat.trim()
+      password_confirm: (value, values) =>
+        value.trim() !== values.password.trim()
           ? formatMessage({
               description: 'Register form password repeat error message',
               defaultMessage: 'Field must be equal to password',
@@ -87,17 +86,11 @@ export const RegisterForm = ({ onClose }: Props) => {
   })
 
   const handleSubmit = (values: FormValues) => {
-    const data: CreateUserRequest = {
-      name: values.username,
-      password_confirm: values.passwordRepeat,
-      password: values.password,
-      email: values.email,
-    }
-    mutate(data)
+    mutate(values)
   }
 
   return (
-    <form onSubmit={form.onSubmit(handleSubmit)}>
+    <form onSubmit={onSubmit(handleSubmit)}>
       <TextInput
         placeholder={formatMessage(
           {
@@ -116,7 +109,7 @@ export const RegisterForm = ({ onClose }: Props) => {
           id: 'oWGSmJ',
         })}
         withAsterisk
-        {...form.getInputProps('username')}
+        {...getInputProps('name')}
       />
       <TextInput
         placeholder={formatMessage({
@@ -130,7 +123,7 @@ export const RegisterForm = ({ onClose }: Props) => {
           id: 'AyMd2C',
         })}
         withAsterisk
-        {...form.getInputProps('email')}
+        {...getInputProps('email')}
       />
       <PasswordInput
         placeholder={formatMessage(
@@ -139,7 +132,7 @@ export const RegisterForm = ({ onClose }: Props) => {
             defaultMessage: 'Must include at least {value} characters',
             id: 'M4y+WF',
           },
-          { value: PASSWROD_MIN_LENGTH }
+          { value: PASSWORD_MIN_LENGTH }
         )}
         label={formatMessage({
           description: 'Register form password field label',
@@ -147,7 +140,7 @@ export const RegisterForm = ({ onClose }: Props) => {
           id: 'TQEu8X',
         })}
         withAsterisk
-        {...form.getInputProps('password')}
+        {...getInputProps('password')}
       />
       <PasswordInput
         placeholder="Must match Password field"
@@ -157,11 +150,11 @@ export const RegisterForm = ({ onClose }: Props) => {
           id: '+BKGrr',
         })}
         withAsterisk
-        {...form.getInputProps('passwordRepeat')}
+        {...getInputProps('password_confirm')}
       />
       <Space h="xs" />
       <Group position="center">
-        <Button type="submit" loading={isLoading}>
+        <Button type="submit" loading={isLoading} disabled={!isValid()}>
           <FormattedMessage
             description="Register form Sign Up button text"
             defaultMessage="Sign Up"

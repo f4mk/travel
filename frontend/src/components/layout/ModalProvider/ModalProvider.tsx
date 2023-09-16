@@ -15,10 +15,12 @@ export const ModalProvider = ({ children }: Props) => {
   const [opened, { open, close }] = useDisclosure(false)
   const [ModalContent, setModalContent] =
     useState<Nullable<ComponentType>>(null)
+  const [options, setOptions] = useState<Record<string, string>>({})
 
   const showModal = useCallback(
-    (Content: ReactElement) => {
+    (Content: ReactElement, options: Record<string, string> = {}) => {
       setModalContent(() => () => Content)
+      setOptions(options)
       open()
     },
     [open]
@@ -42,7 +44,7 @@ export const ModalProvider = ({ children }: Props) => {
   return (
     <ModalContext.Provider value={value}>
       {children}
-      <Modal opened={opened} onClose={hideModal}>
+      <Modal opened={opened} onClose={hideModal} {...options}>
         {ModalContent && <ModalContent />}
       </Modal>
     </ModalContext.Provider>

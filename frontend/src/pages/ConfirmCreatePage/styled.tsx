@@ -5,4 +5,7 @@ export const Div = styled.div`
   height: 100%;
   justify-content: center;
   align-items: center;
+  grid-template-rows: 20% 20% 20%;
+  grid-template-columns: 400px;
+  text-align: center;
 `

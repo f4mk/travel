@@ -2,8 +2,8 @@ export type Props = {
   onClose: () => void
 }
 export type FormValues = {
-  username: string
+  name: string
   email: string
   password: string
-  passwordRepeat: string
+  password_confirm: string
 }

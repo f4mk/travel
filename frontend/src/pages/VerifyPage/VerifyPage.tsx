@@ -6,12 +6,12 @@ import { Button, Title } from '@mantine/core'
 import { useVerifyUser } from '#/api/user'
 import { CenteredLoader } from '#/components/ui/CenteredLoader'
 import { ERoutes } from '#/constants/routes'
-import { useGetUrlParams } from '#/hooks'
+import { getUrlParams } from '#/utils'
 
 import * as S from './styled'
 export const VerifyPage = () => {
   const navigate = useNavigate()
-  const { email, token } = useGetUrlParams('email', 'token')
+  const { email, token } = getUrlParams('email', 'token')
   const { mutate, isLoading, isError } = useVerifyUser()
 
   const handleRedirect = () => {

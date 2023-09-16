@@ -1,6 +1,6 @@
 import { Params, ParamsMap } from './types'
 
-export const useGetUrlParams = (...params: Params) => {
+export const getUrlParams = (...params: Params) => {
   const query = window.location.search
   const urlParams = new URLSearchParams(query)
 

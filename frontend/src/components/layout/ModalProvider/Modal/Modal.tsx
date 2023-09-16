@@ -1,14 +1,14 @@
 import { Suspense, useEffect, useRef, useState } from 'react'
-import { Modal as ModalUI } from '@mantine/core'
 import FocusTrap from 'focus-trap-react'
 
 import { CenteredLoader } from '#/components/ui/CenteredLoader'
 
 import { ModalMounter } from '../ModalMounter'
 
+import * as S from './styled'
 import { Props } from './types'
 
-export const Modal = ({ opened, onClose, children }: Props) => {
+export const Modal = ({ opened, onClose, children, size = 'md' }: Props) => {
   const ref = useRef<HTMLDivElement>(null)
   const [mounted, setMounted] = useState(false)
   useEffect(() => {
@@ -27,11 +27,12 @@ export const Modal = ({ opened, onClose, children }: Props) => {
   }, [onClose])
 
   return (
-    <ModalUI
+    <S.Modal
       opened={opened}
       onClose={onClose}
       withCloseButton={false}
       closeOnClickOutside
+      size={size}
     >
       {/* NOTE: Focus trap by mantine doesnt work here */}
       <FocusTrap active={mounted}>
@@ -41,6 +42,6 @@ export const Modal = ({ opened, onClose, children }: Props) => {
           </Suspense>
         </div>
       </FocusTrap>
-    </ModalUI>
+    </S.Modal>
   )
 }

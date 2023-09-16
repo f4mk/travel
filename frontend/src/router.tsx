@@ -8,14 +8,15 @@ import {
 import { MainLayout } from '#/components/layout/MainLayout'
 import { Page } from '#/components/layout/Page'
 import { CenteredLoader } from '#/components/ui/CenteredLoader'
-import { lazy } from '#/utils/lazy'
+import { lazy } from '#/utils'
 
 const { BlogPage } = lazy(() => import('#/pages/BlogPage'))
 const { IndexPage } = lazy(() => import('#/pages/IndexPage'))
 const { MapPage } = lazy(() => import('#/pages/MapPage'))
 const { LandingPage } = lazy(() => import('#/pages/LandingPage'))
 const { VerifyPage } = lazy(() => import('#/pages/VerifyPage'))
-const { ResetPage } = lazy(() => import('#/pages/ResetPage'))
+const { ResetPasswordPage } = lazy(() => import('#/pages/ResetPasswordPage'))
+const { ConfirmCreatePage } = lazy(() => import('#/pages/ConfirmCreatePage'))
 const { NotFoundPage } = lazy(() => import('#/pages/NotFoundPage'))
 
 export const router = createBrowserRouter(
@@ -38,10 +39,18 @@ export const router = createBrowserRouter(
         }
       />
       <Route
+        path="/user/create"
+        element={
+          <Suspense fallback={<CenteredLoader />}>
+            <ConfirmCreatePage />
+          </Suspense>
+        }
+      />
+      <Route
         path="/password/reset"
         element={
           <Suspense fallback={<CenteredLoader />}>
-            <ResetPage />
+            <ResetPasswordPage />
           </Suspense>
         }
       />

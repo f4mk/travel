@@ -1,1 +1,0 @@
-export { useGetUrlParams } from './useGetUrlParams'
