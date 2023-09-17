@@ -236,28 +236,13 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	listCore := listUsecase.NewCore(log, listStorer)
 	listService := listService.NewService(log, listCore)
 
-	userCon := api.UserController{
-		Log:         log,
-		UserService: userService,
-		Auth:        auth,
-		RateLimit:   cfg.API.RateLimit,
-	}
+	userCon := api.NewUserController(log, userService, auth, cfg.API.RateLimit)
 	userCon.RegisterRoutes(app)
 
-	authCon := api.AuthController{
-		Log:         log,
-		AuthService: authService,
-		Auth:        auth,
-		RateLimit:   cfg.API.RateLimit,
-	}
+	authCon := api.NewAuthController(log, authService, auth, cfg.API.RateLimit)
 	authCon.RegisterRoutes(app)
 
-	listCon := api.ListController{
-		Log:         log,
-		ListService: listService,
-		Auth:        auth,
-		RateLimit:   cfg.API.RateLimit,
-	}
+	listCon := api.NewListController(log, listService, auth, cfg.API.RateLimit)
 	listCon.RegisterRoutes(app)
 
 	h2s := &http2.Server{}

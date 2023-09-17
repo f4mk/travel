@@ -17,6 +17,20 @@ type UserController struct {
 	RateLimit   int
 }
 
+func NewUserController(
+	l *zerolog.Logger,
+	us *userService.Service,
+	a *auth.Auth,
+	rl int,
+) *UserController {
+	return &UserController{
+		Log:         l,
+		UserService: us,
+		Auth:        a,
+		RateLimit:   rl,
+	}
+}
+
 func (uc *UserController) RegisterRoutes(app *web.App) {
 	app.Handle(
 		http.MethodPost,

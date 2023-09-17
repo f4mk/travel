@@ -22,6 +22,7 @@ type RepoList struct {
 type RepoItem struct {
 	ID          string          `db:"item_id"`
 	ListID      string          `db:"list_id"`
+	UserID      string          `db:"user_id"`
 	Name        string          `db:"item_name"`
 	Description *string         `db:"description"`
 	Address     *string         `db:"address"`

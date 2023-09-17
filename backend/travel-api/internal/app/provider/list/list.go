@@ -202,12 +202,8 @@ func (r *Repo) DeleteList(ctx context.Context, userID string, listID string) err
 	return nil
 }
 
-func (r *Repo) CreateItem(ctx context.Context, userID string, i list.Item) error {
+func (r *Repo) CreateItem(ctx context.Context, i list.Item) error {
 	item := populateItem(i)
-	itemInsert := itemWithUserID{
-		RepoItem: item,
-		UserID:   userID,
-	}
 	point := RepoPoint{
 		ID:     i.Point.ID,
 		ItemID: i.Point.ItemID,
@@ -220,7 +216,7 @@ func (r *Repo) CreateItem(ctx context.Context, userID string, i list.Item) error
 	}
 	qItem := `
 	INSERT INTO items (
-		item_id, list_id, item_name,
+		item_id, list_id, user_id, item_name,
 		description, address,	point,
 		image_links, is_visited,
 		date_created,	date_updated
@@ -243,7 +239,7 @@ func (r *Repo) CreateItem(ctx context.Context, userID string, i list.Item) error
 							:point_id, :item_id, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)
 						);
 	`
-	err = handleRowsResult(tx.NamedExecContext(ctx, qItem, itemInsert))
+	err = handleRowsResult(tx.NamedExecContext(ctx, qItem, item))
 	if err != nil {
 		if rErr := tx.Rollback(); rErr != nil {
 			r.log.Err(rErr).Msg("Failed to rollback after error")
@@ -314,12 +310,8 @@ func (r *Repo) UpdateItemAdmin(ctx context.Context, i list.Item) (err error) {
 	return nil
 }
 
-func (r *Repo) UpdateItem(ctx context.Context, userID string, i list.Item) (err error) {
+func (r *Repo) UpdateItem(ctx context.Context, i list.Item) (err error) {
 	item := populateItem(i)
-	itemUpdate := itemWithUserID{
-		RepoItem: item,
-		UserID:   userID,
-	}
 	point := RepoPoint{
 		ID:     i.Point.ID,
 		ItemID: i.Point.ItemID,
@@ -356,7 +348,7 @@ func (r *Repo) UpdateItem(ctx context.Context, userID string, i list.Item) (err 
 	qPoint := `UPDATE points SET
 							location = ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)
 						WHERE point_id = :point_id;`
-	err = handleRowsResult(tx.NamedExecContext(ctx, qItem, itemUpdate))
+	err = handleRowsResult(tx.NamedExecContext(ctx, qItem, item))
 	if err != nil {
 		return err
 	}
@@ -448,6 +440,7 @@ func populateItem(i list.Item) RepoItem {
 	item := RepoItem{
 		ID:          i.ID,
 		ListID:      i.ListID,
+		UserID:      i.UserID,
 		Name:        i.Name,
 		Description: i.Description,
 		Address:     i.Address,
@@ -460,10 +453,6 @@ func populateItem(i list.Item) RepoItem {
 	return item
 }
 
-type itemWithUserID struct {
-	RepoItem
-	UserID string `db:"user_id"`
-}
 type rowItemsByListID struct {
 	RepoItem
 	RepoPoint
@@ -488,6 +477,7 @@ func fromRowsToMap(rows *sqlx.Rows) (map[string]*list.Item, error) {
 			itemsMap[row.RepoItem.ID] = &list.Item{
 				ID:          row.RepoItem.ID,
 				ListID:      row.ListID,
+				UserID:      row.UserID,
 				Name:        row.RepoItem.Name,
 				Description: row.Description,
 				Address:     row.Address,

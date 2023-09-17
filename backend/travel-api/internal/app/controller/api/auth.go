@@ -17,6 +17,20 @@ type AuthController struct {
 	RateLimit   int
 }
 
+func NewAuthController(
+	l *zerolog.Logger,
+	as *authService.Service,
+	a *auth.Auth,
+	rl int,
+) *AuthController {
+	return &AuthController{
+		Log:         l,
+		AuthService: as,
+		Auth:        a,
+		RateLimit:   rl,
+	}
+}
+
 func (ac *AuthController) RegisterRoutes(app *web.App) {
 	// TODO: login takes too long
 	app.Handle(http.MethodPost, "/auth/login", ac.AuthService.Login)

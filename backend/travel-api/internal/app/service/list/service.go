@@ -252,13 +252,14 @@ func (s *Service) CreateItem(ctx context.Context, w http.ResponseWriter, r *http
 	}
 	i := listUsecase.NewItem{
 		ListID:      listID,
+		UserID:      claims.Subject,
 		Name:        ni.Name,
 		Description: ni.Description,
 		Address:     ni.Address,
 		Point:       np,
 		ImageLinks:  ni.ImageLinks,
 	}
-	res, err := s.core.CreateItem(ctx, claims.Subject, i)
+	res, err := s.core.CreateItem(ctx, i)
 	if err != nil {
 		s.log.Err(err).Msg(ErrCreateItemBusiness.Error())
 		return fmt.Errorf(
@@ -304,6 +305,7 @@ func (s *Service) UpdateItem(ctx context.Context, w http.ResponseWriter, r *http
 	i := listUsecase.UpdateItem{
 		ID:          itemID,
 		ListID:      listID,
+		UserID:      claims.Subject,
 		Name:        ui.Name,
 		Description: ui.Description,
 		Address:     ui.Description,
@@ -311,7 +313,7 @@ func (s *Service) UpdateItem(ctx context.Context, w http.ResponseWriter, r *http
 		ImageLinks:  ui.ImageLinks,
 		Visited:     ui.Visited,
 	}
-	res, err := s.core.UpdateItemByID(ctx, claims.Subject, i)
+	res, err := s.core.UpdateItemByID(ctx, i)
 	if err != nil {
 		s.log.Err(err).Msg(ErrUpdateItemBusiness.Error())
 		return fmt.Errorf(

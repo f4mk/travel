@@ -36,6 +36,7 @@ type UpdateList struct {
 type Item struct {
 	ID          string
 	ListID      string
+	UserID      string
 	Name        string
 	Description *string
 	Address     *string
@@ -55,6 +56,7 @@ type Point struct {
 
 type NewItem struct {
 	ListID      string
+	UserID      string
 	Name        string
 	Description *string
 	Address     *string
@@ -70,6 +72,7 @@ type NewPoint struct {
 type UpdateItem struct {
 	ID          string
 	ListID      string
+	UserID      string
 	Name        *string
 	Description *string
 	Address     *string

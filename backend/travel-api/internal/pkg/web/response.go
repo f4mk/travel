@@ -32,6 +32,23 @@ func Respond(ctx context.Context, w http.ResponseWriter, data any, statusCode in
 	return nil
 }
 
+func RespondRaw(
+	ctx context.Context,
+	w http.ResponseWriter,
+	data []byte,
+	statusCode int,
+	ctype string,
+) error {
+	_ = SetStatusCode(ctx, statusCode)
+
+	w.Header().Set("Content-Type", ctype)
+	w.WriteHeader(statusCode)
+	if _, err := w.Write(data); err != nil {
+		return err
+	}
+	return nil
+}
+
 func RespondError(ctx context.Context, w http.ResponseWriter, err error) error {
 
 	var re ResponseError

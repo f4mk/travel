@@ -17,6 +17,20 @@ type ListController struct {
 	RateLimit   int
 }
 
+func NewListController(
+	l *zerolog.Logger,
+	ls *listService.Service,
+	a *auth.Auth,
+	rl int,
+) *ListController {
+	return &ListController{
+		Log:         l,
+		ListService: ls,
+		Auth:        a,
+		RateLimit:   rl,
+	}
+}
+
 func (lc *ListController) RegisterRoutes(app *web.App) {
 	app.Handle(http.MethodGet, "/lists", lc.ListService.GetLists, middleware.Authenticate(lc.Auth))
 	app.Handle(http.MethodPost, "/lists", lc.ListService.CreateList, middleware.Authenticate(lc.Auth))

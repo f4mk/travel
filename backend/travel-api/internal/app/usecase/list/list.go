@@ -20,9 +20,9 @@ type storer interface {
 	UpdateList(ctx context.Context, list List) error
 	DeleteListAdmin(ctx context.Context, listID string) error
 	DeleteList(ctx context.Context, userID string, listID string) error
-	CreateItem(ctx context.Context, userID string, item Item) error
+	CreateItem(ctx context.Context, item Item) error
 	UpdateItemAdmin(ctx context.Context, item Item) error
-	UpdateItem(ctx context.Context, userID string, item Item) error
+	UpdateItem(ctx context.Context, item Item) error
 	DeleteItemAdmin(ctx context.Context, itemID string) error
 	DeleteItem(ctx context.Context, userID string, listID string, itemID string) error
 }
@@ -172,7 +172,7 @@ func (c *Core) DeleteListByID(ctx context.Context, userID string, listID string)
 	return nil
 }
 
-func (c *Core) CreateItem(ctx context.Context, userID string, ni NewItem) (Item, error) {
+func (c *Core) CreateItem(ctx context.Context, ni NewItem) (Item, error) {
 	now := time.Now().UTC()
 	itemID := uuid.New().String()
 	point := Point{
@@ -184,6 +184,7 @@ func (c *Core) CreateItem(ctx context.Context, userID string, ni NewItem) (Item,
 	item := Item{
 		ID:          itemID,
 		ListID:      ni.ListID,
+		UserID:      ni.UserID,
 		Name:        ni.Name,
 		Description: ni.Description,
 		Address:     ni.Address,
@@ -193,15 +194,15 @@ func (c *Core) CreateItem(ctx context.Context, userID string, ni NewItem) (Item,
 		DateCreated: now,
 		DateUpdated: now,
 	}
-	if err := c.storer.CreateItem(ctx, userID, item); err != nil {
+	if err := c.storer.CreateItem(ctx, item); err != nil {
 		c.log.Err(err).Msgf("item: create: %s", database.ErrQueryDB.Error())
 		return Item{}, database.WrapStorerError(err)
 	}
 	return item, nil
 }
 
-func (c *Core) UpdateItemByID(ctx context.Context, userID string, ui UpdateItem) (Item, error) {
-	item, err := c.storer.QueryItemByID(ctx, userID, ui.ListID, ui.ID)
+func (c *Core) UpdateItemByID(ctx context.Context, ui UpdateItem) (Item, error) {
+	item, err := c.storer.QueryItemByID(ctx, ui.UserID, ui.ListID, ui.ID)
 	if err != nil {
 		c.log.Err(err).Msgf("item: update: %s", database.ErrQueryDB.Error())
 		return Item{}, database.WrapStorerError(err)
@@ -241,7 +242,7 @@ func (c *Core) UpdateItemByID(ctx context.Context, userID string, ui UpdateItem)
 	}
 	// TODO: userID was already checked during QueryItemByID
 	// but may be its better to keep it here as well
-	if err := c.storer.UpdateItem(ctx, userID, item); err != nil {
+	if err := c.storer.UpdateItem(ctx, item); err != nil {
 		c.log.Err(err).Msgf("item: update: %s", database.ErrQueryDB.Error())
 		return Item{}, database.WrapStorerError(err)
 	}
