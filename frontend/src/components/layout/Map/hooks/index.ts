@@ -1,8 +1,4 @@
-// TODO:
-const DEFAULT_CENTER = {
-  lat: -3.745,
-  lng: -38.523,
-}
+import { DEFAULT_CENTER } from './consts'
 
 export const useCurrentLocation = () => {
   let pos
