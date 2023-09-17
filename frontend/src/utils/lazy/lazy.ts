@@ -1,20 +1,6 @@
-import {
-  type ComponentType,
-  lazy as reactLazy,
-  type LazyExoticComponent,
-} from 'react'
+import { lazy as reactLazy } from 'react'
 
-type Ns = {
-  [K in string]: unknown
-}
-
-type LazyNs<T extends Ns> = {
-  [K in keyof T as T[K] extends ComponentType<any>
-    ? K
-    : never]: T[K] extends ComponentType<any>
-    ? LazyExoticComponent<T[K]>
-    : never
-}
+import { LazyNs, Ns } from './types'
 
 export const lazy = <T extends Ns>(fn: () => Promise<T>): LazyNs<T> => {
   let promise: Promise<T> | undefined
