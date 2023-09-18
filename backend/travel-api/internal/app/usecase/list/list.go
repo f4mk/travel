@@ -189,7 +189,7 @@ func (c *Core) CreateItem(ctx context.Context, ni NewItem) (Item, error) {
 		Description: ni.Description,
 		Address:     ni.Address,
 		Point:       point,
-		ImageLinks:  ni.ImageLinks,
+		ImagesID:    ni.ImagesID,
 		Visited:     false,
 		DateCreated: now,
 		DateUpdated: now,
@@ -225,8 +225,8 @@ func (c *Core) UpdateItemByID(ctx context.Context, ui UpdateItem) (Item, error) 
 	if ui.Address != nil {
 		item.Address = ui.Address
 	}
-	if ui.ImageLinks != nil {
-		item.ImageLinks = ui.ImageLinks
+	if ui.ImagesID != nil {
+		item.ImagesID = ui.ImagesID
 	}
 	if ui.Visited != nil {
 		item.Visited = *ui.Visited

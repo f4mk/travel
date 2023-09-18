@@ -257,7 +257,7 @@ func (s *Service) CreateItem(ctx context.Context, w http.ResponseWriter, r *http
 		Description: ni.Description,
 		Address:     ni.Address,
 		Point:       np,
-		ImageLinks:  ni.ImageLinks,
+		ImagesID:    ni.ImagesID,
 	}
 	res, err := s.core.CreateItem(ctx, i)
 	if err != nil {
@@ -310,7 +310,7 @@ func (s *Service) UpdateItem(ctx context.Context, w http.ResponseWriter, r *http
 		Description: ui.Description,
 		Address:     ui.Description,
 		Point:       up,
-		ImageLinks:  ui.ImageLinks,
+		ImagesID:    ui.ImagesID,
 		Visited:     ui.Visited,
 	}
 	res, err := s.core.UpdateItemByID(ctx, i)
@@ -409,7 +409,7 @@ func populateItemResponse(res listUsecase.Item) ItemResponse {
 			Lat:    res.Point.Lat,
 			Lng:    res.Point.Lng,
 		},
-		ImageLinks:  res.ImageLinks,
+		ImagesID:    res.ImagesID,
 		Visited:     res.Visited,
 		DateCreated: res.DateCreated,
 		DateUpdated: res.DateUpdated,

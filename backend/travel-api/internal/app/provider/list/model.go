@@ -27,7 +27,7 @@ type RepoItem struct {
 	Description *string         `db:"description"`
 	Address     *string         `db:"address"`
 	PointID     string          `db:"point"`
-	ImageLinks  *pq.StringArray `db:"image_links"`
+	ImagesID    *pq.StringArray `db:"images_id"`
 	Visited     bool            `db:"is_visited"`
 	DateCreated time.Time       `db:"date_created"`
 	DateUpdated time.Time       `db:"date_updated"`

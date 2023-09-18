@@ -33,13 +33,13 @@ func NewService(
 }
 
 func (s *Service) Serve(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	fname := web.Param(r, "fname")
+	fileID := web.Param(r, "fname")
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
 		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
-	res, err := s.core.QueryByName(ctx, fname, claims.Subject)
+	res, err := s.core.GetImageByID(ctx, fileID, claims.Subject)
 	if err != nil {
 		s.log.Err(err).Msg(ErrGetImageBusiness.Error())
 		return fmt.Errorf(
@@ -49,4 +49,24 @@ func (s *Service) Serve(ctx context.Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	return web.RespondRaw(ctx, w, res, http.StatusOK, "image/webp")
+}
+
+func (s *Service) Store(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	listID := web.Param(r, "listID")
+	itemID := web.Param(r, "itemID")
+	claims, err := auth.GetClaims(ctx)
+	if err != nil {
+		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		return auth.ErrGetClaims
+	}
+	res, err := s.core.StoreImage(ctx, itemID, listID, claims.Subject)
+	if err != nil {
+		s.log.Err(err).Msg(ErrPostImageBusiness.Error())
+		return fmt.Errorf(
+			"cannot store image: %w",
+			web.GetResponseErrorFromBusiness(err),
+		)
+	}
+
+	return web.Respond(ctx, w, res, http.StatusCreated)
 }

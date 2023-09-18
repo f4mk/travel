@@ -41,7 +41,7 @@ type Item struct {
 	Description *string
 	Address     *string
 	Point       Point
-	ImageLinks  *[]string
+	ImagesID    *[]string
 	Visited     bool
 	DateCreated time.Time
 	DateUpdated time.Time
@@ -61,7 +61,7 @@ type NewItem struct {
 	Description *string
 	Address     *string
 	Point       NewPoint
-	ImageLinks  *[]string
+	ImagesID    *[]string
 }
 
 type NewPoint struct {
@@ -77,7 +77,7 @@ type UpdateItem struct {
 	Description *string
 	Address     *string
 	Point       *UpdatePoint
-	ImageLinks  *[]string
+	ImagesID    *[]string
 	Visited     *bool
 }
 

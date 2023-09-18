@@ -218,12 +218,12 @@ func (r *Repo) CreateItem(ctx context.Context, i list.Item) error {
 	INSERT INTO items (
 		item_id, list_id, user_id, item_name,
 		description, address,	point,
-		image_links, is_visited,
+		images_id, is_visited,
 		date_created,	date_updated
 	)
 	SELECT 	:item_id, :list_id, :item_name,
 					:description, :address, :point,
-					:image_links, :is_visited,
+					:images_id, :is_visited,
 					:date_created, :date_updated
 	WHERE EXISTS (
 			SELECT 1 FROM lists
@@ -287,7 +287,7 @@ func (r *Repo) UpdateItemAdmin(ctx context.Context, i list.Item) (err error) {
 							description = :description,
 							address = :address,
 							point = :point,
-							image_links = :image_links,
+							images_id = :images_id,
 							is_visited = :is_visited,
 							date_created = :date_created,
 							date_updated = :date_updated
@@ -334,7 +334,7 @@ func (r *Repo) UpdateItem(ctx context.Context, i list.Item) (err error) {
 							description = :description,
 							address = :address,
 							point = :point,
-							image_links = :image_links,
+							images_id = :images_id,
 							is_visited = :is_visited,
 							date_created = :date_created,
 							date_updated = :date_updated
@@ -436,7 +436,7 @@ func populateList(l list.List) RepoList {
 }
 
 func populateItem(i list.Item) RepoItem {
-	im := fromStringToPq(i.ImageLinks)
+	im := fromStringToPq(i.ImagesID)
 	item := RepoItem{
 		ID:          i.ID,
 		ListID:      i.ListID,
@@ -445,7 +445,7 @@ func populateItem(i list.Item) RepoItem {
 		Description: i.Description,
 		Address:     i.Address,
 		PointID:     i.Point.ID,
-		ImageLinks:  im,
+		ImagesID:    im,
 		Visited:     i.Visited,
 		DateCreated: i.DateCreated,
 		DateUpdated: i.DateUpdated,
@@ -473,7 +473,7 @@ func fromRowsToMap(rows *sqlx.Rows) (map[string]*list.Item, error) {
 				Lat:    row.Lat,
 				Lng:    row.Lng,
 			}
-			im := fromPqToString(row.ImageLinks)
+			im := fromPqToString(row.ImagesID)
 			itemsMap[row.RepoItem.ID] = &list.Item{
 				ID:          row.RepoItem.ID,
 				ListID:      row.ListID,
@@ -482,7 +482,7 @@ func fromRowsToMap(rows *sqlx.Rows) (map[string]*list.Item, error) {
 				Description: row.Description,
 				Address:     row.Address,
 				Point:       p,
-				ImageLinks:  im,
+				ImagesID:    im,
 				Visited:     row.Visited,
 				DateCreated: row.DateCreated,
 				DateUpdated: row.DateUpdated,

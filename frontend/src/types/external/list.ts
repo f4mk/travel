@@ -452,8 +452,8 @@ export interface components {
       /** @description item address on map */
       address?: string
       point: components['schemas']['PointResponse']
-      /** @description array of attached image links */
-      image_links?: string[]
+      /** @description array of attached image ids */
+      images_id?: string[]
       /** @description location is visited */
       visited: boolean
       /** @description creation date */
@@ -506,7 +506,7 @@ export interface components {
       address?: string
       point: components['schemas']['NewPoint']
       /** @description new item's image links array */
-      image_links?: string[]
+      images_id?: string[]
     }
     /** @description new point object */
     NewPoint: {
@@ -525,7 +525,7 @@ export interface components {
       address?: string
       point?: components['schemas']['UpdatePoint']
       /** @description updated item's image links array */
-      image_links?: string[]
+      images_id?: string[]
       /** @description updated item visited mark */
       visited?: boolean
     }

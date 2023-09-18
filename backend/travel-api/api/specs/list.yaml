@@ -528,12 +528,13 @@ components:
           description: "item address on map"
         point: 
           $ref: '#/components/schemas/PointResponse'
-        image_links:
+        images_id:
           type: array
-          description: "array of attached image links"
+          description: "array of attached image ids"
+          x-go-name: ImagesID
           items:
             type: string
-            description: "image url"
+            description: "image id"
         visited: 
           type: boolean
           description: "location is visited"
@@ -664,9 +665,10 @@ components:
           x-oapi-codegen-extra-tags:
             validate: "required,dive"
           $ref: '#/components/schemas/NewPoint'
-        image_links:
+        images_id:
           type: array
           description: new item's image links array
+          x-go-name: ImagesID
           x-oapi-codegen-extra-tags:
             validate: "omitempty"
           items:
@@ -719,9 +721,10 @@ components:
           x-oapi-codegen-extra-tags:
             validate: "omitempty,dive"
           $ref: '#/components/schemas/UpdatePoint'
-        image_links:
+        images_id:
           type: array
           description: updated item's image links array
+          x-go-name: ImagesID
           x-oapi-codegen-extra-tags:
             validate: "omitempty"
           items:
