@@ -87,15 +87,25 @@ func (c *Core) StoreImages(
 		imageIDs = append(imageIDs, img.ID)
 	}
 
-	if err := c.storer.Create(ctx, imageItems); err != nil {
-		c.log.Err(err).Msgf("image: create: %s", database.ErrQueryDB.Error())
-		return nil, database.WrapStorerError(err)
+	errCh := make(chan error, 2)
+	go func() {
+		if err := c.storer.Create(ctx, imageItems); err != nil {
+			c.log.Err(err).Msgf("image: create: %s", database.ErrQueryDB.Error())
+			errCh <- database.WrapStorerError(err)
+		}
+		errCh <- nil
+	}()
+	go func() {
+		if err := c.server.SaveFiles(ctx, imageIDs, imgStreams); err != nil {
+			c.log.Err(err).Msgf("image: create: save: %s", err.Error())
+			errCh <- err
+		}
+		errCh <- nil
+	}()
+	for i := 0; i < 2; i++ {
+		if err := <-errCh; err != nil {
+			return nil, err
+		}
 	}
-
-	if err := c.server.SaveFiles(ctx, imageIDs, imgStreams); err != nil {
-		c.log.Err(err).Msgf("image: create: save: %s", err.Error())
-		return nil, err
-	}
-
 	return imageIDs, nil
 }
