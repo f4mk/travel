@@ -15,6 +15,7 @@ import (
 type Server interface {
 	ServeFile(ctx context.Context, fileID string) ([]byte, error)
 	SaveFiles(ctx context.Context, filesID []string, streams []io.Reader) error
+	DeleteFiles(ctx context.Context, filesID []string) error
 }
 type Storer interface {
 	QueryByID(ctx context.Context, listID string) (Image, error)
@@ -90,6 +91,7 @@ func (c *Core) StoreImages(
 	errCh := make(chan error, 2)
 	go func() {
 		if err := c.storer.Create(ctx, imageItems); err != nil {
+			// no need for cleanup: should be handled by cron
 			c.log.Err(err).Msgf("image: create: %s", database.ErrQueryDB.Error())
 			errCh <- database.WrapStorerError(err)
 		}
@@ -98,6 +100,10 @@ func (c *Core) StoreImages(
 	go func() {
 		if err := c.server.SaveFiles(ctx, imageIDs, imgStreams); err != nil {
 			c.log.Err(err).Msgf("image: create: save: %s", err.Error())
+			// cleanup image storage
+			if err := c.server.DeleteFiles(ctx, imageIDs); err != nil {
+				c.log.Err(err).Msgf("image: create: rollback: %s", err.Error())
+			}
 			errCh <- err
 		}
 		errCh <- nil
