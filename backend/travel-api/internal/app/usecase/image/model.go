@@ -1,22 +1,18 @@
 package image
 
-import "time"
+import (
+	"time"
 
-type Status string
-
-const (
-	Pending Status = "pending"
-	Loaded  Status = "loaded"
-	Deleted Status = "deleted"
+	"github.com/f4mk/travel/backend/travel-api/internal/pkg/images"
 )
 
 type Image struct {
 	ID          string
 	ListID      string
 	UserID      string
-	ItemID      string
+	ItemID      *string
 	Private     bool
 	Description string
-	Status      Status
+	Status      images.Status
 	DateCreated time.Time
 }

@@ -6,7 +6,7 @@ CREATE TABLE images (
   image_id UUID PRIMARY KEY,
   list_id UUID NOT NULL,
   user_id UUID NOT NULL,
-  item_id UUID NOT NULL,
+  item_id UUID,
   private BOOLEAN NOT NULL DEFAULT TRUE,
   description TEXT,
   status image_status NOT NULL,

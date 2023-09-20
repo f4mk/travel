@@ -56,7 +56,6 @@ func (s *Service) Serve(ctx context.Context, w http.ResponseWriter, r *http.Requ
 
 func (s *Service) Store(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	listID := web.Param(r, "listID")
-	itemID := web.Param(r, "itemID")
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
 		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
@@ -103,7 +102,7 @@ func (s *Service) Store(ctx context.Context, w http.ResponseWriter, r *http.Requ
 		imageStreams = append(imageStreams, stream)
 	}
 
-	res, err := s.core.StoreImages(ctx, imageStreams, itemID, listID, claims.Subject)
+	res, err := s.core.StoreImages(ctx, imageStreams, listID, claims.Subject)
 	if err != nil {
 		s.log.Err(err).Msg(ErrPostImageBusiness.Error())
 		return fmt.Errorf(

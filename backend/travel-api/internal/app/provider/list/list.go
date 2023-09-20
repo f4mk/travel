@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/f4mk/travel/backend/travel-api/internal/app/usecase/list"
+	"github.com/f4mk/travel/backend/travel-api/internal/pkg/images"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/rs/zerolog"
@@ -214,6 +215,13 @@ func (r *Repo) CreateItem(ctx context.Context, i list.Item) error {
 	if err != nil {
 		return err
 	}
+	qImages := `
+	UPDATE images SET
+		item_id = $1,
+		status = $2,
+	WHERE image_id = $3 AND list_id = $4;
+	`
+
 	qItem := `
 	INSERT INTO items (
 		item_id, list_id, user_id, item_name,
@@ -245,6 +253,16 @@ func (r *Repo) CreateItem(ctx context.Context, i list.Item) error {
 			r.log.Err(rErr).Msg("Failed to rollback after error")
 		}
 		return err
+	}
+
+	for _, imageID := range *item.ImagesID {
+		_, err := r.repo.ExecContext(ctx, qImages, item.ID, images.Loaded, imageID, item.ListID)
+		if err != nil {
+			if rErr := tx.Rollback(); rErr != nil {
+				r.log.Err(rErr).Msg("Failed to rollback after error")
+			}
+			return err
+		}
 	}
 
 	err = handleRowsResult(tx.NamedExecContext(ctx, qPoint, point))

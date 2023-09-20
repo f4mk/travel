@@ -7,6 +7,7 @@ import (
 
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/auth"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/database"
+	"github.com/f4mk/travel/backend/travel-api/internal/pkg/images"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/web"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
@@ -63,7 +64,7 @@ func (c *Core) GetImageByID(ctx context.Context, fileID string, userID string) (
 func (c *Core) StoreImages(
 	ctx context.Context,
 	imageStreams []io.Reader,
-	itemID, listID, userID string,
+	listID, userID string,
 ) ([]string, error) {
 	var imageIDs []string
 	var imageItems []Image
@@ -77,10 +78,10 @@ func (c *Core) StoreImages(
 			ID:          uuid.New().String(),
 			ListID:      listID,
 			UserID:      userID,
-			ItemID:      itemID,
+			ItemID:      nil,
 			Private:     true,
 			Description: "",
-			Status:      Pending,
+			Status:      images.Pending,
 			DateCreated: time.Now().UTC(),
 		}
 
