@@ -203,7 +203,7 @@ func (r *Repo) DeleteList(ctx context.Context, userID string, listID string) err
 	return nil
 }
 
-func (r *Repo) CreateItem(ctx context.Context, i list.Item) error {
+func (r *Repo) CreateItem(ctx context.Context, i list.Item) (err error) {
 	item := populateItem(i)
 	point := RepoPoint{
 		ID:     i.Point.ID,
@@ -215,6 +215,13 @@ func (r *Repo) CreateItem(ctx context.Context, i list.Item) error {
 	if err != nil {
 		return err
 	}
+	defer func() {
+		if err != nil {
+			if rErr := tx.Rollback(); rErr != nil {
+				r.log.Err(rErr).Msg("failed to rollback after error")
+			}
+		}
+	}()
 	qImages := `
 	UPDATE images SET
 		item_id = $1,
@@ -249,36 +256,22 @@ func (r *Repo) CreateItem(ctx context.Context, i list.Item) error {
 	`
 	err = handleRowsResult(tx.NamedExecContext(ctx, qItem, item))
 	if err != nil {
-		if rErr := tx.Rollback(); rErr != nil {
-			r.log.Err(rErr).Msg("Failed to rollback after error")
-		}
 		return err
 	}
 
 	for _, imageID := range *item.ImagesID {
 		_, err := r.repo.ExecContext(ctx, qImages, item.ID, images.Loaded, imageID, item.ListID)
 		if err != nil {
-			if rErr := tx.Rollback(); rErr != nil {
-				r.log.Err(rErr).Msg("Failed to rollback after error")
-			}
 			return err
 		}
 	}
 
 	err = handleRowsResult(tx.NamedExecContext(ctx, qPoint, point))
 	if err != nil {
-		if rErr := tx.Rollback(); rErr != nil {
-			r.log.Err(rErr).Msg("Failed to rollback after error")
-		}
 		return err
 	}
-	if err := tx.Commit(); err != nil {
-		if rErr := tx.Rollback(); rErr != nil {
-			r.log.Err(rErr).Msg("Failed to rollback after error")
-		}
-		return err
-	}
-	return nil
+	err = tx.Commit()
+	return err
 }
 
 func (r *Repo) UpdateItemAdmin(ctx context.Context, i list.Item) (err error) {
@@ -381,23 +374,61 @@ func (r *Repo) UpdateItem(ctx context.Context, i list.Item) (err error) {
 	return nil
 }
 
-func (r *Repo) DeleteItemAdmin(ctx context.Context, itemID string) error {
-	q := `DELETE FROM items WHERE item_id = $1;`
-	err := handleRowsResult(r.repo.ExecContext(ctx, q, itemID))
+func (r *Repo) DeleteItemAdmin(ctx context.Context, itemID string) (err error) {
+
+	qItem := `DELETE FROM items WHERE item_id = $1;`
+	qImages := `UPDATE images SET status = $1 WHERE item_id = $2`
+	tx, err := r.repo.Beginx()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			if rErr := tx.Rollback(); rErr != nil {
+				r.log.Err(rErr).Msg("failed to rollback after error")
+			}
+		}
+	}()
+	if err := handleRowsResult(tx.ExecContext(ctx, qItem, itemID)); err != nil {
+		return err
+	}
+	_, err = tx.ExecContext(ctx, qImages, images.Deleted, itemID)
+	if err != nil {
+		return err
+	}
+	err = tx.Commit()
 	if err != nil {
 		return err
 	}
 	return nil
 }
+
 func (r *Repo) DeleteItem(ctx context.Context, userID string, listID string, itemID string) error {
-	q := `DELETE FROM items WHERE item_id = $1 
+	qItem := `DELETE FROM items WHERE item_id = $1 
 				AND EXISTS (
 					SELECT 1
 					FROM lists
 					WHERE lists.list_id = $2 
 					AND lists.user_id = $3
 				);`
-	err := handleRowsResult(r.repo.ExecContext(ctx, q, itemID, listID, userID))
+	qImages := `UPDATE images SET status = $1 
+							WHERE item_id = $2 
+							AND list_id = $3
+							AND user_id = $4
+							`
+	tx, err := r.repo.Beginx()
+	if err != nil {
+		return err
+	}
+	err = handleRowsResult(tx.ExecContext(ctx, qItem, itemID, listID, userID))
+	if err != nil {
+		return err
+	}
+	_, err = tx.ExecContext(ctx, qImages, images.Deleted, itemID, listID, userID)
+	if err != nil {
+		return err
+	}
+	err = tx.Commit()
 	if err != nil {
 		return err
 	}
