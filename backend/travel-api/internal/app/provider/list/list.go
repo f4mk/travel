@@ -237,7 +237,8 @@ func (r *Repo) CreateItem(ctx context.Context, i list.Item) (err error) {
 		UPDATE images SET
 			item_id = $1,
 			status = $2,
-		WHERE image_id = $3 AND list_id = $4;
+		WHERE image_id = $3 
+		AND list_id = $4;
 	`
 	qItem := `
 		INSERT INTO items (
@@ -246,7 +247,7 @@ func (r *Repo) CreateItem(ctx context.Context, i list.Item) (err error) {
 			images_id, is_visited,
 			date_created,	date_updated
 		)
-		SELECT 	:item_id, :list_id, :item_name,
+		SELECT 	:item_id, :list_id, :user_id, :item_name,
 						:description, :address, :point,
 						:images_id, :is_visited,
 						:date_created, :date_updated
