@@ -10,7 +10,7 @@ type List struct {
 	Private     bool
 	Favorite    bool
 	Completed   bool
-	ItemsID     *[]string
+	ItemsID     []string
 	DateCreated time.Time
 	DateUpdated time.Time
 }
@@ -30,7 +30,7 @@ type UpdateList struct {
 	Private     *bool
 	Favorite    *bool
 	Completed   *bool
-	ItemsID     *[]string
+	ItemsID     []string
 }
 
 type Item struct {
@@ -41,7 +41,7 @@ type Item struct {
 	Description *string
 	Address     *string
 	Point       Point
-	ImagesID    *[]string
+	ImagesID    []string
 	Visited     bool
 	DateCreated time.Time
 	DateUpdated time.Time
@@ -61,7 +61,7 @@ type NewItem struct {
 	Description *string
 	Address     *string
 	Point       NewPoint
-	ImagesID    *[]string
+	ImagesID    []string
 }
 
 type NewPoint struct {
@@ -77,7 +77,7 @@ type UpdateItem struct {
 	Description *string
 	Address     *string
 	Point       *UpdatePoint
-	ImagesID    *[]string
+	ImagesID    []string
 	Visited     *bool
 }
 

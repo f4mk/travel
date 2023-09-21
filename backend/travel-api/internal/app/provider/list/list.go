@@ -29,7 +29,7 @@ func (r *Repo) QueryListsByUserID(ctx context.Context, uID string) ([]list.List,
 	}
 	ls := []list.List{}
 	for _, l := range res {
-		s := fromPqToString(l.ItemsID)
+		s := []string(l.ItemsID)
 		ll := list.List{
 			ID:          l.ID,
 			UserID:      l.UserID,
@@ -53,7 +53,7 @@ func (r *Repo) QueryListByID(ctx context.Context, uID string, lID string) (list.
 	if err := r.repo.GetContext(ctx, &res, q, lID, uID); err != nil {
 		return list.List{}, err
 	}
-	s := fromPqToString(res.ItemsID)
+	s := []string(res.ItemsID)
 	l := list.List{
 		ID:          res.ID,
 		UserID:      res.UserID,
@@ -70,12 +70,14 @@ func (r *Repo) QueryListByID(ctx context.Context, uID string, lID string) (list.
 }
 
 func (r *Repo) QueryItemsByListID(ctx context.Context, userID string, listID string) ([]list.Item, error) {
-	q := `SELECT items.*, points.point_id,
-					ST_Y(points.location) AS lat, ST_X(points.location) AS lng
-				FROM lists
-				INNER JOIN items ON items.list_id = lists.list_id
-				INNER JOIN points ON points.item_id = items.item_id
-				WHERE lists.user_id = $1 AND lists.list_id = $2;`
+	q := `
+		SELECT items.*, points.point_id,
+			ST_Y(points.location) AS lat, ST_X(points.location) AS lng
+		FROM lists
+		INNER JOIN items ON items.list_id = lists.list_id
+		INNER JOIN points ON points.item_id = items.item_id
+		WHERE lists.user_id = $1 AND lists.list_id = $2;
+	`
 
 	rows, err := r.repo.QueryxContext(ctx, q, userID, listID)
 	if err != nil {
@@ -97,12 +99,14 @@ func (r *Repo) QueryItemsByListID(ctx context.Context, userID string, listID str
 }
 
 func (r *Repo) QueryItemByID(ctx context.Context, userID string, listID string, itemID string) (list.Item, error) {
-	q := `SELECT items.*, points.point_id,
-					ST_Y(points.location) AS lat, ST_X(points.location) AS lng
-				FROM lists
-				INNER JOIN items ON items.list_id = lists.list_id
-				INNER JOIN points ON points.item_id = items.item_id
-				WHERE lists.user_id = $1 AND lists.list_id = $2 AND items.item_id = $3;`
+	q := `
+		SELECT items.*, points.point_id,
+			ST_Y(points.location) AS lat, ST_X(points.location) AS lng
+		FROM lists
+		INNER JOIN items ON items.list_id = lists.list_id
+		INNER JOIN points ON points.item_id = items.item_id
+		WHERE lists.user_id = $1 AND lists.list_id = $2 AND items.item_id = $3;
+	`
 
 	rows, err := r.repo.QueryxContext(ctx, q, userID, listID, itemID)
 	if err != nil {
@@ -128,16 +132,19 @@ func (r *Repo) QueryItemByID(ctx context.Context, userID string, listID string, 
 
 func (r *Repo) CreateList(ctx context.Context, l list.List) error {
 	list := populateList(l)
-	q := `INSERT INTO lists (
-					list_id, user_id, list_name, description, 
-					private, favorite, completed, items, 
-					date_created, date_updated
-				) 
-				VALUES (
-					:list_id, :user_id, :list_name, :description, 
-					:private, :favorite, :completed, :items,
-					:date_created, :date_updated
-				)`
+	q := `
+		INSERT INTO lists (
+			list_id, user_id, list_name, description, 
+			private, favorite, completed, items, 
+			date_created, date_updated
+		) 
+		VALUES (
+			:list_id, :user_id, :list_name, :description, 
+			:private, :favorite, :completed, :items,
+			:date_created, :date_updated
+		);
+	`
+
 	err := handleRowsResult(r.repo.NamedExecContext(ctx, q, list))
 	if err != nil {
 		return err
@@ -147,16 +154,18 @@ func (r *Repo) CreateList(ctx context.Context, l list.List) error {
 
 func (r *Repo) UpdateListAdmin(ctx context.Context, l list.List) error {
 	list := populateList(l)
-	q := `UPDATE lists SET
-					list_name = :list_name,
-					description = :description,
-					private = :private,
-					favorite = :favorite,
-					completed = :completed,
-					items = :items,
-					date_created = :date_created,
-					date_updated = :date_updated
-				WHERE list_id = :list_id;`
+	q := `
+		UPDATE lists SET
+			list_name = :list_name,
+			description = :description,
+			private = :private,
+			favorite = :favorite,
+			completed = :completed,
+			items = :items,
+			date_created = :date_created,
+			date_updated = :date_updated
+		WHERE list_id = :list_id;
+	`
 
 	err := handleRowsResult(r.repo.NamedExecContext(ctx, q, list))
 	if err != nil {
@@ -167,16 +176,18 @@ func (r *Repo) UpdateListAdmin(ctx context.Context, l list.List) error {
 
 func (r *Repo) UpdateList(ctx context.Context, l list.List) error {
 	list := populateList(l)
-	q := `UPDATE lists SET 
-					list_name = :list_name,
-					description = :description,
-					private = :private,
-					favorite = :favorite,
-					completed = :completed,
-					items = :items,
-					date_created = :date_created,
-					date_updated = :date_updated
-				WHERE list_id = :list_id AND user_id = :user_id;`
+	q := `
+		UPDATE lists SET 
+			list_name = :list_name,
+			description = :description,
+			private = :private,
+			favorite = :favorite,
+			completed = :completed,
+			items = :items,
+			date_created = :date_created,
+			date_updated = :date_updated
+		WHERE list_id = :list_id AND user_id = :user_id;
+	`
 
 	err := handleRowsResult(r.repo.NamedExecContext(ctx, q, list))
 	if err != nil {
@@ -223,43 +234,43 @@ func (r *Repo) CreateItem(ctx context.Context, i list.Item) (err error) {
 		}
 	}()
 	qImages := `
-	UPDATE images SET
-		item_id = $1,
-		status = $2,
-	WHERE image_id = $3 AND list_id = $4;
+		UPDATE images SET
+			item_id = $1,
+			status = $2,
+		WHERE image_id = $3 AND list_id = $4;
 	`
-
 	qItem := `
-	INSERT INTO items (
-		item_id, list_id, user_id, item_name,
-		description, address,	point,
-		images_id, is_visited,
-		date_created,	date_updated
-	)
-	SELECT 	:item_id, :list_id, :item_name,
-					:description, :address, :point,
-					:images_id, :is_visited,
-					:date_created, :date_updated
-	WHERE EXISTS (
-			SELECT 1 FROM lists
-			WHERE lists.list_id = :list_id
-			AND lists.user_id = :user_id
-	);`
-
+		INSERT INTO items (
+			item_id, list_id, user_id, item_name,
+			description, address,	point,
+			images_id, is_visited,
+			date_created,	date_updated
+		)
+		SELECT 	:item_id, :list_id, :item_name,
+						:description, :address, :point,
+						:images_id, :is_visited,
+						:date_created, :date_updated
+		WHERE EXISTS (
+				SELECT 1 FROM lists
+				WHERE lists.list_id = :list_id
+				AND lists.user_id = :user_id
+		);
+	`
 	// TODO: refactor magical number
-	qPoint := `INSERT INTO points (
-							point_id, item_id, location
-						)
-						VALUES (
-							:point_id, :item_id, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)
-						);
+	qPoint := `
+		INSERT INTO points (
+			point_id, item_id, location
+		)
+		VALUES (
+			:point_id, :item_id, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)
+		);
 	`
 	err = handleRowsResult(tx.NamedExecContext(ctx, qItem, item))
 	if err != nil {
 		return err
 	}
 
-	for _, imageID := range *item.ImagesID {
+	for _, imageID := range item.ImagesID {
 		_, err := r.repo.ExecContext(ctx, qImages, item.ID, images.Loaded, imageID, item.ListID)
 		if err != nil {
 			return err
@@ -274,7 +285,7 @@ func (r *Repo) CreateItem(ctx context.Context, i list.Item) (err error) {
 	return err
 }
 
-func (r *Repo) UpdateItemAdmin(ctx context.Context, i list.Item) (err error) {
+func (r *Repo) UpdateItemAdmin(ctx context.Context, i list.Item, toDelete []string) (err error) {
 	item := populateItem(i)
 	point := RepoPoint{
 		ID:     i.Point.ID,
@@ -293,19 +304,39 @@ func (r *Repo) UpdateItemAdmin(ctx context.Context, i list.Item) (err error) {
 			}
 		}
 	}()
-	qItem := `UPDATE items SET
-							item_name = :item_name,
-							description = :description,
-							address = :address,
-							point = :point,
-							images_id = :images_id,
-							is_visited = :is_visited,
-							date_created = :date_created,
-							date_updated = :date_updated
-						WHERE item_id = :item_id;`
-	qPoint := `UPDATE points SET
-							location = ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)
-						WHERE point_id = :point_id;`
+	qImages := `
+		UPDATE images SET status = $1 WHERE image_id = $2 AND item_id = $3;
+	`
+	qItem := `
+		UPDATE items SET
+			item_name = :item_name,
+			description = :description,
+			address = :address,
+			point = :point,
+			images_id = :images_id,
+			is_visited = :is_visited,
+			date_created = :date_created,
+			date_updated = :date_updated
+		WHERE item_id = :item_id;
+	`
+	qPoint := `
+		UPDATE points SET
+			location = ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)
+		WHERE point_id = :point_id;
+	`
+
+	for _, imgID := range item.ImagesID {
+		_, err = tx.ExecContext(ctx, qImages, images.Loaded, imgID, item.ID)
+		if err != nil {
+			return err
+		}
+	}
+	for _, imgID := range toDelete {
+		_, err = tx.ExecContext(ctx, qImages, images.Deleted, imgID, item.ID)
+		if err != nil {
+			return err
+		}
+	}
 	err = handleRowsResult(tx.NamedExecContext(ctx, qItem, item))
 	if err != nil {
 		return err
@@ -321,7 +352,7 @@ func (r *Repo) UpdateItemAdmin(ctx context.Context, i list.Item) (err error) {
 	return nil
 }
 
-func (r *Repo) UpdateItem(ctx context.Context, i list.Item) (err error) {
+func (r *Repo) UpdateItem(ctx context.Context, i list.Item, toDelete []string) (err error) {
 	item := populateItem(i)
 	point := RepoPoint{
 		ID:     i.Point.ID,
@@ -340,25 +371,49 @@ func (r *Repo) UpdateItem(ctx context.Context, i list.Item) (err error) {
 			}
 		}
 	}()
-	qItem := `UPDATE items SET
-							item_name = :item_name,
-							description = :description,
-							address = :address,
-							point = :point,
-							images_id = :images_id,
-							is_visited = :is_visited,
-							date_created = :date_created,
-							date_updated = :date_updated
-						WHERE item_id = :item_id
-						AND EXISTS (
-							SELECT 1 
-							FROM lists 
-							WHERE lists.list_id = :list_id 
-							AND lists.user_id = :user_id
-						);`
-	qPoint := `UPDATE points SET
-							location = ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)
-						WHERE point_id = :point_id;`
+	qImages := `
+		UPDATE images SET status = $1 
+		WHERE image_id = $2 
+		AND item_id = $3
+		AND list_id = $4
+		AND user_id = $5;
+	`
+	qItem := `
+		UPDATE items SET
+			item_name = :item_name,
+			description = :description,
+			address = :address,
+			point = :point,
+			images_id = :images_id,
+			is_visited = :is_visited,
+			date_created = :date_created,
+			date_updated = :date_updated
+		WHERE item_id = :item_id
+		AND EXISTS (
+			SELECT 1 
+			FROM lists 
+			WHERE lists.list_id = :list_id 
+			AND lists.user_id = :user_id
+		);
+	`
+	qPoint := `
+		UPDATE points SET
+			location = ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)
+		WHERE point_id = :point_id;
+	`
+
+	for _, imgID := range item.ImagesID {
+		_, err = tx.ExecContext(ctx, qImages, images.Loaded, imgID, item.ID, item.ListID, item.UserID)
+		if err != nil {
+			return err
+		}
+	}
+	for _, imgID := range toDelete {
+		_, err = tx.ExecContext(ctx, qImages, images.Deleted, imgID, item.ID, item.ListID, item.UserID)
+		if err != nil {
+			return err
+		}
+	}
 	err = handleRowsResult(tx.NamedExecContext(ctx, qItem, item))
 	if err != nil {
 		return err
@@ -377,7 +432,7 @@ func (r *Repo) UpdateItem(ctx context.Context, i list.Item) (err error) {
 func (r *Repo) DeleteItemAdmin(ctx context.Context, itemID string) (err error) {
 
 	qItem := `DELETE FROM items WHERE item_id = $1;`
-	qImages := `UPDATE images SET status = $1 WHERE item_id = $2`
+	qImages := `UPDATE images SET status = $1 WHERE item_id = $2;`
 	tx, err := r.repo.Beginx()
 	if err != nil {
 		return err
@@ -404,18 +459,21 @@ func (r *Repo) DeleteItemAdmin(ctx context.Context, itemID string) (err error) {
 }
 
 func (r *Repo) DeleteItem(ctx context.Context, userID string, listID string, itemID string) error {
-	qItem := `DELETE FROM items WHERE item_id = $1 
-				AND EXISTS (
-					SELECT 1
-					FROM lists
-					WHERE lists.list_id = $2 
-					AND lists.user_id = $3
-				);`
-	qImages := `UPDATE images SET status = $1 
-							WHERE item_id = $2 
-							AND list_id = $3
-							AND user_id = $4
-							`
+	qItem := `
+		DELETE FROM items WHERE item_id = $1 
+		AND EXISTS (
+			SELECT 1
+			FROM lists
+			WHERE lists.list_id = $2 
+			AND lists.user_id = $3
+		);
+	`
+	qImages := `
+		UPDATE images SET status = $1 
+		WHERE item_id = $2 
+		AND list_id = $3
+		AND user_id = $4;
+		`
 	tx, err := r.repo.Beginx()
 	if err != nil {
 		return err
@@ -449,26 +507,8 @@ func handleRowsResult(res sql.Result, err error) error {
 	return nil
 }
 
-func fromStringToPq(s *[]string) *pq.StringArray {
-	var pqSlice *pq.StringArray
-	if s != nil {
-		tmp := pq.StringArray(*s)
-		pqSlice = &tmp
-	}
-	return pqSlice
-}
-
-func fromPqToString(p *pq.StringArray) *[]string {
-	var s *[]string
-	if p != nil {
-		temp := []string(*p)
-		s = &temp
-	}
-	return s
-}
-
 func populateList(l list.List) RepoList {
-	p := fromStringToPq(l.ItemsID)
+	p := pq.StringArray(l.ItemsID)
 	list := RepoList{
 		ID:          l.ID,
 		UserID:      l.UserID,
@@ -485,7 +525,7 @@ func populateList(l list.List) RepoList {
 }
 
 func populateItem(i list.Item) RepoItem {
-	im := fromStringToPq(i.ImagesID)
+	im := pq.StringArray(i.ImagesID)
 	item := RepoItem{
 		ID:          i.ID,
 		ListID:      i.ListID,
@@ -522,7 +562,7 @@ func fromRowsToMap(rows *sqlx.Rows) (map[string]*list.Item, error) {
 				Lat:    row.Lat,
 				Lng:    row.Lng,
 			}
-			im := fromPqToString(row.ImagesID)
+			im := []string(row.ImagesID)
 			itemsMap[row.RepoItem.ID] = &list.Item{
 				ID:          row.RepoItem.ID,
 				ListID:      row.ListID,

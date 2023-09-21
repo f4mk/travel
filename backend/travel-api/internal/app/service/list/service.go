@@ -175,6 +175,10 @@ func (s *Service) UpdateList(ctx context.Context, w http.ResponseWriter, r *http
 		s.log.Err(err).Msg(ErrListValidateListUUID.Error())
 		return err
 	}
+	var isID []string
+	if ul.ItemsID != nil {
+		isID = *ul.ItemsID
+	}
 	l := listUsecase.UpdateList{
 		ID:          listID,
 		UserID:      claims.Subject,
@@ -183,7 +187,7 @@ func (s *Service) UpdateList(ctx context.Context, w http.ResponseWriter, r *http
 		Private:     ul.Private,
 		Favorite:    ul.Favorite,
 		Completed:   ul.Completed,
-		ItemsID:     ul.ItemsID,
+		ItemsID:     isID,
 	}
 
 	res, err := s.core.UpdateListByID(ctx, l)
@@ -250,6 +254,10 @@ func (s *Service) CreateItem(ctx context.Context, w http.ResponseWriter, r *http
 		Lat: ni.Point.Lat,
 		Lng: ni.Point.Lng,
 	}
+	var imgsID []string
+	if ni.ImagesID != nil {
+		imgsID = *ni.ImagesID
+	}
 	i := listUsecase.NewItem{
 		ListID:      listID,
 		UserID:      claims.Subject,
@@ -257,7 +265,7 @@ func (s *Service) CreateItem(ctx context.Context, w http.ResponseWriter, r *http
 		Description: ni.Description,
 		Address:     ni.Address,
 		Point:       np,
-		ImagesID:    ni.ImagesID,
+		ImagesID:    imgsID,
 	}
 	res, err := s.core.CreateItem(ctx, i)
 	if err != nil {
@@ -302,6 +310,10 @@ func (s *Service) UpdateItem(ctx context.Context, w http.ResponseWriter, r *http
 			Lng: ui.Point.Lng,
 		}
 	}
+	var imgsID []string
+	if ui.ImagesID != nil {
+		imgsID = *ui.ImagesID
+	}
 	i := listUsecase.UpdateItem{
 		ID:          itemID,
 		ListID:      listID,
@@ -310,7 +322,7 @@ func (s *Service) UpdateItem(ctx context.Context, w http.ResponseWriter, r *http
 		Description: ui.Description,
 		Address:     ui.Description,
 		Point:       up,
-		ImagesID:    ui.ImagesID,
+		ImagesID:    imgsID,
 		Visited:     ui.Visited,
 	}
 	res, err := s.core.UpdateItemByID(ctx, i)
@@ -389,7 +401,7 @@ func populateListResponse(res listUsecase.List) ListResponse {
 		Favorite:    res.Favorite,
 		Private:     res.Private,
 		Completed:   res.Completed,
-		ItemsID:     res.ItemsID,
+		ItemsID:     &res.ItemsID,
 		DateCreated: res.DateCreated,
 		DateUpdated: &res.DateUpdated,
 	}
@@ -409,7 +421,7 @@ func populateItemResponse(res listUsecase.Item) ItemResponse {
 			Lat:    res.Point.Lat,
 			Lng:    res.Point.Lng,
 		},
-		ImagesID:    res.ImagesID,
+		ImagesID:    &res.ImagesID,
 		Visited:     res.Visited,
 		DateCreated: res.DateCreated,
 		DateUpdated: res.DateUpdated,

@@ -21,8 +21,8 @@ type storer interface {
 	DeleteListAdmin(ctx context.Context, listID string) error
 	DeleteList(ctx context.Context, userID string, listID string) error
 	CreateItem(ctx context.Context, item Item) error
-	UpdateItemAdmin(ctx context.Context, item Item) error
-	UpdateItem(ctx context.Context, item Item) error
+	UpdateItemAdmin(ctx context.Context, item Item, deleteImages []string) error
+	UpdateItem(ctx context.Context, item Item, deleteImages []string) error
 	DeleteItemAdmin(ctx context.Context, itemID string) error
 	DeleteItem(ctx context.Context, userID string, listID string, itemID string) error
 }
@@ -225,15 +225,39 @@ func (c *Core) UpdateItemByID(ctx context.Context, ui UpdateItem) (Item, error) 
 	if ui.Address != nil {
 		item.Address = ui.Address
 	}
-	if ui.ImagesID != nil {
-		item.ImagesID = ui.ImagesID
+	var toUpsert []string
+	var toDelete []string
+	if len(item.ImagesID) != 0 {
+		existingMap := make(map[string]bool)
+		newMap := make(map[string]bool)
+
+		for _, id := range item.ImagesID {
+			existingMap[id] = true
+		}
+		for _, id := range ui.ImagesID {
+			newMap[id] = true
+		}
+		for id := range existingMap {
+			if !newMap[id] {
+				toDelete = append(toDelete, id)
+			}
+		}
+		for id := range newMap {
+			if !existingMap[id] || existingMap[id] {
+				toUpsert = append(toUpsert, id)
+			}
+		}
+	} else {
+		toUpsert = ui.ImagesID
 	}
+	item.ImagesID = toUpsert
+
 	if ui.Visited != nil {
 		item.Visited = *ui.Visited
 	}
 	item.DateUpdated = time.Now().UTC()
 	if claims.Authorize(auth.RoleAdmin) {
-		if err := c.storer.UpdateItemAdmin(ctx, item); err != nil {
+		if err := c.storer.UpdateItemAdmin(ctx, item, toDelete); err != nil {
 			c.log.Err(err).Msgf("item: update by admin: %s", database.ErrQueryDB.Error())
 			return Item{}, database.WrapStorerError(err)
 		}
@@ -242,7 +266,7 @@ func (c *Core) UpdateItemByID(ctx context.Context, ui UpdateItem) (Item, error) 
 	}
 	// TODO: userID was already checked during QueryItemByID
 	// but may be its better to keep it here as well
-	if err := c.storer.UpdateItem(ctx, item); err != nil {
+	if err := c.storer.UpdateItem(ctx, item, toDelete); err != nil {
 		c.log.Err(err).Msgf("item: update: %s", database.ErrQueryDB.Error())
 		return Item{}, database.WrapStorerError(err)
 	}
