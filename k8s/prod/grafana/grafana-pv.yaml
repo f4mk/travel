@@ -1,14 +1,16 @@
+kind: PersistentVolume
 apiVersion: v1
-kind: PersistentVolumeClaim
 metadata:
+  name: grafana-pv
   labels:
     app: travel
     component: travel-grafana-storage
-  name: grafana-pvc
 spec:
   storageClassName: manual
+  capacity:
+    storage: 1Gi
   accessModes:
     - ReadWriteOnce
-  resources:
-    requests:
-      storage: 512Mi
+  hostPath:
+    path: "/data/grafana"
+    type: DirectoryOrCreate
