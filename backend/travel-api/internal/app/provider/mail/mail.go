@@ -20,16 +20,6 @@ type Sender struct {
 	mail  *mailjet.Client
 }
 
-type Letter struct {
-	To      string
-	Name    string
-	Subject string
-	Header  string
-	Body    string
-	Link    string
-	Domain  string
-}
-
 func NewSender(l *zerolog.Logger, m *mailjet.Client, dn string) *Sender {
 	return &Sender{log: l, mail: m, dName: dn}
 }

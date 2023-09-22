@@ -223,9 +223,9 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 		middleware.Panics(log),
 	)
 
-	userStorer := userRepo.NewRepo(log, db)
-	authStorer := authRepo.NewRepo(log, db)
-	listStorer := listRepo.NewRepo(log, db)
+	userStorer := userRepo.NewStorer(log, db)
+	authStorer := authRepo.NewStorer(log, db)
+	listStorer := listRepo.NewStorer(log, db)
 
 	userCore := userUsecase.NewCore(log, userStorer)
 	userService := userService.NewService(log, auth, userCore, mq)

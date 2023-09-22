@@ -12,19 +12,19 @@ import (
 	"github.com/rs/zerolog"
 )
 
-type Repo struct {
+type Storer struct {
 	repo *sqlx.DB
 	log  *zerolog.Logger
 }
 
-func NewRepo(l *zerolog.Logger, r *sqlx.DB) *Repo {
-	return &Repo{repo: r, log: l}
+func NewStorer(l *zerolog.Logger, r *sqlx.DB) *Storer {
+	return &Storer{repo: r, log: l}
 }
 
-func (r *Repo) QueryListsByUserID(ctx context.Context, uID string) ([]list.List, error) {
-	res := []RepoList{}
+func (s *Storer) QueryListsByUserID(ctx context.Context, uID string) ([]list.List, error) {
+	res := []StorerList{}
 	q := `SELECT * from lists where user_id=$1`
-	if err := r.repo.SelectContext(ctx, &res, q, uID); err != nil {
+	if err := s.repo.SelectContext(ctx, &res, q, uID); err != nil {
 		return []list.List{}, err
 	}
 	ls := []list.List{}
@@ -47,13 +47,13 @@ func (r *Repo) QueryListsByUserID(ctx context.Context, uID string) ([]list.List,
 	return ls, nil
 }
 
-func (r *Repo) QueryListByID(ctx context.Context, uID string, lID string) (list.List, error) {
+func (s *Storer) QueryListByID(ctx context.Context, uID string, lID string) (list.List, error) {
 	q := `SELECT * FROM lists WHERE list_id = $1 AND user_id = $2;`
-	res := RepoList{}
-	if err := r.repo.GetContext(ctx, &res, q, lID, uID); err != nil {
+	res := StorerList{}
+	if err := s.repo.GetContext(ctx, &res, q, lID, uID); err != nil {
 		return list.List{}, err
 	}
-	s := []string(res.ItemsID)
+	r := []string(res.ItemsID)
 	l := list.List{
 		ID:          res.ID,
 		UserID:      res.UserID,
@@ -62,14 +62,14 @@ func (r *Repo) QueryListByID(ctx context.Context, uID string, lID string) (list.
 		Private:     res.Private,
 		Favorite:    res.Favorite,
 		Completed:   res.Completed,
-		ItemsID:     s,
+		ItemsID:     r,
 		DateCreated: res.DateCreated,
 		DateUpdated: res.DateUpdated,
 	}
 	return l, nil
 }
 
-func (r *Repo) QueryItemsByListID(ctx context.Context, userID string, listID string) ([]list.Item, error) {
+func (s *Storer) QueryItemsByListID(ctx context.Context, userID string, listID string) ([]list.Item, error) {
 	q := `
 		SELECT items.*, points.point_id,
 			ST_Y(points.location) AS lat, ST_X(points.location) AS lng
@@ -79,7 +79,7 @@ func (r *Repo) QueryItemsByListID(ctx context.Context, userID string, listID str
 		WHERE lists.user_id = $1 AND lists.list_id = $2;
 	`
 
-	rows, err := r.repo.QueryxContext(ctx, q, userID, listID)
+	rows, err := s.repo.QueryxContext(ctx, q, userID, listID)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (r *Repo) QueryItemsByListID(ctx context.Context, userID string, listID str
 	return items, nil
 }
 
-func (r *Repo) QueryItemByID(ctx context.Context, userID string, listID string, itemID string) (list.Item, error) {
+func (s *Storer) QueryItemByID(ctx context.Context, userID string, listID string, itemID string) (list.Item, error) {
 	q := `
 		SELECT items.*, points.point_id,
 			ST_Y(points.location) AS lat, ST_X(points.location) AS lng
@@ -108,7 +108,7 @@ func (r *Repo) QueryItemByID(ctx context.Context, userID string, listID string, 
 		WHERE lists.user_id = $1 AND lists.list_id = $2 AND items.item_id = $3;
 	`
 
-	rows, err := r.repo.QueryxContext(ctx, q, userID, listID, itemID)
+	rows, err := s.repo.QueryxContext(ctx, q, userID, listID, itemID)
 	if err != nil {
 		return list.Item{}, err
 	}
@@ -130,7 +130,7 @@ func (r *Repo) QueryItemByID(ctx context.Context, userID string, listID string, 
 	return *res, nil
 }
 
-func (r *Repo) CreateList(ctx context.Context, l list.List) error {
+func (s *Storer) CreateList(ctx context.Context, l list.List) error {
 	list := populateList(l)
 	q := `
 		INSERT INTO lists (
@@ -145,14 +145,14 @@ func (r *Repo) CreateList(ctx context.Context, l list.List) error {
 		);
 	`
 
-	err := handleRowsResult(r.repo.NamedExecContext(ctx, q, list))
+	err := handleRowsResult(s.repo.NamedExecContext(ctx, q, list))
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *Repo) UpdateListAdmin(ctx context.Context, l list.List) error {
+func (s *Storer) UpdateListAdmin(ctx context.Context, l list.List) error {
 	list := populateList(l)
 	q := `
 		UPDATE lists SET
@@ -167,14 +167,14 @@ func (r *Repo) UpdateListAdmin(ctx context.Context, l list.List) error {
 		WHERE list_id = :list_id;
 	`
 
-	err := handleRowsResult(r.repo.NamedExecContext(ctx, q, list))
+	err := handleRowsResult(s.repo.NamedExecContext(ctx, q, list))
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *Repo) UpdateList(ctx context.Context, l list.List) error {
+func (s *Storer) UpdateList(ctx context.Context, l list.List) error {
 	list := populateList(l)
 	q := `
 		UPDATE lists SET 
@@ -189,47 +189,47 @@ func (r *Repo) UpdateList(ctx context.Context, l list.List) error {
 		WHERE list_id = :list_id AND user_id = :user_id;
 	`
 
-	err := handleRowsResult(r.repo.NamedExecContext(ctx, q, list))
+	err := handleRowsResult(s.repo.NamedExecContext(ctx, q, list))
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *Repo) DeleteListAdmin(ctx context.Context, listID string) error {
+func (s *Storer) DeleteListAdmin(ctx context.Context, listID string) error {
 	q := `DELETE FROM lists WHERE list_id = $1;`
-	err := handleRowsResult(r.repo.ExecContext(ctx, q, listID))
+	err := handleRowsResult(s.repo.ExecContext(ctx, q, listID))
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *Repo) DeleteList(ctx context.Context, userID string, listID string) error {
+func (s *Storer) DeleteList(ctx context.Context, userID string, listID string) error {
 	q := `DELETE FROM lists WHERE user_id = $1 AND list_id = $2;`
-	err := handleRowsResult(r.repo.ExecContext(ctx, q, userID, listID))
+	err := handleRowsResult(s.repo.ExecContext(ctx, q, userID, listID))
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *Repo) CreateItem(ctx context.Context, i list.Item) (err error) {
+func (s *Storer) CreateItem(ctx context.Context, i list.Item) (err error) {
 	item := populateItem(i)
-	point := RepoPoint{
+	point := StorerPoint{
 		ID:     i.Point.ID,
 		ItemID: i.Point.ItemID,
 		Lat:    i.Point.Lat,
 		Lng:    i.Point.Lng,
 	}
-	tx, err := r.repo.Beginx()
+	tx, err := s.repo.Beginx()
 	if err != nil {
 		return err
 	}
 	defer func() {
 		if err != nil {
 			if rErr := tx.Rollback(); rErr != nil {
-				r.log.Err(rErr).Msg("failed to rollback after error")
+				s.log.Err(rErr).Msg("failed to rollback after error")
 			}
 		}
 	}()
@@ -272,7 +272,7 @@ func (r *Repo) CreateItem(ctx context.Context, i list.Item) (err error) {
 	}
 
 	for _, imageID := range item.ImagesID {
-		_, err := r.repo.ExecContext(ctx, qImages, item.ID, images.Loaded, imageID, item.ListID)
+		_, err := s.repo.ExecContext(ctx, qImages, item.ID, images.Loaded, imageID, item.ListID)
 		if err != nil {
 			return err
 		}
@@ -286,22 +286,22 @@ func (r *Repo) CreateItem(ctx context.Context, i list.Item) (err error) {
 	return err
 }
 
-func (r *Repo) UpdateItemAdmin(ctx context.Context, i list.Item, toDelete []string) (err error) {
+func (s *Storer) UpdateItemAdmin(ctx context.Context, i list.Item, toDelete []string) (err error) {
 	item := populateItem(i)
-	point := RepoPoint{
+	point := StorerPoint{
 		ID:     i.Point.ID,
 		ItemID: i.Point.ItemID,
 		Lat:    i.Point.Lat,
 		Lng:    i.Point.Lng,
 	}
-	tx, err := r.repo.Beginx()
+	tx, err := s.repo.Beginx()
 	if err != nil {
 		return err
 	}
 	defer func() {
 		if err != nil {
 			if rErr := tx.Rollback(); rErr != nil {
-				r.log.Err(rErr).Msg("failed to rollback after error")
+				s.log.Err(rErr).Msg("failed to rollback after error")
 			}
 		}
 	}()
@@ -353,22 +353,22 @@ func (r *Repo) UpdateItemAdmin(ctx context.Context, i list.Item, toDelete []stri
 	return nil
 }
 
-func (r *Repo) UpdateItem(ctx context.Context, i list.Item, toDelete []string) (err error) {
+func (s *Storer) UpdateItem(ctx context.Context, i list.Item, toDelete []string) (err error) {
 	item := populateItem(i)
-	point := RepoPoint{
+	point := StorerPoint{
 		ID:     i.Point.ID,
 		ItemID: i.Point.ItemID,
 		Lat:    i.Point.Lat,
 		Lng:    i.Point.Lng,
 	}
-	tx, err := r.repo.Beginx()
+	tx, err := s.repo.Beginx()
 	if err != nil {
 		return err
 	}
 	defer func() {
 		if err != nil {
 			if rErr := tx.Rollback(); rErr != nil {
-				r.log.Err(rErr).Msg("failed to rollback after error")
+				s.log.Err(rErr).Msg("failed to rollback after error")
 			}
 		}
 	}()
@@ -430,18 +430,18 @@ func (r *Repo) UpdateItem(ctx context.Context, i list.Item, toDelete []string) (
 	return nil
 }
 
-func (r *Repo) DeleteItemAdmin(ctx context.Context, itemID string) (err error) {
+func (s *Storer) DeleteItemAdmin(ctx context.Context, itemID string) (err error) {
 
 	qItem := `DELETE FROM items WHERE item_id = $1;`
 	qImages := `UPDATE images SET status = $1 WHERE item_id = $2;`
-	tx, err := r.repo.Beginx()
+	tx, err := s.repo.Beginx()
 	if err != nil {
 		return err
 	}
 	defer func() {
 		if err != nil {
 			if rErr := tx.Rollback(); rErr != nil {
-				r.log.Err(rErr).Msg("failed to rollback after error")
+				s.log.Err(rErr).Msg("failed to rollback after error")
 			}
 		}
 	}()
@@ -459,7 +459,7 @@ func (r *Repo) DeleteItemAdmin(ctx context.Context, itemID string) (err error) {
 	return nil
 }
 
-func (r *Repo) DeleteItem(ctx context.Context, userID string, listID string, itemID string) error {
+func (s *Storer) DeleteItem(ctx context.Context, userID string, listID string, itemID string) error {
 	qItem := `
 		DELETE FROM items WHERE item_id = $1 
 		AND EXISTS (
@@ -475,7 +475,7 @@ func (r *Repo) DeleteItem(ctx context.Context, userID string, listID string, ite
 		AND list_id = $3
 		AND user_id = $4;
 		`
-	tx, err := r.repo.Beginx()
+	tx, err := s.repo.Beginx()
 	if err != nil {
 		return err
 	}
@@ -508,9 +508,9 @@ func handleRowsResult(res sql.Result, err error) error {
 	return nil
 }
 
-func populateList(l list.List) RepoList {
+func populateList(l list.List) StorerList {
 	p := pq.StringArray(l.ItemsID)
-	list := RepoList{
+	list := StorerList{
 		ID:          l.ID,
 		UserID:      l.UserID,
 		Name:        l.Name,
@@ -525,9 +525,9 @@ func populateList(l list.List) RepoList {
 	return list
 }
 
-func populateItem(i list.Item) RepoItem {
+func populateItem(i list.Item) StorerItem {
 	im := pq.StringArray(i.ImagesID)
-	item := RepoItem{
+	item := StorerItem{
 		ID:          i.ID,
 		ListID:      i.ListID,
 		UserID:      i.UserID,
@@ -544,8 +544,8 @@ func populateItem(i list.Item) RepoItem {
 }
 
 type rowItemsByListID struct {
-	RepoItem
-	RepoPoint
+	StorerItem
+	StorerPoint
 }
 
 func fromRowsToMap(rows *sqlx.Rows) (map[string]*list.Item, error) {
@@ -556,19 +556,19 @@ func fromRowsToMap(rows *sqlx.Rows) (map[string]*list.Item, error) {
 		if err != nil {
 			return nil, err
 		}
-		if _, exists := itemsMap[row.RepoItem.ID]; !exists {
+		if _, exists := itemsMap[row.StorerItem.ID]; !exists {
 			p := list.Point{
-				ID:     row.RepoPoint.ID,
-				ItemID: row.RepoItem.ID,
+				ID:     row.StorerPoint.ID,
+				ItemID: row.StorerItem.ID,
 				Lat:    row.Lat,
 				Lng:    row.Lng,
 			}
 			im := []string(row.ImagesID)
-			itemsMap[row.RepoItem.ID] = &list.Item{
-				ID:          row.RepoItem.ID,
+			itemsMap[row.StorerItem.ID] = &list.Item{
+				ID:          row.StorerItem.ID,
 				ListID:      row.ListID,
 				UserID:      row.UserID,
-				Name:        row.RepoItem.Name,
+				Name:        row.StorerItem.Name,
 				Description: row.Description,
 				Address:     row.Address,
 				Point:       p,

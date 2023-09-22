@@ -6,7 +6,7 @@ import (
 	"github.com/lib/pq"
 )
 
-type RepoList struct {
+type StorerList struct {
 	ID          string         `db:"list_id"`
 	UserID      string         `db:"user_id"`
 	Name        string         `db:"list_name"`
@@ -19,7 +19,7 @@ type RepoList struct {
 	DateUpdated time.Time      `db:"date_updated"`
 }
 
-type RepoItem struct {
+type StorerItem struct {
 	ID          string         `db:"item_id"`
 	ListID      string         `db:"list_id"`
 	UserID      string         `db:"user_id"`
@@ -33,7 +33,7 @@ type RepoItem struct {
 	DateUpdated time.Time      `db:"date_updated"`
 }
 
-type RepoPoint struct {
+type StorerPoint struct {
 	ID     string  `db:"point_id"`
 	ItemID string  `db:"item_id"`
 	Lat    float64 `db:"lat"`
