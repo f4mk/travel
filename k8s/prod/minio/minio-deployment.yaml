@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+spec:
+  selector:
+    matchLabels:
+      app: minio
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      containers:
+      - name: minio
+        image: minio/minio:RELEASE.2023-08-29T23-07-35Z
+        args:
+        - server
+        - --console-address=:9090
+        - /data
+        env:
+        - name: "MINIO_ROOT_USER"
+          value: "admin123"
+        - name: "MINIO_ROOT_PASSWORD"
+          value: "admin123"
+        ports:
+        - containerPort: 9000
+        - containerPort: 9090
+        volumeMounts:
+        - name: minio-data
+          mountPath: "/data"
+        resources: {}
+      volumes:
+      - name: minio-data
+        persistentVolumeClaim:
+          claimName: minio-pvc

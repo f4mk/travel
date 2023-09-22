@@ -55,3 +55,8 @@ resources:
   - prod/tempo/tempo-configmap.yaml
   - prod/tempo/tempo-deployment.yaml
   - prod/tempo/tempo-service.yaml
+  # minio
+  - prod/minio/minio-pv.yaml
+  - prod/minio/minio-pvc.yaml
+  - prod/minio/minio-deployment.yaml
+  - prod/minio/minio-service.yaml

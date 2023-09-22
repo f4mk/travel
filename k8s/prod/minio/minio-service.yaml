@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: travel
+    component: minio
+  name: minio
+spec:
+  selector:
+    app: minio
+  ports:
+    - name: minio
+      port: 9000
+      targetPort: 9000
+    - name: minio-console
+      port: 9090
+      targetPort: 9090

@@ -31,6 +31,7 @@ pull:
 	docker pull prom/prometheus:v2.46.0
 	docker pull grafana/tempo:2.2.1
 	docker pull registry:2.8.2
+	docker pull minio/minio:RELEASE.2023-08-29T23-07-35Z
 
 images: backend-image backend-image-cron backend-image-metrics front-image haproxy-image-volume
 	

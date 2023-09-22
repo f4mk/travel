@@ -40,4 +40,9 @@ nodes:
   # tempo
   - containerPort: 3101
     hostPort: 3101
+  # minio
+  - containerPort: 9000
+    hostPort: 9000
+  - containerPort: 9001
+    hostPort: 9001
 
