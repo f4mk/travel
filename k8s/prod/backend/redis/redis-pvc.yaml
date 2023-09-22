@@ -9,6 +9,9 @@ spec:
   storageClassName: manual
   accessModes:
     - ReadWriteOnce
+  selector:
+    matchLabels:
+      pv-name: redis-pv-label
   resources:
     requests:
       storage: 512Mi

@@ -5,6 +5,7 @@ metadata:
   labels:
     app: travel
     component: travel-api-cache-volume
+    pv-name: redis-pv-label
 spec:
   storageClassName: manual
   capacity:

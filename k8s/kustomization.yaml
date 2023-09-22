@@ -47,6 +47,7 @@ resources:
   - prod/grafana/grafana-deployment.yaml
   - prod/grafana/grafana-service.yaml
   - prod/grafana/grafana-pvc.yaml
+  - prod/grafana/grafana-pv.yaml
   # prometheus
   - prod/prometheus/prometheus-configmap.yaml
   - prod/prometheus/prometheus-deployment.yaml
@@ -60,3 +61,6 @@ resources:
   - prod/minio/minio-pvc.yaml
   - prod/minio/minio-deployment.yaml
   - prod/minio/minio-service.yaml
+  # imaginary
+  - prod/imaginary/imaginary-deployment.yaml
+  - prod/imaginary/imaginary-service.yaml

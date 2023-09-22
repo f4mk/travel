@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: imaginary
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: imaginary
+  template:
+    metadata:
+      labels:
+        app: imaginary
+    spec:
+      containers:
+      - name: imaginary
+        image: h2non/imaginary:1.2.4
+        ports:
+        - containerPort: 9000
+        resources: {}

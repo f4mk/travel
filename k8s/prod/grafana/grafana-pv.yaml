@@ -5,6 +5,7 @@ metadata:
   labels:
     app: travel
     component: travel-grafana-storage
+    pv-name: grafana-pv-label
 spec:
   storageClassName: manual
   capacity:
