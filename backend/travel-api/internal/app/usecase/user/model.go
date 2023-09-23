@@ -6,7 +6,6 @@ import (
 	"github.com/lib/pq"
 )
 
-// TODO: refactor to db layer
 type User struct {
 	ID           string
 	Name         string

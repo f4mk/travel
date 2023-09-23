@@ -55,7 +55,7 @@ func (c *Core) Login(ctx context.Context, lu LoginUser) (AuthenticatedUser, erro
 		return AuthenticatedUser{}, web.ErrAuthFailed
 	}
 	au := AuthenticatedUser{
-		UserID:       u.UserID,
+		UserID:       u.ID,
 		Email:        u.Email,
 		Name:         u.Name,
 		TokenVersion: u.TokenVersion,
@@ -123,7 +123,7 @@ func (c *Core) ResetPasswordRequest(ctx context.Context, email string) (ResetPas
 	et := hex.EncodeToString(token)
 	rt := ResetToken{
 		TokenID:   et,
-		UserID:    u.UserID,
+		UserID:    u.ID,
 		Email:     u.Email,
 		ExpiresAt: time.Now().UTC().Add(24 * time.Hour),
 		IssuedAt:  time.Now().UTC(),

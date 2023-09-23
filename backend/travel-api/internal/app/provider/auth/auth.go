@@ -19,39 +19,82 @@ func NewStorer(l *zerolog.Logger, r *sqlx.DB) *Storer {
 }
 
 func (s *Storer) QueryByEmail(ctx context.Context, email string) (authUsecase.User, error) {
-	u := authUsecase.User{}
-	q := `SELECT * FROM users WHERE email = $1`
-	if err := s.repo.GetContext(ctx, &u, q, email); err != nil {
+	user := StorerUser{}
+	q := `SELECT * FROM users WHERE email = $1;`
+	if err := s.repo.GetContext(ctx, &user, q, email); err != nil {
 		return authUsecase.User{}, err
 	}
-	return u, nil
+	res := authUsecase.User{
+		ID:           user.ID,
+		Name:         user.Name,
+		Email:        user.Email,
+		IsActive:     user.IsActive,
+		IsDeleted:    user.IsDeleted,
+		TokenVersion: user.TokenVersion,
+		Roles:        user.Roles,
+		PasswordHash: user.PasswordHash,
+		DateCreated:  user.DateCreated,
+		DateUpdated:  user.DateUpdated,
+	}
+	return res, nil
 }
 
 func (s *Storer) QueryByID(ctx context.Context, id string) (authUsecase.User, error) {
-	u := authUsecase.User{}
-	q := `SELECT * FROM users WHERE user_id = $1`
-	if err := s.repo.GetContext(ctx, &u, q, id); err != nil {
+	user := StorerUser{}
+	q := `SELECT * FROM users WHERE user_id = $1;`
+	if err := s.repo.GetContext(ctx, &user, q, id); err != nil {
 		return authUsecase.User{}, err
 	}
-	return u, nil
+	res := authUsecase.User{
+		ID:           user.ID,
+		Name:         user.Name,
+		Email:        user.Email,
+		IsActive:     user.IsActive,
+		IsDeleted:    user.IsDeleted,
+		TokenVersion: user.TokenVersion,
+		Roles:        user.Roles,
+		PasswordHash: user.PasswordHash,
+		DateCreated:  user.DateCreated,
+		DateUpdated:  user.DateUpdated,
+	}
+	return res, nil
 }
 
 func (s *Storer) Update(ctx context.Context, u authUsecase.User) error {
+	user := StorerUser{
+		ID:           u.ID,
+		Name:         u.Name,
+		Email:        u.Email,
+		IsActive:     u.IsActive,
+		IsDeleted:    u.IsDeleted,
+		TokenVersion: u.TokenVersion,
+		Roles:        u.Roles,
+		PasswordHash: u.PasswordHash,
+		DateCreated:  u.DateCreated,
+		DateUpdated:  u.DateUpdated,
+	}
 	q := `UPDATE users SET
 	name = :name, email = :email, is_active = :is_active,
 	token_version = :token_version,
 	roles = :roles, password_hash = :password_hash,
 	date_updated = :date_updated
 	WHERE user_id = :user_id;`
-	_, err := s.repo.NamedExecContext(ctx, q, u)
+	_, err := s.repo.NamedExecContext(ctx, q, user)
 	return err
 }
 
 func (s *Storer) StoreResetToken(ctx context.Context, rt authUsecase.ResetToken) error {
+	token := StorerResetToken{
+		TokenID:   rt.TokenID,
+		UserID:    rt.UserID,
+		Email:     rt.Email,
+		IssuedAt:  rt.IssuedAt,
+		ExpiresAt: rt.ExpiresAt,
+	}
 	q := `INSERT INTO reset_tokens (token_id, user_id, email, expires_at, issued_at)
-	VALUES (:token_id, :user_id, :email, :expires_at, :issued_at)
+	VALUES (:token_id, :user_id, :email, :expires_at, :issued_at);
 	`
-	_, err := s.repo.NamedExecContext(ctx, q, rt)
+	_, err := s.repo.NamedExecContext(ctx, q, token)
 	return err
 }
 
@@ -62,17 +105,32 @@ func (s *Storer) DeleteResetTokensByUserID(ctx context.Context, uID string) erro
 }
 
 func (s *Storer) QueryResetTokenByID(ctx context.Context, t string) (authUsecase.ResetToken, error) {
-	rt := authUsecase.ResetToken{}
+	token := StorerResetToken{}
 	q := `SELECT * FROM reset_tokens WHERE token_id = $1`
-	if err := s.repo.GetContext(ctx, &rt, q, t); err != nil {
+	if err := s.repo.GetContext(ctx, &token, q, t); err != nil {
 		return authUsecase.ResetToken{}, err
 	}
-	return rt, nil
+	res := authUsecase.ResetToken{
+		TokenID:   token.TokenID,
+		UserID:    token.UserID,
+		Email:     token.Email,
+		IssuedAt:  token.IssuedAt,
+		ExpiresAt: token.ExpiresAt,
+	}
+	return res, nil
 }
 
 func (s *Storer) DeleteToken(ctx context.Context, t authUsecase.DeleteToken) error {
+	token := StorerDeleteToken{
+		TokenID:      t.TokenID,
+		Subject:      t.Subject,
+		TokenVersion: t.TokenVersion,
+		IssuedAt:     t.IssuedAt,
+		ExpiresAt:    t.ExpiresAt,
+		RevokedAt:    t.RevokedAt,
+	}
 	q := `INSERT INTO revoked_tokens (token_id, subject, token_version, issued_at, expires_at, revoked_at) 
 	VALUES (:token_id, :subject, :token_version, :issued_at, :expires_at, :revoked_at)`
-	_, err := s.repo.NamedExecContext(ctx, q, t)
+	_, err := s.repo.NamedExecContext(ctx, q, token)
 	return err
 }

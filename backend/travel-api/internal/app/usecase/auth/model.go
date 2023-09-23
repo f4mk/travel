@@ -6,18 +6,17 @@ import (
 	"github.com/lib/pq"
 )
 
-// TODO: move to db layer
 type User struct {
-	UserID       string         `db:"user_id"`
-	Name         string         `db:"name"`
-	Email        string         `db:"email"`
-	IsActive     bool           `db:"is_active"`
-	IsDeleted    bool           `db:"is_deleted"`
-	TokenVersion int32          `db:"token_version"`
-	Roles        pq.StringArray `db:"roles"`
-	PasswordHash []byte         `db:"password_hash"`
-	DateCreated  time.Time      `db:"date_created"`
-	DateUpdated  time.Time      `db:"date_updated"`
+	ID           string
+	Name         string
+	Email        string
+	IsActive     bool
+	IsDeleted    bool
+	TokenVersion int32
+	Roles        pq.StringArray
+	PasswordHash []byte
+	DateCreated  time.Time
+	DateUpdated  time.Time
 }
 
 type AuthenticatedUser struct {
@@ -35,12 +34,12 @@ type LoginUser struct {
 }
 
 type DeleteToken struct {
-	TokenID      string    `db:"token_id"`
-	Subject      string    `db:"subject"`
-	TokenVersion int32     `db:"token_version"`
-	IssuedAt     time.Time `db:"issued_at"`
-	ExpiresAt    time.Time `db:"expires_at"`
-	RevokedAt    time.Time `db:"revoked_at"`
+	TokenID      string
+	Subject      string
+	TokenVersion int32
+	IssuedAt     time.Time
+	ExpiresAt    time.Time
+	RevokedAt    time.Time
 }
 
 type ChangePassword struct {
@@ -56,11 +55,11 @@ type ResetPassword struct {
 }
 
 type ResetToken struct {
-	TokenID   string    `db:"token_id"`
-	UserID    string    `db:"user_id"`
-	Email     string    `db:"email"`
-	ExpiresAt time.Time `db:"expires_at"`
-	IssuedAt  time.Time `db:"issued_at"`
+	TokenID   string
+	UserID    string
+	Email     string
+	ExpiresAt time.Time
+	IssuedAt  time.Time
 }
 
 type SubmitPassword struct {

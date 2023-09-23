@@ -162,12 +162,12 @@ func (s *Service) ChangePassword(ctx context.Context, w http.ResponseWriter, r *
 		s.log.Err(err).Msg(ErrChangePassBusiness.Error())
 		return web.GetResponseErrorFromBusiness(err)
 	}
-	if err := s.auth.StoreUserTokenVersion(ctx, res.UserID, res.TokenVersion); err != nil {
+	if err := s.auth.StoreUserTokenVersion(ctx, res.ID, res.TokenVersion); err != nil {
 		s.log.Err(err).Msg(ErrLoginStoreTokenVersion.Error())
 		return ErrLoginStoreTokenVersion
 	}
 	u := UserResponse{
-		ID:          res.UserID,
+		ID:          res.ID,
 		Name:        res.Name,
 		Email:       res.Email,
 		DateCreated: res.DateCreated,
@@ -327,7 +327,7 @@ func (s *Service) PasswordResetSubmit(ctx context.Context, w http.ResponseWriter
 		}
 		return fmt.Errorf("cannot update password: %w", err)
 	}
-	if err := s.auth.StoreUserTokenVersion(ctx, u.UserID, u.TokenVersion); err != nil {
+	if err := s.auth.StoreUserTokenVersion(ctx, u.ID, u.TokenVersion); err != nil {
 		s.log.Err(err).Msg(ErrLoginStoreTokenVersion.Error())
 		return ErrLoginStoreTokenVersion
 	}

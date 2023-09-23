@@ -19,7 +19,7 @@ func NewStorer(l *zerolog.Logger, r *sqlx.DB) *Storer {
 
 func (s *Storer) QueryAll(ctx context.Context) ([]userUsecase.User, error) {
 	users := []StorerUser{}
-	q := `SELECT * from users`
+	q := `SELECT * from users;`
 	if err := s.repo.SelectContext(ctx, &users, q); err != nil {
 		return []userUsecase.User{}, err
 	}
@@ -65,7 +65,7 @@ func (s *Storer) Create(ctx context.Context, u userUsecase.User) error {
 
 func (s *Storer) QueryByID(ctx context.Context, userID string) (userUsecase.User, error) {
 	user := StorerUser{}
-	q := `SELECT * from users WHERE user_id = $1`
+	q := `SELECT * from users WHERE user_id = $1;`
 	if err := s.repo.GetContext(ctx, &user, q, userID); err != nil {
 		return userUsecase.User{}, err
 	}
@@ -86,7 +86,7 @@ func (s *Storer) QueryByID(ctx context.Context, userID string) (userUsecase.User
 
 func (s *Storer) QueryByEmail(ctx context.Context, email string) (userUsecase.User, error) {
 	user := StorerUser{}
-	q := `SELECT * from users WHERE email = $1`
+	q := `SELECT * from users WHERE email = $1;`
 	if err := s.repo.GetContext(ctx, &user, q, email); err != nil {
 		return userUsecase.User{}, err
 	}
@@ -107,7 +107,7 @@ func (s *Storer) QueryByEmail(ctx context.Context, email string) (userUsecase.Us
 
 func (s *Storer) QueryTokenByEmail(ctx context.Context, email string) (userUsecase.VerifyToken, error) {
 	token := StorerToken{}
-	q := `SELECT * from verify_tokens WHERE email = $1`
+	q := `SELECT * from verify_tokens WHERE email = $1;`
 	if err := s.repo.GetContext(ctx, &token, q, email); err != nil {
 		return userUsecase.VerifyToken{}, err
 	}
@@ -188,7 +188,7 @@ func (s *Storer) Delete(ctx context.Context, u userUsecase.User) error {
 					is_deleted = :is_deleted, 
 					date_updated = :date_updated,
 					token_version = :token_version
-				WHERE user_id = :user_id`
+				WHERE user_id = :user_id;`
 	_, err := s.repo.NamedExecContext(ctx, q, user)
 	if err != nil {
 		return err
@@ -198,7 +198,7 @@ func (s *Storer) Delete(ctx context.Context, u userUsecase.User) error {
 
 func (s *Storer) StoreVerifyToken(ctx context.Context, vt userUsecase.VerifyToken) error {
 	q := `INSERT INTO verify_tokens (token_id, user_id, email, expires_at, issued_at)
-	VALUES (:token_id, :user_id, :email, :expires_at, :issued_at)
+	VALUES (:token_id, :user_id, :email, :expires_at, :issued_at);
 	`
 	_, err := s.repo.NamedExecContext(ctx, q, vt)
 	return err
