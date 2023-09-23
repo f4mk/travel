@@ -1,11 +1,11 @@
 package imageconverter
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 )
 
 type Client struct {
@@ -21,6 +21,7 @@ type Config struct {
 	width   int16
 	height  int16
 	imgType string
+	timeout time.Duration
 }
 
 func NewClient(c Config) *Client {
@@ -36,11 +37,12 @@ func NewClient(c Config) *Client {
 		width:      c.width,
 		height:     c.height,
 		imgType:    c.imgType,
-		httpClient: &http.Client{},
+		httpClient: &http.Client{Timeout: c.timeout},
 	}
 }
 
-func (c *Client) Convert(ctx context.Context, input io.Reader) (io.Reader, error) {
+// make sure to close the returned io.Reader when processed
+func (c *Client) Convert(ctx context.Context, input io.Reader) (io.ReadCloser, error) {
 	endpoint := fmt.Sprintf("%s/convert?width=%d&height=%d&type=%s", c.baseURL, c.width, c.height, c.imgType)
 	req, err := http.NewRequest(http.MethodPost, endpoint, input)
 	if err != nil {
@@ -53,17 +55,11 @@ func (c *Client) Convert(ctx context.Context, input io.Reader) (io.Reader, error
 	if err != nil {
 		return nil, err
 	}
-	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
+		res.Body.Close()
 		return nil, fmt.Errorf("failed to convert and resize image: %s", res.Status)
 	}
 
-	var buf bytes.Buffer
-	_, err = io.Copy(&buf, res.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return &buf, nil
+	return res.Body, nil
 }

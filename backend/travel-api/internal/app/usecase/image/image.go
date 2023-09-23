@@ -3,6 +3,7 @@ package image
 import (
 	"context"
 	"io"
+	"sync"
 	"time"
 
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/auth"
@@ -15,7 +16,7 @@ import (
 
 type Server interface {
 	ServeFile(ctx context.Context, fileID string) ([]byte, error)
-	SaveFiles(ctx context.Context, filesID []string, streams []io.Reader) error
+	SaveFiles(ctx context.Context, filesID []string, streams []io.ReadCloser) error
 	DeleteFiles(ctx context.Context, filesID []string) error
 }
 type Storer interface {
@@ -23,7 +24,7 @@ type Storer interface {
 	Create(ctx context.Context, images []Image) error
 }
 type Converter interface {
-	Convert(ctx context.Context, images []io.Reader) ([]io.Reader, error)
+	Convert(ctx context.Context, images []io.Reader) ([]io.ReadCloser, error)
 }
 
 type Core struct {
@@ -89,30 +90,42 @@ func (c *Core) StoreImages(
 		imageIDs = append(imageIDs, img.ID)
 	}
 
-	errCh := make(chan error, 2)
+	errCh := make(chan error, 3)
+	var wg sync.WaitGroup
+	wg.Add(2)
 	go func() {
+		defer wg.Done()
 		if err := c.storer.Create(ctx, imageItems); err != nil {
 			// no need for cleanup: should be handled by cron
 			c.log.Err(err).Msgf("image: create: %s", database.ErrQueryDB.Error())
 			errCh <- database.WrapStorerError(err)
 		}
-		errCh <- nil
 	}()
 	go func() {
+		defer wg.Done()
 		if err := c.server.SaveFiles(ctx, imageIDs, imgStreams); err != nil {
 			c.log.Err(err).Msgf("image: create: save: %s", err.Error())
 			// cleanup image storage
 			if err := c.server.DeleteFiles(ctx, imageIDs); err != nil {
 				c.log.Err(err).Msgf("image: create: rollback: %s", err.Error())
+				errCh <- err
 			}
 			errCh <- err
 		}
-		errCh <- nil
 	}()
-	for i := 0; i < 2; i++ {
-		if err := <-errCh; err != nil {
-			return nil, err
+
+	go func() {
+		wg.Wait()
+		close(errCh)
+	}()
+
+	for err = range errCh {
+		if err != nil {
+			c.log.Err(err).Msg("image: create: failed")
 		}
+	}
+	if err != nil {
+		return nil, err
 	}
 	return imageIDs, nil
 }
