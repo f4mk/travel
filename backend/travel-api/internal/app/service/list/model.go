@@ -31,7 +31,7 @@ type ItemResponse struct {
 	// Id item id
 	ID string `json:"id"`
 
-	// ImagesID array of attached image ids
+	// ImagesId array of attached image ids
 	ImagesID *[]string `json:"images_id,omitempty"`
 
 	// ListId item parent id
@@ -88,7 +88,7 @@ type NewItem struct {
 	// Description new item description
 	Description *string `json:"description,omitempty" validate:"omitempty,gte=1"`
 
-	// ImagesID new item's image links array
+	// ImagesId new item's image links array
 	ImagesID *[]string `json:"images_id,omitempty" validate:"omitempty"`
 
 	// Name new item name
@@ -142,7 +142,7 @@ type UpdateItem struct {
 	// Description updated item description
 	Description *string `json:"description,omitempty" validate:"omitempty,gte=1"`
 
-	// ImagesID updated item's image links array
+	// ImagesId updated item's image links array
 	ImagesID *[]string `json:"images_id,omitempty" validate:"omitempty"`
 
 	// Name updated item name

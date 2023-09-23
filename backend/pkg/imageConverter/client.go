@@ -2,16 +2,18 @@ package imageconverter
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
 )
 
 type Client struct {
-	baseURL string
-	width   int16
-	height  int16
-	imgType string
+	baseURL    string
+	width      int16
+	height     int16
+	imgType    string
+	httpClient *http.Client
 }
 
 type Config struct {
@@ -30,16 +32,24 @@ func NewClient(c Config) *Client {
 		c.imgType = "webp"
 	}
 	return &Client{
-		baseURL: c.baseURL,
-		width:   c.width,
-		height:  c.height,
-		imgType: c.imgType,
+		baseURL:    c.baseURL,
+		width:      c.width,
+		height:     c.height,
+		imgType:    c.imgType,
+		httpClient: &http.Client{},
 	}
 }
 
-func (c *Client) Convert(input io.Reader) (io.Reader, error) {
+func (c *Client) Convert(ctx context.Context, input io.Reader) (io.Reader, error) {
 	endpoint := fmt.Sprintf("%s/convert?width=%d&height=%d&type=%s", c.baseURL, c.width, c.height, c.imgType)
-	res, err := http.Post(endpoint, "image/*", input)
+	req, err := http.NewRequest(http.MethodPost, endpoint, input)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "image/*")
+	req = req.WithContext(ctx)
+
+	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}

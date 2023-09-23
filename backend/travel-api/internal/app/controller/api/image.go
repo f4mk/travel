@@ -20,4 +20,5 @@ type ImageController struct {
 
 func (ic *ImageController) RegisterRoutes(app *web.App) {
 	app.Handle(http.MethodGet, "/images/:fname", ic.ImageService.Serve, middleware.Authenticate(ic.Auth))
+	app.Handle(http.MethodPost, "/images/:listID", ic.ImageService.Store, middleware.Authenticate(ic.Auth))
 }

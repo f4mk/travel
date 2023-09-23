@@ -1,11 +1,9 @@
 package image
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io"
-	"mime/multipart"
 	"net/http"
 
 	imageUsecase "github.com/f4mk/travel/backend/travel-api/internal/app/usecase/image"
@@ -16,10 +14,14 @@ import (
 	"github.com/rs/zerolog"
 )
 
+const meg16 = 16 << 20
+const maxOpenFiles = 128 // adjust as needed
+
 type Service struct {
 	log  *zerolog.Logger
 	auth *authPkg.Auth
 	core *imageUsecase.Core
+	sem  chan struct{}
 }
 
 func NewService(
@@ -27,11 +29,11 @@ func NewService(
 	a *authPkg.Auth,
 	c *imageUsecase.Core,
 ) *Service {
-
 	return &Service{
 		log:  l,
 		auth: a,
 		core: c,
+		sem:  make(chan struct{}, maxOpenFiles),
 	}
 }
 
@@ -61,7 +63,7 @@ func (s *Service) Store(ctx context.Context, w http.ResponseWriter, r *http.Requ
 		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
-	err = r.ParseMultipartForm(16 << 20) // Limit: 16MB
+	err = r.ParseMultipartForm(meg16) // Limit: 16MB
 	if err != nil {
 		s.log.Err(err).Msg(ErrPostImageDecode.Error())
 		return web.NewRequestError(
@@ -70,10 +72,10 @@ func (s *Service) Store(ctx context.Context, w http.ResponseWriter, r *http.Requ
 		)
 	}
 	files := r.MultipartForm.File["images"]
-	if len(files) == 0 {
-		s.log.Info().Msg(ErrPostImageDecodeLen.Error())
+	if len(files) == 0 || len(files) > 5 {
+		s.log.Error().Msg(ErrPostImageDecodeLen.Error())
 		return web.NewRequestError(
-			err,
+			ErrPostImageDecodeLen,
 			http.StatusBadRequest,
 		)
 	}
@@ -81,25 +83,22 @@ func (s *Service) Store(ctx context.Context, w http.ResponseWriter, r *http.Requ
 	var imageStreams []io.Reader
 
 	for _, fileHeader := range files {
+		s.sem <- struct{}{}
 		file, err := fileHeader.Open()
 		if err != nil {
+			<-s.sem // release immediately if error
 			s.log.Err(err).Msg(ErrPostImageRead.Error())
 			return web.NewRequestError(
 				err,
 				http.StatusBadRequest,
 			)
 		}
-		defer file.Close()
+		defer func() {
+			file.Close()
+			<-s.sem
+		}()
 
-		stream, err := streamFile(file)
-		if err != nil {
-			s.log.Err(err).Msg(ErrPostImageReadContent.Error())
-			return web.NewRequestError(
-				err,
-				http.StatusBadRequest,
-			)
-		}
-		imageStreams = append(imageStreams, stream)
+		imageStreams = append(imageStreams, file)
 	}
 
 	res, err := s.core.StoreImages(ctx, imageStreams, listID, claims.Subject)
@@ -112,13 +111,4 @@ func (s *Service) Store(ctx context.Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	return web.Respond(ctx, w, res, http.StatusCreated)
-}
-
-func streamFile(file multipart.File) (io.Reader, error) {
-	buf := new(bytes.Buffer)
-	_, err := io.Copy(buf, file)
-	if err != nil {
-		return nil, err
-	}
-	return buf, nil
 }

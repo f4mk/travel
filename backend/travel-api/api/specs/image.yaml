@@ -1,0 +1,108 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: API
+paths:
+  /images/{fname}:
+    get:
+      description: get image by id
+      tags: ["images","get"]
+      parameters:
+        - name: fname
+          in: path
+          required: true
+          description: image file id
+          schema:
+            type: string
+      responses:
+        '200':
+          description: image binarydata
+          content:
+            image/webp:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /images/{listID}:
+    post:
+      description: upload images
+      tags: ["images","post"]
+      parameters:
+        - name: listID
+          in: path
+          required: true
+          description: list id for uploaded files
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: images to upload
+      responses:
+        '201':
+          description: images successfully uploaded
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '400':
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: ubauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: error message
+        fields:
+          type: object
+          additionalProperties:
+            type: string
+      required:
+        - error

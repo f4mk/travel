@@ -76,7 +76,6 @@ paths:
           in: path
           required: true
           description: ID of the list
-          x-go-name: listID
           schema:
             type: string
       responses:
@@ -105,7 +104,6 @@ paths:
           in: path
           required: true
           description: ID of the list
-          x-go-name: listID
           schema:
             type: string
       requestBody:
@@ -160,7 +158,6 @@ paths:
           in: path
           required: true
           description: ID of the list
-          x-go-name: listID
           schema:
             type: string
       requestBody:
@@ -217,7 +214,6 @@ paths:
           in: path
           required: true
           description: ID of the list
-          x-go-name: listID
           schema:
             type: string
       responses:
@@ -248,7 +244,6 @@ paths:
           in: path
           required: true
           description: ID of the list
-          x-go-name: listID
           schema:
             type: string
       requestBody:
@@ -299,7 +294,6 @@ paths:
           in: path
           required: true
           description: ID of the list
-          x-go-name: listID
           schema:
             type: string
         - name: item_id
@@ -335,7 +329,6 @@ paths:
           in: path
           required: true
           description: ID of the list
-          x-go-name: listID
           schema:
             type: string
         - name: item_id
@@ -397,7 +390,6 @@ paths:
           in: path
           required: true
           description: ID of the list
-          x-go-name: listID
           schema:
             type: string
         - name: item_id

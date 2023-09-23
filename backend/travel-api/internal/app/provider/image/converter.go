@@ -8,7 +8,7 @@ import (
 )
 
 type ImgConverter interface {
-	Convert(input io.Reader) (io.Reader, error)
+	Convert(ctx context.Context, input io.Reader) (io.Reader, error)
 }
 type Converter struct {
 	client ImgConverter
@@ -24,12 +24,8 @@ func (c Converter) Convert(ctx context.Context, images []io.Reader) ([]io.Reader
 
 	for i, img := range images {
 		go func(idx int, img io.Reader) {
-			convImg, err := c.client.Convert(img)
-			select {
-			case results <- convResult{index: idx, img: convImg, err: err}:
-			case <-ctx.Done():
-				return
-			}
+			convImg, err := c.client.Convert(ctx, img)
+			results <- convResult{index: idx, img: convImg, err: err}
 		}(i, img)
 	}
 
