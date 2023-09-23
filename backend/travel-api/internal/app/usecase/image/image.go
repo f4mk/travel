@@ -19,7 +19,7 @@ type Server interface {
 	DeleteFiles(ctx context.Context, filesID []string) error
 }
 type Storer interface {
-	QueryByID(ctx context.Context, listID string) (Image, error)
+	QueryByID(ctx context.Context, fileID string) (Image, error)
 	Create(ctx context.Context, images []Image) error
 }
 type Converter interface {
