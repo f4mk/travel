@@ -10,14 +10,19 @@ import (
 )
 
 type Server struct {
-	log        *zerolog.Logger
-	sim        chan (struct{})
 	baseURL    string
 	httpClient *http.Client
+	log        *zerolog.Logger
+	sim        chan (struct{})
 }
 
-func NewServer(l *zerolog.Logger, t time.Duration, m int16) *Server {
-	return &Server{httpClient: &http.Client{Timeout: t}, log: l, sim: make(chan struct{}, m)}
+func NewServer(l *zerolog.Logger, b string, t time.Duration, m int16) *Server {
+	return &Server{
+		baseURL:    b,
+		log:        l,
+		httpClient: &http.Client{Timeout: t},
+		sim:        make(chan struct{}, m),
+	}
 }
 
 func (s *Server) ServeFile(ctx context.Context, fileID string) ([]byte, error) {
