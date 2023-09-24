@@ -102,17 +102,12 @@ func (s *Service) GetItem(ctx context.Context, w http.ResponseWriter, r *http.Re
 		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
-	listID, err := getListIDParam(r)
-	if err != nil {
-		s.log.Err(err).Msg(ErrListValidateListUUID.Error())
-		return err
-	}
 	itemID, err := getItemIDParam(r)
 	if err != nil {
 		s.log.Err(err).Msg(ErrListValidateItemUUID.Error())
 		return err
 	}
-	res, err := s.core.GetItemByID(ctx, claims.Subject, listID, itemID)
+	res, err := s.core.GetItemByID(ctx, claims.Subject, itemID)
 	if err != nil {
 		s.log.Err(err).Msg(ErrGetListsBusiness.Error())
 		return fmt.Errorf(
@@ -351,17 +346,12 @@ func (s *Service) DeleteItem(ctx context.Context, w http.ResponseWriter, r *http
 		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
-	listID, err := getListIDParam(r)
-	if err != nil {
-		s.log.Err(err).Msg(ErrItemValidateListUUID.Error())
-		return err
-	}
 	itemID, err := getItemIDParam(r)
 	if err != nil {
 		s.log.Err(err).Msg(ErrItemValidateItemUUID.Error())
 		return err
 	}
-	if err := s.core.DeleteItemByID(ctx, claims.Subject, listID, itemID); err != nil {
+	if err := s.core.DeleteItemByID(ctx, claims.Subject, itemID); err != nil {
 		s.log.Err(err).Msg(ErrDeleteItemBusiness.Error())
 		return fmt.Errorf(
 			"cannot delete item: %w",

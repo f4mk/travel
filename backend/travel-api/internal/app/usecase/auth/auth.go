@@ -174,7 +174,6 @@ func (c *Core) ResetPasswordSubmit(ctx context.Context, sp SubmitPassword) (User
 	u.DateUpdated = time.Now().UTC()
 	u.TokenVersion = u.TokenVersion + 1
 	// NOTE: if user didnt get verification email, they can ask for reset pwd
-	// TODO: maybe need a separate handler
 	u.IsActive = true
 	if err := c.storer.Update(ctx, u); err != nil {
 		c.log.Err(err).Msgf("auth: reset password submit: %s", database.ErrQueryDB.Error())

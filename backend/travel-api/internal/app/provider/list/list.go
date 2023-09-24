@@ -100,17 +100,18 @@ func (s *Storer) QueryItemsByListID(ctx context.Context, userID string, listID s
 	return items, nil
 }
 
-func (s *Storer) QueryItemByID(ctx context.Context, userID string, listID string, itemID string) (list.Item, error) {
+func (s *Storer) QueryItemByID(ctx context.Context, itemID string) (list.Item, error) {
 	q := `
 		SELECT items.*, points.point_id,
-			ST_Y(points.location) AS lat, ST_X(points.location) AS lng
+			ST_Y(points.location) AS lat, ST_X(points.location) AS lng,
+			lists.private
 		FROM lists
 		INNER JOIN items ON items.list_id = lists.list_id
 		INNER JOIN points ON points.item_id = items.item_id
-		WHERE lists.user_id = $1 AND lists.list_id = $2 AND items.item_id = $3;
+		WHERE items.item_id = $1;
 	`
 
-	rows, err := s.repo.QueryxContext(ctx, q, userID, listID, itemID)
+	rows, err := s.repo.QueryxContext(ctx, q, itemID)
 	if err != nil {
 		return list.Item{}, err
 	}
@@ -154,7 +155,7 @@ func (s *Storer) CreateList(ctx context.Context, l list.List) error {
 	return nil
 }
 
-func (s *Storer) UpdateListAdmin(ctx context.Context, l list.List) error {
+func (s *Storer) UpdateList(ctx context.Context, l list.List) error {
 	list := populateList(l)
 	q := `
 		UPDATE lists SET
@@ -167,28 +168,6 @@ func (s *Storer) UpdateListAdmin(ctx context.Context, l list.List) error {
 			date_created = :date_created,
 			date_updated = :date_updated
 		WHERE list_id = :list_id;
-	`
-
-	err := handleRowsResult(s.repo.NamedExecContext(ctx, q, list))
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *Storer) UpdateList(ctx context.Context, l list.List) error {
-	list := populateList(l)
-	q := `
-		UPDATE lists SET 
-			list_name = :list_name,
-			description = :description,
-			private = :private,
-			favorite = :favorite,
-			completed = :completed,
-			items = :items,
-			date_created = :date_created,
-			date_updated = :date_updated
-		WHERE list_id = :list_id AND user_id = :user_id;
 	`
 
 	err := handleRowsResult(s.repo.NamedExecContext(ctx, q, list))
@@ -288,7 +267,7 @@ func (s *Storer) CreateItem(ctx context.Context, i list.Item) (err error) {
 	return err
 }
 
-func (s *Storer) UpdateItemAdmin(ctx context.Context, i list.Item, toDelete []string) (err error) {
+func (s *Storer) UpdateItem(ctx context.Context, i list.Item, toDelete []string) (err error) {
 	item := populateItem(i)
 	point := StorerPoint{
 		ID:     i.Point.ID,
@@ -356,86 +335,7 @@ func (s *Storer) UpdateItemAdmin(ctx context.Context, i list.Item, toDelete []st
 	return nil
 }
 
-func (s *Storer) UpdateItem(ctx context.Context, i list.Item, toDelete []string) (err error) {
-	item := populateItem(i)
-	point := StorerPoint{
-		ID:     i.Point.ID,
-		ItemID: i.Point.ItemID,
-		Lat:    i.Point.Lat,
-		Lng:    i.Point.Lng,
-		EPSG:   EPSG,
-	}
-	tx, err := s.repo.Beginx()
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if err != nil {
-			if rErr := tx.Rollback(); rErr != nil {
-				s.log.Err(rErr).Msg("failed to rollback after error")
-			}
-		}
-	}()
-	qImages := `
-		UPDATE images SET status = $1 
-		WHERE image_id = $2 
-		AND item_id = $3
-		AND list_id = $4
-		AND user_id = $5;
-	`
-	qItem := `
-		UPDATE items SET
-			item_name = :item_name,
-			description = :description,
-			address = :address,
-			point = :point,
-			images_id = :images_id,
-			is_visited = :is_visited,
-			date_created = :date_created,
-			date_updated = :date_updated
-		WHERE item_id = :item_id
-		AND EXISTS (
-			SELECT 1 
-			FROM lists 
-			WHERE lists.list_id = :list_id 
-			AND lists.user_id = :user_id
-		);
-	`
-	qPoint := `
-		UPDATE points SET
-			location = ST_SetSRID(ST_MakePoint(:lng, :lat), :epsg)
-		WHERE point_id = :point_id;
-	`
-
-	for _, imgID := range item.ImagesID {
-		_, err = tx.ExecContext(ctx, qImages, images.Loaded, imgID, item.ID, item.ListID, item.UserID)
-		if err != nil {
-			return err
-		}
-	}
-	for _, imgID := range toDelete {
-		_, err = tx.ExecContext(ctx, qImages, images.Deleted, imgID, item.ID, item.ListID, item.UserID)
-		if err != nil {
-			return err
-		}
-	}
-	err = handleRowsResult(tx.NamedExecContext(ctx, qItem, item))
-	if err != nil {
-		return err
-	}
-	err = handleRowsResult(tx.NamedExecContext(ctx, qPoint, point))
-	if err != nil {
-		return err
-	}
-	err = tx.Commit()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (s *Storer) DeleteItemAdmin(ctx context.Context, itemID string) (err error) {
-
 	qItem := `DELETE FROM items WHERE item_id = $1;`
 	qImages := `UPDATE images SET status = $1 WHERE item_id = $2;`
 	tx, err := s.repo.Beginx()
@@ -463,31 +363,29 @@ func (s *Storer) DeleteItemAdmin(ctx context.Context, itemID string) (err error)
 	return nil
 }
 
-func (s *Storer) DeleteItem(ctx context.Context, userID string, listID string, itemID string) error {
+func (s *Storer) DeleteItem(ctx context.Context, userID string, itemID string) error {
 	qItem := `
 		DELETE FROM items WHERE item_id = $1 
 		AND EXISTS (
 			SELECT 1
 			FROM lists
-			WHERE lists.list_id = $2 
-			AND lists.user_id = $3
+			WHERE lists.user_id = $2
 		);
 	`
 	qImages := `
 		UPDATE images SET status = $1 
 		WHERE item_id = $2 
-		AND list_id = $3
-		AND user_id = $4;
+		AND user_id = $3;
 		`
 	tx, err := s.repo.Beginx()
 	if err != nil {
 		return err
 	}
-	err = handleRowsResult(tx.ExecContext(ctx, qItem, itemID, listID, userID))
+	err = handleRowsResult(tx.ExecContext(ctx, qItem, itemID, userID))
 	if err != nil {
 		return err
 	}
-	_, err = tx.ExecContext(ctx, qImages, images.Deleted, itemID, listID, userID)
+	_, err = tx.ExecContext(ctx, qImages, images.Deleted, itemID, userID)
 	if err != nil {
 		return err
 	}
@@ -550,6 +448,7 @@ func populateItem(i list.Item) StorerItem {
 type rowItemsByListID struct {
 	StorerItem
 	StorerPoint
+	Private bool `db:"private"`
 }
 
 func fromRowsToMap(rows *sqlx.Rows) (map[string]*list.Item, error) {
@@ -573,6 +472,7 @@ func fromRowsToMap(rows *sqlx.Rows) (map[string]*list.Item, error) {
 				ListID:      row.ListID,
 				UserID:      row.UserID,
 				Name:        row.StorerItem.Name,
+				Private:     row.Private,
 				Description: row.Description,
 				Address:     row.Address,
 				Point:       p,

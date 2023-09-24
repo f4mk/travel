@@ -38,6 +38,7 @@ type Item struct {
 	ListID      string
 	UserID      string
 	Name        string
+	Private     bool
 	Description *string
 	Address     *string
 	Point       Point
