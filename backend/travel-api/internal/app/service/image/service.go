@@ -14,8 +14,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-const meg16 = 16 << 20
-const maxOpenFiles = 128 // adjust as needed
+const meg16 = 16 << 20 //16Mib
 
 type Service struct {
 	log  *zerolog.Logger
@@ -28,12 +27,13 @@ func NewService(
 	l *zerolog.Logger,
 	a *authPkg.Auth,
 	c *imageUsecase.Core,
+	m int16,
 ) *Service {
 	return &Service{
 		log:  l,
 		auth: a,
 		core: c,
-		sem:  make(chan struct{}, maxOpenFiles),
+		sem:  make(chan struct{}, m),
 	}
 }
 
@@ -63,7 +63,7 @@ func (s *Service) Store(ctx context.Context, w http.ResponseWriter, r *http.Requ
 		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
-	err = r.ParseMultipartForm(meg16) // Limit: 16MB
+	err = r.ParseMultipartForm(meg16)
 	if err != nil {
 		s.log.Err(err).Msg(ErrPostImageDecode.Error())
 		return web.NewRequestError(

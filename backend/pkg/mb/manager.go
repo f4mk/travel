@@ -41,7 +41,7 @@ func NewManager(cfg ConnConfig) (*ConnManager, error) {
 
 }
 
-func (cm ConnManager) Close() {
+func (cm *ConnManager) Close() {
 	if err := cm.conn.Close(); err != nil {
 		cm.log.Err(err).Msg("failed to close queue connection")
 	}

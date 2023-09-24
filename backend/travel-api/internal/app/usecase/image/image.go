@@ -44,7 +44,7 @@ func NewCore(l *zerolog.Logger, sr Server, st Storer, cv Converter) *Core {
 }
 
 func (c *Core) GetImageByID(ctx context.Context, fileID string, userID string) ([]byte, error) {
-	im, err := c.storer.QueryByID(ctx, fileID)
+	img, err := c.storer.QueryByID(ctx, fileID)
 	if err != nil {
 		c.log.Err(err).Msgf("image: query by id: %s", database.ErrQueryDB.Error())
 		return []byte{}, database.WrapStorerError(err)
@@ -54,7 +54,7 @@ func (c *Core) GetImageByID(ctx context.Context, fileID string, userID string) (
 		c.log.Err(err).Msgf("image: query by id: %s", auth.ErrGetClaims.Error())
 		return []byte{}, auth.ErrGetClaims
 	}
-	if !claims.Authorize(auth.RoleAdmin) && userID != im.UserID && im.Private {
+	if !claims.Authorize(auth.RoleAdmin) && userID != img.UserID && img.Private {
 		c.log.Error().Msgf("image: query by id: %s", web.ErrForbidden.Error())
 		return []byte{}, web.ErrForbidden
 	}

@@ -22,7 +22,7 @@ func NewConverter(l *zerolog.Logger, c ImgConverter, m int16) *Converter {
 	return &Converter{client: c, log: l, sim: make(chan struct{}, m)}
 }
 
-func (c Converter) Convert(ctx context.Context, images []io.Reader) ([]io.ReadCloser, error) {
+func (c *Converter) Convert(ctx context.Context, images []io.Reader) ([]io.ReadCloser, error) {
 	results := make(chan convResult, len(images))
 	converted := make([]io.ReadCloser, len(images))
 	var firstError error

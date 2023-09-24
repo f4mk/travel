@@ -17,7 +17,7 @@ func NewStorer(l *zerolog.Logger, r *sqlx.DB) *Storer {
 	return &Storer{repo: r, log: l}
 }
 
-func (s Storer) QueryByID(ctx context.Context, imageID string) (image.Image, error) {
+func (s *Storer) QueryByID(ctx context.Context, imageID string) (image.Image, error) {
 	img := StorerImage{}
 	q := `SELECT * from images where imageID=$1`
 	if err := s.repo.SelectContext(ctx, &img, q, imageID); err != nil {
@@ -37,7 +37,7 @@ func (s Storer) QueryByID(ctx context.Context, imageID string) (image.Image, err
 	return res, nil
 }
 
-func (s Storer) Create(ctx context.Context, images []image.Image) (err error) {
+func (s *Storer) Create(ctx context.Context, images []image.Image) (err error) {
 	q := `INSERT INTO images (
 		image_id, list_id, user_id,
 		item_id, private,	description,

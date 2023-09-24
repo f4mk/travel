@@ -42,7 +42,7 @@ func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	a.otmux.ServeHTTP(w, r)
 }
 
-func (a App) Handle(method string, path string, handler Handler, mw ...Middleware) {
+func (a *App) Handle(method string, path string, handler Handler, mw ...Middleware) {
 
 	h := func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), a.timeout)
@@ -76,7 +76,7 @@ func (a App) Handle(method string, path string, handler Handler, mw ...Middlewar
 	a.mux.Handle(method, path, h)
 }
 
-func (a App) SignalShutdown() {
+func (a *App) SignalShutdown() {
 
 	a.shutdown <- syscall.SIGTERM
 }
