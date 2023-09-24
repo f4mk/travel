@@ -27,7 +27,6 @@ func (c Converter) Convert(ctx context.Context, images []io.Reader) ([]io.ReadCl
 	converted := make([]io.ReadCloser, len(images))
 	var firstError error
 	var wg sync.WaitGroup
-	// TODO: limit total amount of goroutines
 	for i, img := range images {
 		wg.Add(1)
 		go func(idx int, img io.Reader) {

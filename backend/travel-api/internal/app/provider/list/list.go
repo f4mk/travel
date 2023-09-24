@@ -12,6 +12,8 @@ import (
 	"github.com/rs/zerolog"
 )
 
+const EPSG = 4326
+
 type Storer struct {
 	repo *sqlx.DB
 	log  *zerolog.Logger
@@ -221,6 +223,7 @@ func (s *Storer) CreateItem(ctx context.Context, i list.Item) (err error) {
 		ItemID: i.Point.ItemID,
 		Lat:    i.Point.Lat,
 		Lng:    i.Point.Lng,
+		EPSG:   EPSG,
 	}
 	tx, err := s.repo.Beginx()
 	if err != nil {
@@ -257,13 +260,12 @@ func (s *Storer) CreateItem(ctx context.Context, i list.Item) (err error) {
 				AND lists.user_id = :user_id
 		);
 	`
-	// TODO: refactor magical number
 	qPoint := `
 		INSERT INTO points (
 			point_id, item_id, location
 		)
 		VALUES (
-			:point_id, :item_id, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)
+			:point_id, :item_id, ST_SetSRID(ST_MakePoint(:lng, :lat), :epsg)
 		);
 	`
 	err = handleRowsResult(tx.NamedExecContext(ctx, qItem, item))
@@ -293,6 +295,7 @@ func (s *Storer) UpdateItemAdmin(ctx context.Context, i list.Item, toDelete []st
 		ItemID: i.Point.ItemID,
 		Lat:    i.Point.Lat,
 		Lng:    i.Point.Lng,
+		EPSG:   EPSG,
 	}
 	tx, err := s.repo.Beginx()
 	if err != nil {
@@ -322,7 +325,7 @@ func (s *Storer) UpdateItemAdmin(ctx context.Context, i list.Item, toDelete []st
 	`
 	qPoint := `
 		UPDATE points SET
-			location = ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)
+			location = ST_SetSRID(ST_MakePoint(:lng, :lat), :epsg)
 		WHERE point_id = :point_id;
 	`
 
@@ -360,6 +363,7 @@ func (s *Storer) UpdateItem(ctx context.Context, i list.Item, toDelete []string)
 		ItemID: i.Point.ItemID,
 		Lat:    i.Point.Lat,
 		Lng:    i.Point.Lng,
+		EPSG:   EPSG,
 	}
 	tx, err := s.repo.Beginx()
 	if err != nil {
@@ -399,7 +403,7 @@ func (s *Storer) UpdateItem(ctx context.Context, i list.Item, toDelete []string)
 	`
 	qPoint := `
 		UPDATE points SET
-			location = ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)
+			location = ST_SetSRID(ST_MakePoint(:lng, :lat), :epsg)
 		WHERE point_id = :point_id;
 	`
 

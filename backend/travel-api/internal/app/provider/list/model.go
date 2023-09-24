@@ -38,4 +38,5 @@ type StorerPoint struct {
 	ItemID string  `db:"item_id"`
 	Lat    float64 `db:"lat"`
 	Lng    float64 `db:"lng"`
+	EPSG   float64 `db:"epsg"`
 }
