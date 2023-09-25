@@ -103,6 +103,7 @@ func (c *Core) StoreImages(
 	}()
 	go func() {
 		defer wg.Done()
+		// TODO: if db fails, need to clean up bucket
 		if err := c.server.SaveFiles(ctx, imageIDs, imgStreams); err != nil {
 			c.log.Err(err).Msgf("image: create: save: %s", err.Error())
 			// cleanup image storage
