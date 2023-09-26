@@ -16,7 +16,7 @@ import (
 type Server interface {
 	ServeFile(ctx context.Context, fileID string) ([]byte, error)
 	SaveFiles(ctx context.Context, filesID []string, streams []io.ReadCloser) error
-	DeleteFiles(ctx context.Context, filesID []string) error
+	TryDeleteFiles(ctx context.Context, filesID []string) error
 }
 type Storer interface {
 	QueryByID(ctx context.Context, fileID string) (Image, error)
@@ -96,7 +96,7 @@ func (c *Core) StoreImages(
 	if err := c.server.SaveFiles(ctx, imageIDs, imgStreams); err != nil {
 		c.log.Err(err).Msgf("image: create: save: %s", err.Error())
 		// cleanup image storage
-		if err := c.server.DeleteFiles(ctx, imageIDs); err != nil {
+		if err := c.server.TryDeleteFiles(ctx, imageIDs); err != nil {
 			c.log.Err(err).Msgf("image: create: rollback: %s", err.Error())
 			// TODO: store failed ids somewhere
 		}
