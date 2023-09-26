@@ -3,7 +3,6 @@ package image
 import (
 	"context"
 	"io"
-	"sync"
 	"time"
 
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/auth"
@@ -85,48 +84,24 @@ func (c *Core) StoreImages(
 			Status:      images.Pending,
 			DateCreated: time.Now().UTC(),
 		}
-
 		imageItems = append(imageItems, img)
 		imageIDs = append(imageIDs, img.ID)
 	}
 
-	errCh := make(chan error, 3)
-	var wg sync.WaitGroup
-	wg.Add(2)
-	go func() {
-		defer wg.Done()
-		if err := c.storer.Create(ctx, imageItems); err != nil {
-			// no need for cleanup: should be handled by cron
-			c.log.Err(err).Msgf("image: create: %s", database.ErrQueryDB.Error())
-			errCh <- database.WrapStorerError(err)
-		}
-	}()
-	go func() {
-		defer wg.Done()
-		// TODO: if db fails, need to clean up bucket
-		if err := c.server.SaveFiles(ctx, imageIDs, imgStreams); err != nil {
-			c.log.Err(err).Msgf("image: create: save: %s", err.Error())
-			// cleanup image storage
-			if err := c.server.DeleteFiles(ctx, imageIDs); err != nil {
-				c.log.Err(err).Msgf("image: create: rollback: %s", err.Error())
-				errCh <- err
-			}
-			errCh <- err
-		}
-	}()
-
-	go func() {
-		wg.Wait()
-		close(errCh)
-	}()
-
-	for err = range errCh {
-		if err != nil {
-			c.log.Err(err).Msg("image: create: failed")
-		}
+	if err := c.storer.Create(ctx, imageItems); err != nil {
+		// no need for cleanup: should be handled by cron
+		c.log.Err(err).Msgf("image: create: %s", database.ErrQueryDB.Error())
+		return nil, database.WrapStorerError(err)
 	}
-	if err != nil {
+	if err := c.server.SaveFiles(ctx, imageIDs, imgStreams); err != nil {
+		c.log.Err(err).Msgf("image: create: save: %s", err.Error())
+		// cleanup image storage
+		if err := c.server.DeleteFiles(ctx, imageIDs); err != nil {
+			c.log.Err(err).Msgf("image: create: rollback: %s", err.Error())
+			// TODO: store failed ids somewhere
+		}
 		return nil, err
 	}
+
 	return imageIDs, nil
 }
