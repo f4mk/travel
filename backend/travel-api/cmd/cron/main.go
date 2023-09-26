@@ -9,6 +9,7 @@ import (
 	"github.com/f4mk/travel/backend/pkg/utils"
 	"github.com/f4mk/travel/backend/travel-api/config"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/database"
+	"github.com/f4mk/travel/backend/travel-api/internal/pkg/images"
 	"github.com/jmoiron/sqlx"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -60,6 +61,12 @@ func main() {
 	_, err = c.AddFunc("0 2 * * *", removeExpiredVerificationTokens)
 	if err != nil {
 		fmt.Println("error scheduling removeExpiredVerificationTokens task:", err)
+		return
+	}
+
+	_, err = c.AddFunc("0 3 * * *", removeUncommitedImages)
+	if err != nil {
+		fmt.Println("error scheduling removeUncommitedImages task:", err)
 		return
 	}
 
@@ -146,6 +153,36 @@ func removeExpiredVerificationTokens() {
 		}
 
 		fmt.Println("cron removed entries from verify_tokens:", removed)
+
+		if removed < batchSize {
+			break
+		}
+
+		time.Sleep(2 * time.Second)
+	}
+}
+
+func removeUncommitedImages() {
+	for {
+		dayBefore := time.Now().Add(-24 * time.Hour)
+		q := `
+		DELETE FROM images
+		WHERE image_id IN 
+				(SELECT token_id FROM images
+				WHERE status = $1 AND date_created < $2
+				LIMIT $3);`
+		result, err := db.Exec(q, images.Pending, dayBefore, batchSize)
+		if err != nil {
+			fmt.Println("error removing images records:", err)
+			return
+		}
+		removed, err := result.RowsAffected()
+		if err != nil {
+			fmt.Println("error getting images rows affected:", err)
+			return
+		}
+
+		fmt.Println("cron removed entries from images:", removed)
 
 		if removed < batchSize {
 			break
