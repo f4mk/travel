@@ -39,18 +39,12 @@ func NewServer(
 	}, nil
 }
 
-func (s *Server) ServeFile(ctx context.Context, fileID string) ([]byte, error) {
+func (s *Server) ServeFile(ctx context.Context, fileID string) (io.ReadCloser, error) {
 	object, err := s.minioClient.GetObject(ctx, s.bucketName, fileID, minio.GetObjectOptions{})
 	if err != nil {
 		return nil, err
 	}
-	defer object.Close()
-
-	data, err := io.ReadAll(object)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
+	return object, nil
 }
 
 func (s *Server) SaveFiles(ctx context.Context, filesID []string, streams []io.ReadCloser) error {

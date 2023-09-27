@@ -3,6 +3,7 @@ package web
 import (
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 )
 
@@ -35,7 +36,7 @@ func Respond(ctx context.Context, w http.ResponseWriter, data any, statusCode in
 func RespondRaw(
 	ctx context.Context,
 	w http.ResponseWriter,
-	data []byte,
+	data io.Reader,
 	statusCode int,
 	ctype string,
 ) error {
@@ -43,7 +44,8 @@ func RespondRaw(
 
 	w.Header().Set("Content-Type", ctype)
 	w.WriteHeader(statusCode)
-	if _, err := w.Write(data); err != nil {
+	_, err := io.Copy(w, data)
+	if err != nil {
 		return err
 	}
 	return nil

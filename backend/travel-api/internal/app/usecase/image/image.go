@@ -14,7 +14,7 @@ import (
 )
 
 type Server interface {
-	ServeFile(ctx context.Context, fileID string) ([]byte, error)
+	ServeFile(ctx context.Context, fileID string) (io.ReadCloser, error)
 	SaveFiles(ctx context.Context, filesID []string, streams []io.ReadCloser) error
 	TryDeleteFiles(ctx context.Context, filesID []string) error
 }
@@ -42,20 +42,20 @@ func NewCore(l *zerolog.Logger, sr Server, st Storer, cv Converter) *Core {
 	}
 }
 
-func (c *Core) GetImageByID(ctx context.Context, fileID string, userID string) ([]byte, error) {
+func (c *Core) GetImageByID(ctx context.Context, fileID string, userID string) (io.ReadCloser, error) {
 	img, err := c.storer.QueryByID(ctx, fileID)
 	if err != nil {
 		c.log.Err(err).Msgf("image: query by id: %s", database.ErrQueryDB.Error())
-		return []byte{}, database.WrapStorerError(err)
+		return nil, database.WrapStorerError(err)
 	}
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
 		c.log.Err(err).Msgf("image: query by id: %s", auth.ErrGetClaims.Error())
-		return []byte{}, auth.ErrGetClaims
+		return nil, auth.ErrGetClaims
 	}
 	if !claims.Authorize(auth.RoleAdmin) && userID != img.UserID && img.Private {
 		c.log.Error().Msgf("image: query by id: %s", web.ErrForbidden.Error())
-		return []byte{}, web.ErrForbidden
+		return nil, web.ErrForbidden
 	}
 
 	return c.server.ServeFile(ctx, fileID)

@@ -44,7 +44,7 @@ func (s *Service) Serve(ctx context.Context, w http.ResponseWriter, r *http.Requ
 		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
-	res, err := s.core.GetImageByID(ctx, fileID, claims.Subject)
+	reader, err := s.core.GetImageByID(ctx, fileID, claims.Subject)
 	if err != nil {
 		s.log.Err(err).Msg(ErrGetImageBusiness.Error())
 		return fmt.Errorf(
@@ -52,8 +52,9 @@ func (s *Service) Serve(ctx context.Context, w http.ResponseWriter, r *http.Requ
 			web.GetResponseErrorFromBusiness(err),
 		)
 	}
+	defer reader.Close()
 
-	return web.RespondRaw(ctx, w, res, http.StatusOK, "image/webp")
+	return web.RespondRaw(ctx, w, reader, http.StatusOK, "image/webp")
 }
 
 func (s *Service) Store(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
