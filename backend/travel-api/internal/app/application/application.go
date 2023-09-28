@@ -7,22 +7,26 @@ import (
 	"os/signal"
 	"syscall"
 
+	imageconverter "github.com/f4mk/travel/backend/pkg/imageConverter"
 	"github.com/f4mk/travel/backend/pkg/mb"
 	"github.com/f4mk/travel/backend/pkg/utils"
 	"github.com/f4mk/travel/backend/travel-api/config"
 	"github.com/f4mk/travel/backend/travel-api/internal/app/controller/api"
 	"github.com/f4mk/travel/backend/travel-api/internal/app/controller/debug"
 	"github.com/f4mk/travel/backend/travel-api/internal/app/controller/mail"
-	authRepo "github.com/f4mk/travel/backend/travel-api/internal/app/provider/auth"
-	listRepo "github.com/f4mk/travel/backend/travel-api/internal/app/provider/list"
-	mailSender "github.com/f4mk/travel/backend/travel-api/internal/app/provider/mail"
-	userRepo "github.com/f4mk/travel/backend/travel-api/internal/app/provider/user"
+	authProvider "github.com/f4mk/travel/backend/travel-api/internal/app/provider/auth"
+	imageProvider "github.com/f4mk/travel/backend/travel-api/internal/app/provider/image"
+	listProvider "github.com/f4mk/travel/backend/travel-api/internal/app/provider/list"
+	mailProvider "github.com/f4mk/travel/backend/travel-api/internal/app/provider/mail"
+	userProvider "github.com/f4mk/travel/backend/travel-api/internal/app/provider/user"
 	authService "github.com/f4mk/travel/backend/travel-api/internal/app/service/auth"
 	"github.com/f4mk/travel/backend/travel-api/internal/app/service/check"
+	imageService "github.com/f4mk/travel/backend/travel-api/internal/app/service/image"
 	listService "github.com/f4mk/travel/backend/travel-api/internal/app/service/list"
 	mailService "github.com/f4mk/travel/backend/travel-api/internal/app/service/mail"
 	userService "github.com/f4mk/travel/backend/travel-api/internal/app/service/user"
 	authUsecase "github.com/f4mk/travel/backend/travel-api/internal/app/usecase/auth"
+	imageUsecase "github.com/f4mk/travel/backend/travel-api/internal/app/usecase/image"
 	listUsecase "github.com/f4mk/travel/backend/travel-api/internal/app/usecase/list"
 	mailUsecase "github.com/f4mk/travel/backend/travel-api/internal/app/usecase/mail"
 	userUsecase "github.com/f4mk/travel/backend/travel-api/internal/app/usecase/user"
@@ -96,7 +100,7 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 	// -------------------------------------------------------------------------
 	// Starting Mail service
 	mailClient := mailjet.NewMailjetClient(cfg.MailService.PublicKey, cfg.MailService.PrivateKey)
-	mailSender := mailSender.NewSender(
+	mailSender := mailProvider.NewSender(
 		log,
 		mailClient,
 		cfg.Service.DomainName,
@@ -223,9 +227,37 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 		middleware.Panics(log),
 	)
 
-	userStorer := userRepo.NewStorer(log, db)
-	authStorer := authRepo.NewStorer(log, db)
-	listStorer := listRepo.NewStorer(log, db)
+	imgCfg := imageProvider.ServerConfig{
+		Log:        log,
+		WRConns:    int16(cfg.ImageServer.MaxWriteConns),
+		Host:       utils.GetHost(cfg.ImageServer.HostName, cfg.ImageServer.Port),
+		AccessKey:  cfg.ImageServer.AccessKey,
+		SecretKey:  cfg.ImageServer.SecretKey,
+		BucketName: cfg.ImageServer.BucketName,
+	}
+	imgConvCfg := imageconverter.Config{
+		Host:    utils.GetHost(cfg.ImageConverter.HostName, cfg.ImageConverter.Port),
+		Timeout: cfg.ImageConverter.Timeout,
+	}
+	imgConvClient := imageconverter.NewClient(imgConvCfg)
+	imageServer, err := imageProvider.NewServer(imgCfg)
+	if err != nil {
+		log.Err(err).Msg("starting image server")
+		return err
+	}
+	imageStorer := imageProvider.NewStorer(log, db)
+	imageCoverter := imageProvider.NewConverter(
+		log,
+		imgConvClient,
+		int16(cfg.ImageConverter.MaxWriteConns),
+	)
+	userStorer := userProvider.NewStorer(log, db)
+	authStorer := authProvider.NewStorer(log, db)
+	listStorer := listProvider.NewStorer(log, db)
+
+	imageCore := imageUsecase.NewCore(log, imageServer, imageStorer, imageCoverter)
+	// TODO: proper semaphore limit
+	imageService := imageService.NewService(log, auth, imageCore, 128)
 
 	userCore := userUsecase.NewCore(log, userStorer)
 	userService := userService.NewService(log, auth, userCore, mq)
@@ -244,6 +276,9 @@ func Run(build string, log *zerolog.Logger, cfg *config.Config) error {
 
 	listCon := api.NewListController(log, listService, auth, cfg.API.RateLimit)
 	listCon.RegisterRoutes(app)
+
+	imageCon := api.NewImageController(log, imageService, auth, cfg.API.RateLimit)
+	imageCon.RegisterRoutes(app)
 
 	h2s := &http2.Server{}
 

@@ -9,7 +9,7 @@ import (
 )
 
 type Client struct {
-	baseURL    string
+	host       string
 	width      int16
 	height     int16
 	imgType    string
@@ -17,33 +17,33 @@ type Client struct {
 }
 
 type Config struct {
-	baseURL string
-	width   int16
-	height  int16
-	imgType string
-	timeout time.Duration
+	Host    string
+	Width   int16
+	Height  int16
+	ImgType string
+	Timeout time.Duration
 }
 
 func NewClient(c Config) *Client {
-	if c.width == 0 || c.height == 0 {
-		c.width = 1280
-		c.height = 720
+	if c.Width == 0 || c.Height == 0 {
+		c.Width = 1280
+		c.Height = 720
 	}
-	if c.imgType == "" {
-		c.imgType = "webp"
+	if c.ImgType == "" {
+		c.ImgType = "webp"
 	}
 	return &Client{
-		baseURL:    c.baseURL,
-		width:      c.width,
-		height:     c.height,
-		imgType:    c.imgType,
-		httpClient: &http.Client{Timeout: c.timeout},
+		host:       c.Host,
+		width:      c.Width,
+		height:     c.Height,
+		imgType:    c.ImgType,
+		httpClient: &http.Client{Timeout: c.Timeout},
 	}
 }
 
 // make sure to close the returned io.Reader when processed
 func (c *Client) Convert(ctx context.Context, input io.Reader) (io.ReadCloser, error) {
-	endpoint := fmt.Sprintf("%s/convert?width=%d&height=%d&type=%s", c.baseURL, c.width, c.height, c.imgType)
+	endpoint := fmt.Sprintf("%s/convert?width=%d&height=%d&type=%s", c.host, c.width, c.height, c.imgType)
 	req, err := http.NewRequest(http.MethodPost, endpoint, input)
 	if err != nil {
 		return nil, err

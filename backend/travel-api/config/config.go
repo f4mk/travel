@@ -61,6 +61,22 @@ type MailService struct {
 	PublicKey  string `env:"MAIL_PUBLIC_KEY_PATH,required"`
 }
 
+type ImageServer struct {
+	HostName      string `env:"MINIO_HOST_NAME,required"`
+	Port          string `env:"MINIO_PORT,required"`
+	SecretKey     string `env:"MINIO_SECRET_KEY,required"`
+	AccessKey     string `env:"MINIO_ACCESS_KEY,required"`
+	BucketName    string `env:"MINIO_BUCKET_NAME,required"`
+	MaxWriteConns int    `env:"MINIO_MAX_WR_CONNS,required"`
+}
+
+type ImageConverter struct {
+	HostName      string        `env:"IMAGINARY_HOST_NAME,required"`
+	Port          string        `env:"IMAGINARY_PORT,required"`
+	Timeout       time.Duration `env:"IMAGINARY_TIMEOUT,required"`
+	MaxWriteConns int           `env:"IMAGINARY_MAX_WR_CONNS,required"`
+}
+
 type Log struct {
 	LogLevel int `env:"LOG_LEVEL,required"`
 }
@@ -83,18 +99,20 @@ type DB struct {
 }
 
 type Config struct {
-	Environment   string `env:"ENVIRONMENT,required"`
-	Service       Service
-	Log           Log
-	API           API
-	Debug         Debug
-	Metrics       Metrics
-	Auth          Auth
-	DB            DB
-	Cache         Cache
-	MessageBroker MessageBroker
-	MailService   MailService
-	Telemetry     Telemetry
+	Environment    string `env:"ENVIRONMENT,required"`
+	Service        Service
+	Log            Log
+	API            API
+	Debug          Debug
+	Metrics        Metrics
+	Auth           Auth
+	DB             DB
+	Cache          Cache
+	MessageBroker  MessageBroker
+	MailService    MailService
+	Telemetry      Telemetry
+	ImageServer    ImageServer
+	ImageConverter ImageConverter
 }
 
 func New(configPath string) (*Config, error) {

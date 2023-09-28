@@ -87,7 +87,7 @@ func (s *Service) Store(ctx context.Context, w http.ResponseWriter, r *http.Requ
 		s.sem <- struct{}{}
 		file, err := fileHeader.Open()
 		if err != nil {
-			<-s.sem // release immediately if error
+			<-s.sem
 			s.log.Err(err).Msg(ErrPostImageRead.Error())
 			return web.NewRequestError(
 				err,

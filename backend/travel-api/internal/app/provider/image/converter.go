@@ -14,12 +14,12 @@ type ImgConverter interface {
 type Converter struct {
 	client ImgConverter
 	log    *zerolog.Logger
-	sim    chan (struct{})
+	sem    chan (struct{})
 }
 
 // TODO: find something appropriate for m
 func NewConverter(l *zerolog.Logger, c ImgConverter, m int16) *Converter {
-	return &Converter{client: c, log: l, sim: make(chan struct{}, m)}
+	return &Converter{client: c, log: l, sem: make(chan struct{}, m)}
 }
 
 func (c *Converter) Convert(ctx context.Context, images []io.Reader) ([]io.ReadCloser, error) {
@@ -33,12 +33,12 @@ func (c *Converter) Convert(ctx context.Context, images []io.Reader) ([]io.ReadC
 			defer wg.Done()
 
 			select {
-			case c.sim <- struct{}{}:
+			case c.sem <- struct{}{}:
 			case <-ctx.Done():
 				return
 			}
 			defer func() {
-				<-c.sim
+				<-c.sem
 			}()
 
 			convImg, err := c.client.Convert(ctx, img)

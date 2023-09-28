@@ -3,6 +3,7 @@ package image
 import (
 	"context"
 	"io"
+	"sync"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -11,31 +12,35 @@ import (
 
 type Server struct {
 	log         *zerolog.Logger
-	sim         chan (struct{})
+	sem         chan (struct{})
 	minioClient *minio.Client
 	bucketName  string
 }
 
+type ServerConfig struct {
+	Log        *zerolog.Logger
+	WRConns    int16
+	Host       string
+	AccessKey  string
+	SecretKey  string
+	BucketName string
+}
+
 func NewServer(
-	l *zerolog.Logger,
-	m int16,
-	endpoint,
-	accessKey,
-	secretKey,
-	bucketName string,
+	s ServerConfig,
 ) (*Server, error) {
-	minioClient, err := minio.New(endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
+	minioClient, err := minio.New(s.Host, &minio.Options{
+		Creds:  credentials.NewStaticV4(s.AccessKey, s.SecretKey, ""),
 		Secure: false,
 	})
 	if err != nil {
 		return nil, err
 	}
 	return &Server{
-		log:         l,
-		sim:         make(chan struct{}, m),
+		log:         s.Log,
+		sem:         make(chan struct{}, s.WRConns),
 		minioClient: minioClient,
-		bucketName:  bucketName,
+		bucketName:  s.BucketName,
 	}, nil
 }
 
@@ -48,14 +53,39 @@ func (s *Server) ServeFile(ctx context.Context, fileID string) (io.ReadCloser, e
 }
 
 func (s *Server) SaveFiles(ctx context.Context, filesID []string, streams []io.ReadCloser) error {
+	var wg sync.WaitGroup
+	errChan := make(chan error, len(filesID))
 	for i, fileID := range filesID {
-		_, err := s.minioClient.PutObject(ctx, s.bucketName, fileID, streams[i], -1, minio.PutObjectOptions{})
-		streams[i].Close()
-		if err != nil {
-			return err
+		wg.Add(1)
+		go func(fID string, stream io.ReadCloser) {
+			defer wg.Done()
+
+			select {
+			case <-ctx.Done():
+				errChan <- ctx.Err()
+			case s.sem <- struct{}{}:
+				_, err := s.minioClient.PutObject(ctx, s.bucketName, fID, stream, -1, minio.PutObjectOptions{})
+				stream.Close()
+				<-s.sem
+				if err != nil {
+					errChan <- err
+				}
+			}
+		}(fileID, streams[i])
+	}
+	go func() {
+		wg.Wait()
+		close(errChan)
+	}()
+
+	var firstErr error
+	for err := range errChan {
+		if err != nil && firstErr == nil {
+			firstErr = err
 		}
 	}
-	return nil
+
+	return firstErr
 }
 
 func (s *Server) TryDeleteFiles(ctx context.Context, filesID []string) error {
