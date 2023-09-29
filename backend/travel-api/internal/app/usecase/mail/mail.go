@@ -1,14 +1,15 @@
 package mail
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/rs/zerolog"
 )
 
 type Sender interface {
-	SendResetPwdEmail(l Letter) error
-	SendRegisterEmail(l Letter) error
+	SendResetPwdEmail(ctx context.Context, l Letter) error
+	SendRegisterEmail(ctx context.Context, l Letter) error
 }
 
 type Core struct {
@@ -23,7 +24,7 @@ func NewCore(l *zerolog.Logger, s Sender) *Core {
 	}
 }
 
-func (c *Core) SendResetMessage(m MessageReset) error {
+func (c *Core) SendResetMessage(ctx context.Context, m MessageReset) error {
 
 	sub := "Password reset"
 	head := fmt.Sprintf("Hello %s", m.Name)
@@ -39,10 +40,10 @@ func (c *Core) SendResetMessage(m MessageReset) error {
 		Token:   m.ResetToken,
 		Body:    body,
 	}
-	return c.sender.SendResetPwdEmail(l)
+	return c.sender.SendResetPwdEmail(ctx, l)
 }
 
-func (c *Core) SendVerifyMessage(m MessageVerify) error {
+func (c *Core) SendVerifyMessage(ctx context.Context, m MessageVerify) error {
 
 	sub := "Account created"
 	head := fmt.Sprintf("Hello %s", m.Name)
@@ -58,5 +59,5 @@ func (c *Core) SendVerifyMessage(m MessageVerify) error {
 		Token:   m.VerifyToken,
 		Body:    body,
 	}
-	return c.sender.SendRegisterEmail(l)
+	return c.sender.SendRegisterEmail(ctx, l)
 }

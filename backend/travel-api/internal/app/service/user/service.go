@@ -46,9 +46,10 @@ func NewService(l *zerolog.Logger, a *authPkg.Auth, c *userUsecase.Core, mq *que
 
 // TODO: should be in admin space or removed
 func (s *Service) GetUsers(ctx context.Context, w http.ResponseWriter, _ *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	res, err := s.core.QueryAll(ctx)
 	if err != nil {
-		s.log.Err(err).Msg(ErrGetUsersBusiness.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrGetUsersBusiness.Error())
 		return fmt.Errorf(
 			"cannot get users: %w",
 			web.GetResponseErrorFromBusiness(err),
@@ -67,9 +68,10 @@ func (s *Service) GetUsers(ctx context.Context, w http.ResponseWriter, _ *http.R
 }
 
 func (s *Service) GetUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	id := web.Param(r, "id")
 	if err := web.ValidateUUID(id); err != nil {
-		s.log.Err(err).Msg(ErrValidateUserID.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrValidateUserID.Error())
 		return web.NewRequestError(
 			fmt.Errorf("invalid id: %w", err),
 			http.StatusBadRequest,
@@ -77,7 +79,7 @@ func (s *Service) GetUser(ctx context.Context, w http.ResponseWriter, r *http.Re
 	}
 	res, err := s.core.QueryByID(ctx, id)
 	if err != nil {
-		s.log.Err(err).Msg(ErrGetUserBusiness.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrGetUserBusiness.Error())
 		return fmt.Errorf(
 			"cannot get user: %w",
 			web.GetResponseErrorFromBusiness(err),
@@ -93,14 +95,15 @@ func (s *Service) GetUser(ctx context.Context, w http.ResponseWriter, r *http.Re
 }
 
 func (s *Service) GetMe(ctx context.Context, w http.ResponseWriter, _ *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		s.log.Err(err).Str("TraceID", tID).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
 	res, err := s.core.QueryByID(ctx, claims.Subject)
 	if err != nil {
-		s.log.Err(err).Msg(ErrGetUserBusiness.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrGetUserBusiness.Error())
 		return fmt.Errorf(
 			"cannot get user: %w",
 			web.GetResponseErrorFromBusiness(err),
@@ -116,9 +119,10 @@ func (s *Service) GetMe(ctx context.Context, w http.ResponseWriter, _ *http.Requ
 }
 
 func (s *Service) CreateUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	u := NewUser{}
 	if err := web.Decode(r, &u); err != nil {
-		s.log.Err(err).Msg(ErrCreateValidate.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrCreateValidate.Error())
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
@@ -131,13 +135,14 @@ func (s *Service) CreateUser(ctx context.Context, w http.ResponseWriter, r *http
 	}
 	user, token, err := s.core.Create(ctx, nu)
 	if err != nil {
-		s.log.Err(err).Msg(ErrCreateBusiness.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrCreateBusiness.Error())
 		return fmt.Errorf(
 			"cannot create users: %w",
 			web.GetResponseErrorFromBusiness(err),
 		)
 	}
 	m := messages.Message{
+		ID:    tID,
 		Email: user.Email,
 		Name:  user.Name,
 		Token: token,
@@ -145,7 +150,7 @@ func (s *Service) CreateUser(ctx context.Context, w http.ResponseWriter, r *http
 	}
 	err = s.mq.Publish(ctx, m)
 	if err != nil {
-		s.log.Err(err).Msg(ErrCreateSendMessage.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrCreateSendMessage.Error())
 		return fmt.Errorf("cannot send message: %w", err)
 	}
 	cu := UserResponse{
@@ -158,9 +163,10 @@ func (s *Service) CreateUser(ctx context.Context, w http.ResponseWriter, r *http
 }
 
 func (s *Service) VerifyUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	vu := VerifyUser{}
 	if err := web.Decode(r, &vu); err != nil {
-		s.log.Err(err).Msg(ErrVerifyValidate.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrVerifyValidate.Error())
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
@@ -172,7 +178,7 @@ func (s *Service) VerifyUser(ctx context.Context, w http.ResponseWriter, r *http
 	}
 	res, err := s.core.Verify(ctx, uu)
 	if err != nil {
-		s.log.Err(err).Msg(ErrVerifyBusiness.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrVerifyBusiness.Error())
 		return fmt.Errorf(
 			"cannot verify user: %w",
 			web.GetResponseErrorFromBusiness(err),
@@ -188,14 +194,15 @@ func (s *Service) VerifyUser(ctx context.Context, w http.ResponseWriter, r *http
 }
 
 func (s *Service) UpdateUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		s.log.Err(err).Str("TraceID", tID).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
 	u := UpdateUser{}
 	if err := web.Decode(r, &u); err != nil {
-		s.log.Err(err).Msg(ErrUpdateValidate.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrUpdateValidate.Error())
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
@@ -209,7 +216,7 @@ func (s *Service) UpdateUser(ctx context.Context, w http.ResponseWriter, r *http
 	}
 	res, err := s.core.Update(ctx, uu)
 	if err != nil {
-		s.log.Err(err).Msg(ErrUpdateBusiness.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrUpdateBusiness.Error())
 		return fmt.Errorf(
 			"cannot update user: %w",
 			web.GetResponseErrorFromBusiness(err),
@@ -225,14 +232,15 @@ func (s *Service) UpdateUser(ctx context.Context, w http.ResponseWriter, r *http
 }
 
 func (s *Service) DeleteUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		s.log.Err(err).Str("TraceID", tID).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
 	u := DeleteUser{}
 	if err := web.Decode(r, &u); err != nil {
-		s.log.Err(err).Msg(ErrUpdateValidate.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrUpdateValidate.Error())
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
@@ -244,14 +252,14 @@ func (s *Service) DeleteUser(ctx context.Context, w http.ResponseWriter, r *http
 	}
 	res, err := s.core.Delete(ctx, du)
 	if err != nil {
-		s.log.Err(err).Msg(ErrDeleteBusiness.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrDeleteBusiness.Error())
 		return fmt.Errorf(
 			"cannot delete user: %w",
 			web.GetResponseErrorFromBusiness(err),
 		)
 	}
 	if err := s.auth.StoreUserTokenVersion(ctx, res.ID, res.TokenVersion); err != nil {
-		s.log.Err(err).Msg(ErrDeleteStoreTokenVersion.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrDeleteStoreTokenVersion.Error())
 		return ErrDeleteStoreTokenVersion
 	}
 	return web.Respond(ctx, w, nil, http.StatusOK)

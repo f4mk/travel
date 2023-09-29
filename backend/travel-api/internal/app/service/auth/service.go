@@ -41,8 +41,9 @@ func NewService(
 
 func (s *Service) Login(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	lu := LoginUser{}
+	tID := web.GetTraceID(ctx)
 	if err := web.Decode(r, &lu); err != nil {
-		s.log.Err(err).Msg(ErrLoginDecode.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrLoginDecode.Error())
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
@@ -54,11 +55,11 @@ func (s *Service) Login(ctx context.Context, w http.ResponseWriter, r *http.Requ
 	}
 	res, err := s.core.Login(ctx, au)
 	if err != nil {
-		s.log.Err(err).Msg(ErrLoginBusiness.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrLoginBusiness.Error())
 		return web.GetResponseErrorFromBusiness(err)
 	}
 	if err := s.auth.StoreUserTokenVersion(ctx, res.UserID, res.TokenVersion); err != nil {
-		s.log.Err(err).Msg(ErrLoginStoreTokenVersion.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrLoginStoreTokenVersion.Error())
 		return ErrLoginStoreTokenVersion
 	}
 	c := authPkg.Claims{}
@@ -66,12 +67,12 @@ func (s *Service) Login(ctx context.Context, w http.ResponseWriter, r *http.Requ
 	c.Roles = res.Roles
 	newAuthToken, err := s.auth.GenerateToken(ctx, c, s.auth.AuthDuration)
 	if err != nil {
-		s.log.Err(err).Msg(ErrLoginGenAuthToken.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrLoginGenAuthToken.Error())
 		return ErrLoginGenAuthToken
 	}
 	newRefreshToken, err := s.auth.GenerateToken(ctx, c, s.auth.RefreshDuration)
 	if err != nil {
-		s.log.Err(err).Msg(ErrLoginGenRefreshToken.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrLoginGenRefreshToken.Error())
 		return ErrLoginGenRefreshToken
 	}
 	w.Header().Set("Authorization", "Bearer "+newAuthToken)
@@ -93,9 +94,10 @@ func (s *Service) Login(ctx context.Context, w http.ResponseWriter, r *http.Requ
 }
 
 func (s *Service) Logout(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	lu := struct{}{}
 	if err := web.Decode(r, &lu); err != nil {
-		s.log.Err(err).Msg(ErrLogoutDecode.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrLogoutDecode.Error())
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
@@ -104,7 +106,7 @@ func (s *Service) Logout(ctx context.Context, w http.ResponseWriter, r *http.Req
 
 	c, err := auth.GetClaims(ctx)
 	if err != nil {
-		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		s.log.Err(err).Str("TraceID", tID).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
 	dt := authUsecase.DeleteToken{
@@ -116,11 +118,11 @@ func (s *Service) Logout(ctx context.Context, w http.ResponseWriter, r *http.Req
 		RevokedAt:    time.Now().UTC(),
 	}
 	if err := s.core.Logout(ctx, dt); err != nil {
-		s.log.Err(err).Msg(ErrLogoutBusiness.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrLogoutBusiness.Error())
 		return web.GetResponseErrorFromBusiness(err)
 	}
 	if err := s.auth.StoreUserTokenVersion(ctx, c.Subject, c.TokenVersion); err != nil {
-		s.log.Err(err).Msg(ErrLoginStoreTokenVersion.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrLoginStoreTokenVersion.Error())
 		return ErrLoginStoreTokenVersion
 	}
 	clearSession(w)
@@ -132,16 +134,17 @@ func (s *Service) Logout(ctx context.Context, w http.ResponseWriter, r *http.Req
 		ExpiresAt:    dt.ExpiresAt,
 		RevokedAt:    dt.RevokedAt,
 	}); err != nil {
-		s.log.Err(err).Msg(ErrLogoutRevokeToken.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrLogoutRevokeToken.Error())
 		return ErrLogoutRevokeToken
 	}
 	return web.Respond(ctx, w, struct{}{}, http.StatusOK)
 }
 
 func (s *Service) ChangePassword(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	p := ChangePassword{}
 	if err := web.Decode(r, &p); err != nil {
-		s.log.Err(err).Msg(ErrChangePassDecode.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrChangePassDecode.Error())
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
@@ -149,7 +152,7 @@ func (s *Service) ChangePassword(ctx context.Context, w http.ResponseWriter, r *
 	}
 	c, err := auth.GetClaims(ctx)
 	if err != nil {
-		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		s.log.Err(err).Str("TraceID", tID).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
 	cp := authUsecase.ChangePassword{
@@ -159,11 +162,11 @@ func (s *Service) ChangePassword(ctx context.Context, w http.ResponseWriter, r *
 	}
 	res, err := s.core.ChangePassword(ctx, cp)
 	if err != nil {
-		s.log.Err(err).Msg(ErrChangePassBusiness.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrChangePassBusiness.Error())
 		return web.GetResponseErrorFromBusiness(err)
 	}
 	if err := s.auth.StoreUserTokenVersion(ctx, res.ID, res.TokenVersion); err != nil {
-		s.log.Err(err).Msg(ErrLoginStoreTokenVersion.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrLoginStoreTokenVersion.Error())
 		return ErrLoginStoreTokenVersion
 	}
 	u := UserResponse{
@@ -177,9 +180,10 @@ func (s *Service) ChangePassword(ctx context.Context, w http.ResponseWriter, r *
 }
 
 func (s *Service) Refresh(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	e := struct{}{}
 	if err := web.Decode(r, &e); err != nil {
-		s.log.Err(err).Msg(ErrLoginDecode.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrLoginDecode.Error())
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
@@ -187,7 +191,7 @@ func (s *Service) Refresh(ctx context.Context, w http.ResponseWriter, r *http.Re
 	}
 	refreshToken, err := r.Cookie("refresh_token")
 	if err != nil {
-		s.log.Err(err).Msg(ErrRefreshReadRefreshToken.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrRefreshReadRefreshToken.Error())
 		return web.NewRequestError(
 			web.ErrAuthFailed,
 			http.StatusUnauthorized,
@@ -195,7 +199,7 @@ func (s *Service) Refresh(ctx context.Context, w http.ResponseWriter, r *http.Re
 	}
 	newClaims, err := s.auth.ValidateToken(ctx, refreshToken.Value)
 	if err != nil {
-		s.log.Err(err).Msg(ErrRefreshValidateRefreshToken.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrRefreshValidateRefreshToken.Error())
 		return web.NewRequestError(
 			web.ErrAuthFailed,
 			http.StatusUnauthorized,
@@ -203,13 +207,13 @@ func (s *Service) Refresh(ctx context.Context, w http.ResponseWriter, r *http.Re
 	}
 	newAuthToken, err := s.auth.GenerateToken(ctx, newClaims, s.auth.AuthDuration)
 	if err != nil {
-		s.log.Err(err).Msg(ErrRefreshGenAuthToken.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrRefreshGenAuthToken.Error())
 		return ErrRefreshGenAuthToken
 	}
 	// trying to revoke old token in case its still valid
 	oc, err := s.auth.ParseClaimsFromHeader(r)
 	if err != nil {
-		s.log.Info().Msg("auth: refresh: previous token not found")
+		s.log.Info().Str("TraceID", tID).Msg("auth: refresh: previous token not found")
 	}
 	if oc.ExpiresAt != nil {
 		duration := oc.ExpiresAt.Sub(time.Now().UTC())
@@ -222,7 +226,7 @@ func (s *Service) Refresh(ctx context.Context, w http.ResponseWriter, r *http.Re
 				ExpiresAt:    oc.ExpiresAt.Time,
 				RevokedAt:    time.Now().UTC(),
 			}); err != nil {
-				s.log.Err(err).Msg(ErrLogoutRevokeToken.Error())
+				s.log.Err(err).Str("TraceID", tID).Msg(ErrLogoutRevokeToken.Error())
 				return ErrLogoutRevokeToken
 			}
 		}
@@ -233,9 +237,10 @@ func (s *Service) Refresh(ctx context.Context, w http.ResponseWriter, r *http.Re
 }
 
 func (s *Service) Validate(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	e := struct{}{}
 	if err := web.Decode(r, &e); err != nil {
-		s.log.Err(err).Msg(ErrLoginDecode.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrLoginDecode.Error())
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
@@ -243,7 +248,7 @@ func (s *Service) Validate(ctx context.Context, w http.ResponseWriter, r *http.R
 	}
 	refreshToken, err := r.Cookie("refresh_token")
 	if err != nil {
-		s.log.Err(err).Msg(ErrRefreshReadRefreshToken.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrRefreshReadRefreshToken.Error())
 		return web.NewRequestError(
 			web.ErrAuthFailed,
 			http.StatusUnauthorized,
@@ -251,7 +256,7 @@ func (s *Service) Validate(ctx context.Context, w http.ResponseWriter, r *http.R
 	}
 	_, err = s.auth.ValidateToken(ctx, refreshToken.Value)
 	if err != nil {
-		s.log.Err(err).Msg(ErrRefreshValidateRefreshToken.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrRefreshValidateRefreshToken.Error())
 		return web.NewRequestError(
 			web.ErrAuthFailed,
 			http.StatusUnauthorized,
@@ -262,9 +267,10 @@ func (s *Service) Validate(ctx context.Context, w http.ResponseWriter, r *http.R
 }
 
 func (s *Service) PasswordReset(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	rp := ResetPassword{}
 	if err := web.Decode(r, &rp); err != nil {
-		s.log.Err(err).Msg(ErrResetPasswordDecode.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrResetPasswordDecode.Error())
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
@@ -278,7 +284,7 @@ func (s *Service) PasswordReset(ctx context.Context, w http.ResponseWriter, r *h
 				http.StatusTooManyRequests,
 			)
 		}
-		s.log.Err(err).Msg(ErrResetPasswordBusiness.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrResetPasswordBusiness.Error())
 		//return success to not spoil if the user exists
 		if errors.Is(web.ErrNotFound, err) {
 			return web.Respond(ctx, w, struct{}{}, http.StatusCreated)
@@ -289,6 +295,7 @@ func (s *Service) PasswordReset(ctx context.Context, w http.ResponseWriter, r *h
 		)
 	}
 	m := messages.Message{
+		ID:    tID,
 		Email: res.Email,
 		Name:  res.Name,
 		Token: res.ResetToken,
@@ -296,16 +303,17 @@ func (s *Service) PasswordReset(ctx context.Context, w http.ResponseWriter, r *h
 	}
 	err = s.mq.Publish(ctx, m)
 	if err != nil {
-		s.log.Err(err).Msg(ErrResetPasswordSendMessage.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrResetPasswordSendMessage.Error())
 		return fmt.Errorf("cannot send message: %w", err)
 	}
 	return web.Respond(ctx, w, struct{}{}, http.StatusCreated)
 }
 
 func (s *Service) PasswordResetSubmit(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	srp := SubmitResetPassword{}
 	if err := web.Decode(r, &srp); err != nil {
-		s.log.Err(err).Msg(ErrValidateResetPasswordDecode.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrValidateResetPasswordDecode.Error())
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
@@ -317,7 +325,7 @@ func (s *Service) PasswordResetSubmit(ctx context.Context, w http.ResponseWriter
 	}
 	u, err := s.core.ResetPasswordSubmit(ctx, sp)
 	if err != nil {
-		s.log.Err(err).Msg(ErrValidateResetPassword.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrValidateResetPassword.Error())
 		if errors.Is(err, web.ErrNotFound) || errors.Is(err, auth.ErrValidateResetToken) {
 			//return forbidden to not spoil if token even exists
 			return web.NewRequestError(
@@ -328,16 +336,17 @@ func (s *Service) PasswordResetSubmit(ctx context.Context, w http.ResponseWriter
 		return fmt.Errorf("cannot update password: %w", err)
 	}
 	if err := s.auth.StoreUserTokenVersion(ctx, u.ID, u.TokenVersion); err != nil {
-		s.log.Err(err).Msg(ErrLoginStoreTokenVersion.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrLoginStoreTokenVersion.Error())
 		return ErrLoginStoreTokenVersion
 	}
 	return web.Respond(ctx, w, struct{}{}, http.StatusCreated)
 }
 
 func (s *Service) LogoutAll(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	lu := struct{}{}
 	if err := web.Decode(r, &lu); err != nil {
-		s.log.Err(err).Msg(ErrLogoutDecode.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrLogoutDecode.Error())
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
@@ -345,7 +354,7 @@ func (s *Service) LogoutAll(ctx context.Context, w http.ResponseWriter, r *http.
 	}
 	c, err := auth.GetClaims(ctx)
 	if err != nil {
-		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		s.log.Err(err).Str("TraceID", tID).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
 	dt := authUsecase.DeleteToken{
@@ -358,11 +367,11 @@ func (s *Service) LogoutAll(ctx context.Context, w http.ResponseWriter, r *http.
 	}
 	tv, err := s.core.LogoutAll(ctx, dt)
 	if err != nil {
-		s.log.Err(err).Msg(ErrLogoutBusiness.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrLogoutBusiness.Error())
 		return web.GetResponseErrorFromBusiness(err)
 	}
 	if err := s.auth.StoreUserTokenVersion(ctx, c.Subject, tv); err != nil {
-		s.log.Err(err).Msg(ErrLoginStoreTokenVersion.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrLoginStoreTokenVersion.Error())
 		return ErrLoginStoreTokenVersion
 	}
 	return web.Respond(ctx, w, struct{}{}, http.StatusOK)

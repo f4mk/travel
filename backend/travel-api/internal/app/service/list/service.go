@@ -25,14 +25,15 @@ func NewService(l *zerolog.Logger, c *listUsecase.Core) *Service {
 }
 
 func (s *Service) GetLists(ctx context.Context, w http.ResponseWriter, _ *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		s.log.Err(err).Str("TraceID", tID).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
 	res, err := s.core.GetAllLists(ctx, claims.Subject)
 	if err != nil {
-		s.log.Err(err).Msg(ErrGetListsBusiness.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrGetListsBusiness.Error())
 		return fmt.Errorf(
 			"cannot query lists: %w",
 			web.GetResponseErrorFromBusiness(err),
@@ -47,19 +48,20 @@ func (s *Service) GetLists(ctx context.Context, w http.ResponseWriter, _ *http.R
 }
 
 func (s *Service) GetList(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		s.log.Err(err).Str("TraceID", tID).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
 	listID, err := getListIDParam(r)
 	if err != nil {
-		s.log.Err(err).Msg(ErrListValidateListUUID.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrListValidateListUUID.Error())
 		return err
 	}
 	res, err := s.core.GetListByID(ctx, claims.Subject, listID)
 	if err != nil {
-		s.log.Err(err).Msg(ErrGetListsBusiness.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrGetListsBusiness.Error())
 		return fmt.Errorf(
 			"cannot query list: %w",
 			web.GetResponseErrorFromBusiness(err),
@@ -70,19 +72,20 @@ func (s *Service) GetList(ctx context.Context, w http.ResponseWriter, r *http.Re
 }
 
 func (s *Service) GetItems(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		s.log.Err(err).Str("TraceID", tID).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
 	listID, err := getListIDParam(r)
 	if err != nil {
-		s.log.Err(err).Msg(ErrListValidateListUUID.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrListValidateListUUID.Error())
 		return err
 	}
 	res, err := s.core.GetItemsByListID(ctx, claims.Subject, listID)
 	if err != nil {
-		s.log.Err(err).Msg(ErrGetListsBusiness.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrGetListsBusiness.Error())
 		return fmt.Errorf(
 			"cannot query items: %w",
 			web.GetResponseErrorFromBusiness(err),
@@ -97,19 +100,20 @@ func (s *Service) GetItems(ctx context.Context, w http.ResponseWriter, r *http.R
 }
 
 func (s *Service) GetItem(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		s.log.Err(err).Str("TraceID", tID).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
 	itemID, err := getItemIDParam(r)
 	if err != nil {
-		s.log.Err(err).Msg(ErrListValidateItemUUID.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrListValidateItemUUID.Error())
 		return err
 	}
 	res, err := s.core.GetItemByID(ctx, claims.Subject, itemID)
 	if err != nil {
-		s.log.Err(err).Msg(ErrGetListsBusiness.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrGetListsBusiness.Error())
 		return fmt.Errorf(
 			"cannot query items: %w",
 			web.GetResponseErrorFromBusiness(err),
@@ -120,9 +124,10 @@ func (s *Service) GetItem(ctx context.Context, w http.ResponseWriter, r *http.Re
 }
 
 func (s *Service) CreateList(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	nl := NewList{}
 	if err := web.Decode(r, &nl); err != nil {
-		s.log.Err(err).Msg(ErrListCreateValidate.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrListCreateValidate.Error())
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
@@ -130,7 +135,7 @@ func (s *Service) CreateList(ctx context.Context, w http.ResponseWriter, r *http
 	}
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		s.log.Err(err).Str("TraceID", tID).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
 	l := listUsecase.NewList{
@@ -141,7 +146,7 @@ func (s *Service) CreateList(ctx context.Context, w http.ResponseWriter, r *http
 	}
 	res, err := s.core.CreateList(ctx, l)
 	if err != nil {
-		s.log.Err(err).Msg(ErrCreateListBusiness.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrCreateListBusiness.Error())
 		return fmt.Errorf(
 			"cannot create list: %w",
 			web.GetResponseErrorFromBusiness(err),
@@ -152,9 +157,10 @@ func (s *Service) CreateList(ctx context.Context, w http.ResponseWriter, r *http
 }
 
 func (s *Service) UpdateList(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	ul := UpdateList{}
 	if err := web.Decode(r, &ul); err != nil {
-		s.log.Err(err).Msg(ErrListUpdateValidate.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrListUpdateValidate.Error())
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
@@ -162,12 +168,12 @@ func (s *Service) UpdateList(ctx context.Context, w http.ResponseWriter, r *http
 	}
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		s.log.Err(err).Str("TraceID", tID).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
 	listID, err := getListIDParam(r)
 	if err != nil {
-		s.log.Err(err).Msg(ErrListValidateListUUID.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrListValidateListUUID.Error())
 		return err
 	}
 	var isID []string
@@ -187,7 +193,7 @@ func (s *Service) UpdateList(ctx context.Context, w http.ResponseWriter, r *http
 
 	res, err := s.core.UpdateListByID(ctx, l)
 	if err != nil {
-		s.log.Err(err).Msg(ErrUpdateListBusiness.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrUpdateListBusiness.Error())
 		return fmt.Errorf(
 			"cannot update list: %w",
 			web.GetResponseErrorFromBusiness(err),
@@ -198,9 +204,10 @@ func (s *Service) UpdateList(ctx context.Context, w http.ResponseWriter, r *http
 }
 
 func (s *Service) DeleteList(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	dl := struct{}{}
 	if err := web.Decode(r, &dl); err != nil {
-		s.log.Err(err).Msg(ErrListDeleteValidate.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrListDeleteValidate.Error())
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
@@ -208,16 +215,16 @@ func (s *Service) DeleteList(ctx context.Context, w http.ResponseWriter, r *http
 	}
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		s.log.Err(err).Str("TraceID", tID).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
 	listID, err := getListIDParam(r)
 	if err != nil {
-		s.log.Err(err).Msg(ErrListValidateListUUID.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrListValidateListUUID.Error())
 		return err
 	}
 	if err := s.core.DeleteListByID(ctx, claims.Subject, listID); err != nil {
-		s.log.Err(err).Msg(ErrDeleteListBusiness.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrDeleteListBusiness.Error())
 		return fmt.Errorf(
 			"cannot delete list: %w",
 			web.GetResponseErrorFromBusiness(err),
@@ -227,9 +234,10 @@ func (s *Service) DeleteList(ctx context.Context, w http.ResponseWriter, r *http
 }
 
 func (s *Service) CreateItem(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	ni := NewItem{}
 	if err := web.Decode(r, &ni); err != nil {
-		s.log.Err(err).Msg(ErrItemCreateValidate.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrItemCreateValidate.Error())
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
@@ -237,12 +245,12 @@ func (s *Service) CreateItem(ctx context.Context, w http.ResponseWriter, r *http
 	}
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		s.log.Err(err).Str("TraceID", tID).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
 	listID, err := getListIDParam(r)
 	if err != nil {
-		s.log.Err(err).Msg(ErrItemValidateListUUID.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrItemValidateListUUID.Error())
 		return err
 	}
 	np := listUsecase.NewPoint{
@@ -264,7 +272,7 @@ func (s *Service) CreateItem(ctx context.Context, w http.ResponseWriter, r *http
 	}
 	res, err := s.core.CreateItem(ctx, i)
 	if err != nil {
-		s.log.Err(err).Msg(ErrCreateItemBusiness.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrCreateItemBusiness.Error())
 		return fmt.Errorf(
 			"cannot create item: %w",
 			web.GetResponseErrorFromBusiness(err),
@@ -275,9 +283,10 @@ func (s *Service) CreateItem(ctx context.Context, w http.ResponseWriter, r *http
 }
 
 func (s *Service) UpdateItem(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	ui := UpdateItem{}
 	if err := web.Decode(r, &ui); err != nil {
-		s.log.Err(err).Msg(ErrItemUpdateValidate.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrItemUpdateValidate.Error())
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
@@ -285,17 +294,17 @@ func (s *Service) UpdateItem(ctx context.Context, w http.ResponseWriter, r *http
 	}
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		s.log.Err(err).Str("TraceID", tID).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
 	listID, err := getListIDParam(r)
 	if err != nil {
-		s.log.Err(err).Msg(ErrItemValidateListUUID.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrItemValidateListUUID.Error())
 		return err
 	}
 	itemID, err := getItemIDParam(r)
 	if err != nil {
-		s.log.Err(err).Msg(ErrItemValidateItemUUID.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrItemValidateItemUUID.Error())
 		return err
 	}
 	var up *listUsecase.UpdatePoint
@@ -322,7 +331,7 @@ func (s *Service) UpdateItem(ctx context.Context, w http.ResponseWriter, r *http
 	}
 	res, err := s.core.UpdateItemByID(ctx, i)
 	if err != nil {
-		s.log.Err(err).Msg(ErrUpdateItemBusiness.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrUpdateItemBusiness.Error())
 		return fmt.Errorf(
 			"cannot update item: %w",
 			web.GetResponseErrorFromBusiness(err),
@@ -333,9 +342,10 @@ func (s *Service) UpdateItem(ctx context.Context, w http.ResponseWriter, r *http
 }
 
 func (s *Service) DeleteItem(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	di := struct{}{}
 	if err := web.Decode(r, &di); err != nil {
-		s.log.Err(err).Msg(ErrItemDeleteValidate.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrItemDeleteValidate.Error())
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
@@ -343,16 +353,16 @@ func (s *Service) DeleteItem(ctx context.Context, w http.ResponseWriter, r *http
 	}
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		s.log.Err(err).Str("TraceID", tID).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
 	itemID, err := getItemIDParam(r)
 	if err != nil {
-		s.log.Err(err).Msg(ErrItemValidateItemUUID.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrItemValidateItemUUID.Error())
 		return err
 	}
 	if err := s.core.DeleteItemByID(ctx, claims.Subject, itemID); err != nil {
-		s.log.Err(err).Msg(ErrDeleteItemBusiness.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrDeleteItemBusiness.Error())
 		return fmt.Errorf(
 			"cannot delete item: %w",
 			web.GetResponseErrorFromBusiness(err),

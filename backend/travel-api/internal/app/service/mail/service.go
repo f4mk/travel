@@ -48,17 +48,19 @@ func (s *Service) Serve(ctx context.Context, errMsgCh chan<- ServeError, errServ
 
 			m := messages.Message{}
 			err := json.Unmarshal(msg.Body, &m)
+			tID := m.ID
+			ctx = context.WithValue(ctx, "TraceID", tID)
 
 			if err != nil {
-				s.log.Err(err).Msg(ErrParseMessage.Error())
+				s.log.Err(err).Str("TraceID", tID).Msg(ErrParseMessage.Error())
 				// makes no sense to requeue due to invalid json
 				if err := msg.Nack(false, false); err != nil {
-					s.log.Err(err).Msg(ErrNackReqMessage.Error())
+					s.log.Err(err).Str("TraceID", tID).Msg(ErrNackReqMessage.Error())
 				}
 				// send error outside
 				err = sendError(errMsgCh, fmt.Errorf(ErrNackReqMessage.Error(), err), msg.Body)
 				if err != nil {
-					s.log.Warn().Msg(ErrChanFull.Error())
+					s.log.Warn().Str("TraceID", tID).Msg(ErrChanFull.Error())
 				}
 			}
 
@@ -68,31 +70,31 @@ func (s *Service) Serve(ctx context.Context, errMsgCh chan<- ServeError, errServ
 					Name:       m.Name,
 					ResetToken: m.Token,
 				}
-				err = s.core.SendResetMessage(mReset)
+				err = s.core.SendResetMessage(ctx, mReset)
 			} else if m.Type == messages.RegisterVerify {
 				mVerify := mailUsecase.MessageVerify{
 					Email:       m.Email,
 					Name:        m.Name,
 					VerifyToken: m.Token,
 				}
-				err = s.core.SendVerifyMessage(mVerify)
+				err = s.core.SendVerifyMessage(ctx, mVerify)
 			}
 			// process the letter
 			if err != nil {
-				s.log.Err(err).Msg(ErrUsecaseLayer.Error())
+				s.log.Err(err).Str("TraceID", tID).Msg(ErrUsecaseLayer.Error())
 				// TODO: handle retries here
 				// if reached here, it means the retry limit is exceeded
 				if err := msg.Nack(false, false); err != nil {
-					s.log.Err(err).Msg(ErrNackMessage.Error())
+					s.log.Err(err).Str("TraceID", tID).Msg(ErrNackMessage.Error())
 				}
 				err = sendError(errMsgCh, fmt.Errorf(ErrNackReqMessage.Error(), err), msg.Body)
 				if err != nil {
-					s.log.Warn().Msg(ErrChanFull.Error())
+					s.log.Warn().Str("TraceID", tID).Msg(ErrChanFull.Error())
 				}
 			}
 			if err := msg.Ack(false); err != nil {
 				// TODO: retry? nothing really can do here, the message was already processed
-				s.log.Err(err).Msg(ErrAckMessage.Error())
+				s.log.Err(err).Str("TraceID", tID).Msg(ErrAckMessage.Error())
 			}
 
 		case <-ctx.Done():

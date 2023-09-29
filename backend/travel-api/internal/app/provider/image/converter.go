@@ -68,6 +68,7 @@ func (c *Converter) Convert(ctx context.Context, images []io.Reader) ([]io.ReadC
 				return nil, firstError
 			}
 			if r.err != nil {
+				// TODO: log in other place and maybe return all errors
 				c.log.Err(r.err).Msg("error converting image")
 				if firstError == nil {
 					firstError = r.err

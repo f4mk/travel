@@ -45,18 +45,20 @@ func NewCore(l *zerolog.Logger, s Storer) *Core {
 }
 
 func (c *Core) QueryAll(ctx context.Context) ([]User, error) {
+	tID := web.GetTraceID(ctx)
 	us, err := c.storer.QueryAll(ctx)
 	if err != nil {
-		c.log.Err(err).Msgf("user: query all: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("user: query all: %s", database.ErrQueryDB.Error())
 		return []User{}, database.WrapStorerError(err)
 	}
 	return us, nil
 }
 
 func (c *Core) Create(ctx context.Context, nu NewUser) (User, string, error) {
+	tID := web.GetTraceID(ctx)
 	hash, err := bcrypt.GenerateFromPassword([]byte(nu.Password), bcrypt.DefaultCost)
 	if err != nil {
-		c.log.Err(err).Msgf("user: create: %s", auth.ErrGenHash.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("user: create: %s", auth.ErrGenHash.Error())
 		return User{}, "", auth.ErrGenHash
 	}
 	now := time.Now().UTC()
@@ -74,13 +76,13 @@ func (c *Core) Create(ctx context.Context, nu NewUser) (User, string, error) {
 		DateUpdated: now,
 	}
 	if err := c.storer.Create(ctx, u); err != nil {
-		c.log.Err(err).Msgf("user: create: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("user: create: %s", database.ErrQueryDB.Error())
 		return User{}, "", database.WrapStorerError(err)
 	}
 	token := make([]byte, 32)
 	_, err = rand.Read(token)
 	if err != nil {
-		c.log.Err(err).Msgf("user: create: %s", auth.ErrGenResetToken.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("user: create: %s", auth.ErrGenResetToken.Error())
 		return User{}, "", auth.ErrGenResetToken
 	}
 	et := hex.EncodeToString(token)
@@ -94,30 +96,31 @@ func (c *Core) Create(ctx context.Context, nu NewUser) (User, string, error) {
 	// TODO: make a cron to clear the table
 	err = c.storer.StoreVerifyToken(ctx, vt)
 	if err != nil {
-		c.log.Err(err).Msgf("user: create: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("user: create: %s", database.ErrQueryDB.Error())
 		return User{}, "", database.WrapStorerError(err)
 	}
 	return u, et, nil
 }
 
 func (c *Core) Update(ctx context.Context, uu UpdateUser) (User, error) {
+	tID := web.GetTraceID(ctx)
 	u, err := c.storer.QueryByID(ctx, uu.ID)
 	if err != nil {
-		c.log.Err(err).Msgf("user: update: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("user: update: %s", database.ErrQueryDB.Error())
 		return User{}, database.WrapStorerError(err)
 	}
 	if err := bcrypt.CompareHashAndPassword(u.PasswordHash, []byte(uu.Password)); err != nil {
-		c.log.Err(err).Msgf("user: update: %s", web.ErrAuthFailed.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("user: update: %s", web.ErrAuthFailed.Error())
 		return User{}, web.ErrAuthFailed
 	}
 
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		c.log.Err(err).Msgf("user: update: %s", auth.ErrGetClaims.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("user: update: %s", auth.ErrGetClaims.Error())
 		return User{}, auth.ErrGetClaims
 	}
 	if !claims.Authorize(auth.RoleAdmin) && uu.ID != u.ID {
-		c.log.Error().Msgf("user: update: %s", web.ErrForbidden.Error())
+		c.log.Error().Str("TraceID", tID).Msgf("user: update: %s", web.ErrForbidden.Error())
 		return User{}, web.ErrForbidden
 	}
 	if uu.Name != nil {
@@ -128,76 +131,79 @@ func (c *Core) Update(ctx context.Context, uu UpdateUser) (User, error) {
 	}
 	u.DateUpdated = time.Now().UTC()
 	if err := c.storer.Update(ctx, u); err != nil {
-		c.log.Err(err).Msgf("user: update: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("user: update: %s", database.ErrQueryDB.Error())
 		return User{}, database.WrapStorerError(err)
 	}
 	return u, nil
 }
 
 func (c *Core) Verify(ctx context.Context, vu VerifyUser) (User, error) {
+	tID := web.GetTraceID(ctx)
 	vt, err := c.storer.QueryTokenByEmail(ctx, vu.Email)
 	if err != nil {
-		c.log.Err(err).Msgf("user: verify: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("user: verify: %s", database.ErrQueryDB.Error())
 		return User{}, database.WrapStorerError(err)
 	}
 	if vt.ExpiresAt.Before(time.Now().UTC()) {
-		c.log.Error().Msgf("user: verify: %s", auth.ErrValidateVerifyToken.Error())
+		c.log.Error().Str("TraceID", tID).Msgf("user: verify: %s", auth.ErrValidateVerifyToken.Error())
 		return User{}, auth.ErrValidateResetToken
 	}
 	// delete all tokens
 	if err := c.storer.DeleteVerifyTokensByUserID(ctx, vt.UserID); err != nil {
-		c.log.Err(err).Msgf("user: verify: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("user: verify: %s", database.ErrQueryDB.Error())
 		return User{}, database.WrapStorerError(err)
 	}
 	u, err := c.storer.QueryByID(ctx, vt.UserID)
 	if err != nil {
-		c.log.Err(err).Msgf("user: verify: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("user: verify: %s", database.ErrQueryDB.Error())
 		return User{}, database.WrapStorerError(err)
 	}
 	u.IsActive = true
 	u.DateUpdated = time.Now().UTC()
 	if err := c.storer.Verify(ctx, u); err != nil {
-		c.log.Err(err).Msgf("user: verify: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("user: verify: %s", database.ErrQueryDB.Error())
 		return User{}, database.WrapStorerError(err)
 	}
 	return u, nil
 }
 
 func (c *Core) QueryByID(ctx context.Context, uID string) (User, error) {
+	tID := web.GetTraceID(ctx)
 	u, err := c.storer.QueryByID(ctx, uID)
 	if err != nil {
-		c.log.Err(err).Msgf("user: query by id: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("user: query by id: %s", database.ErrQueryDB.Error())
 		return User{}, database.WrapStorerError(err)
 	}
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		c.log.Err(err).Msgf("user: query by id: %s", auth.ErrGetClaims.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("user: query by id: %s", auth.ErrGetClaims.Error())
 		return User{}, auth.ErrGetClaims
 	}
 	if !claims.Authorize(auth.RoleAdmin) && uID != u.ID {
-		c.log.Error().Msgf("user: query by id: %s", web.ErrForbidden.Error())
+		c.log.Error().Str("TraceID", tID).Msgf("user: query by id: %s", web.ErrForbidden.Error())
 		return User{}, web.ErrForbidden
 	}
 	return u, nil
 }
 
 func (c *Core) Delete(ctx context.Context, du DeleteUser) (User, error) {
+	tID := web.GetTraceID(ctx)
 	u, err := c.storer.QueryByID(ctx, du.ID)
 	if err != nil {
-		c.log.Err(err).Msgf("user: delete: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("user: delete: %s", database.ErrQueryDB.Error())
 		return User{}, database.WrapStorerError(err)
 	}
 	if err := bcrypt.CompareHashAndPassword(u.PasswordHash, []byte(du.Password)); err != nil {
-		c.log.Err(err).Msgf("auth: login: %s", web.ErrAuthFailed.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("auth: login: %s", web.ErrAuthFailed.Error())
 		return User{}, web.ErrAuthFailed
 	}
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		c.log.Err(err).Msgf("user: delete: %s", auth.ErrGetClaims.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("user: delete: %s", auth.ErrGetClaims.Error())
 		return User{}, auth.ErrGetClaims
 	}
 	if !claims.Authorize(auth.RoleAdmin) && claims.Subject != du.ID {
-		c.log.Err(err).Msgf("user: delete: %s", web.ErrForbidden.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("user: delete: %s", web.ErrForbidden.Error())
 		return User{}, web.ErrForbidden
 	}
 	u.DateUpdated = time.Now().UTC()
@@ -205,7 +211,7 @@ func (c *Core) Delete(ctx context.Context, du DeleteUser) (User, error) {
 	u.IsDeleted = true
 	u.TokenVersion = u.TokenVersion + 1
 	if err := c.storer.Delete(ctx, u); err != nil {
-		c.log.Err(err).Msgf("user: delete: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("user: delete: %s", database.ErrQueryDB.Error())
 		return User{}, database.WrapStorerError(err)
 	}
 	return u, nil

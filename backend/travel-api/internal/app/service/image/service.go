@@ -38,15 +38,16 @@ func NewService(
 }
 
 func (s *Service) Serve(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	fileID := web.Param(r, "fname")
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		s.log.Err(err).Str("TraceID", tID).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
 	reader, err := s.core.GetImageByID(ctx, fileID, claims.Subject)
 	if err != nil {
-		s.log.Err(err).Msg(ErrGetImageBusiness.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrGetImageBusiness.Error())
 		return fmt.Errorf(
 			"cannot get image: %w",
 			web.GetResponseErrorFromBusiness(err),
@@ -58,15 +59,16 @@ func (s *Service) Serve(ctx context.Context, w http.ResponseWriter, r *http.Requ
 }
 
 func (s *Service) Store(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	tID := web.GetTraceID(ctx)
 	listID := web.Param(r, "listID")
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		s.log.Err(err).Msgf(auth.ErrGetClaims.Error())
+		s.log.Err(err).Str("TraceID", tID).Msgf(auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
 	err = r.ParseMultipartForm(meg16)
 	if err != nil {
-		s.log.Err(err).Msg(ErrPostImageDecode.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrPostImageDecode.Error())
 		return web.NewRequestError(
 			err,
 			http.StatusBadRequest,
@@ -74,7 +76,7 @@ func (s *Service) Store(ctx context.Context, w http.ResponseWriter, r *http.Requ
 	}
 	files := r.MultipartForm.File["images"]
 	if len(files) == 0 || len(files) > 5 {
-		s.log.Error().Msg(ErrPostImageDecodeLen.Error())
+		s.log.Error().Str("TraceID", tID).Msg(ErrPostImageDecodeLen.Error())
 		return web.NewRequestError(
 			ErrPostImageDecodeLen,
 			http.StatusBadRequest,
@@ -88,7 +90,7 @@ func (s *Service) Store(ctx context.Context, w http.ResponseWriter, r *http.Requ
 		file, err := fileHeader.Open()
 		if err != nil {
 			<-s.sem
-			s.log.Err(err).Msg(ErrPostImageRead.Error())
+			s.log.Err(err).Str("TraceID", tID).Msg(ErrPostImageRead.Error())
 			return web.NewRequestError(
 				err,
 				http.StatusBadRequest,
@@ -104,7 +106,7 @@ func (s *Service) Store(ctx context.Context, w http.ResponseWriter, r *http.Requ
 
 	res, err := s.core.StoreImages(ctx, imageStreams, listID, claims.Subject)
 	if err != nil {
-		s.log.Err(err).Msg(ErrPostImageBusiness.Error())
+		s.log.Err(err).Str("TraceID", tID).Msg(ErrPostImageBusiness.Error())
 		return fmt.Errorf(
 			"cannot store image: %w",
 			web.GetResponseErrorFromBusiness(err),

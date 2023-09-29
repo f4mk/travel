@@ -36,22 +36,23 @@ func NewCore(l *zerolog.Logger, s Storer) *Core {
 }
 
 func (c *Core) Login(ctx context.Context, lu LoginUser) (AuthenticatedUser, error) {
+	tID := web.GetTraceID(ctx)
 	u, err := c.storer.QueryByEmail(ctx, lu.Email)
 	if err != nil {
 		// NOTE: return ErrAuthFailed to not spoil user email if not found
-		c.log.Err(err).Msgf("auth: login: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("auth: login: %s", database.ErrQueryDB.Error())
 		return AuthenticatedUser{}, web.ErrAuthFailed
 	}
 	if !u.IsActive {
-		c.log.Error().Msgf("auth: login: user is inactive")
+		c.log.Error().Str("TraceID", tID).Msgf("auth: login: user is inactive")
 		return AuthenticatedUser{}, web.ErrAuthFailed
 	}
 	if u.IsDeleted {
-		c.log.Error().Msgf("auth: login: user is deleted")
+		c.log.Error().Str("TraceID", tID).Msgf("auth: login: user is deleted")
 		return AuthenticatedUser{}, web.ErrNotFound
 	}
 	if err := bcrypt.CompareHashAndPassword(u.PasswordHash, []byte(lu.Password)); err != nil {
-		c.log.Err(err).Msgf("auth: login: %s", web.ErrAuthFailed.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("auth: login: %s", web.ErrAuthFailed.Error())
 		return AuthenticatedUser{}, web.ErrAuthFailed
 	}
 	au := AuthenticatedUser{
@@ -66,13 +67,14 @@ func (c *Core) Login(ctx context.Context, lu LoginUser) (AuthenticatedUser, erro
 }
 
 func (c *Core) Logout(ctx context.Context, dt DeleteToken) error {
+	tID := web.GetTraceID(ctx)
 	_, err := c.storer.QueryByID(ctx, dt.Subject)
 	if err != nil {
-		c.log.Err(err).Msgf("auth: logout: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("auth: logout: %s", database.ErrQueryDB.Error())
 		return database.WrapStorerError(err)
 	}
 	if err := c.storer.DeleteToken(ctx, dt); err != nil {
-		c.log.Err(err).Msgf("auth: logout: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("auth: logout: %s", database.ErrQueryDB.Error())
 		return database.WrapStorerError(err)
 	}
 
@@ -80,18 +82,19 @@ func (c *Core) Logout(ctx context.Context, dt DeleteToken) error {
 }
 
 func (c *Core) ChangePassword(ctx context.Context, cp ChangePassword) (User, error) {
+	tID := web.GetTraceID(ctx)
 	u, err := c.storer.QueryByID(ctx, cp.UserID)
 	if err != nil {
-		c.log.Err(err).Msgf("auth: change password: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("auth: change password: %s", database.ErrQueryDB.Error())
 		return User{}, database.WrapStorerError(err)
 	}
 	if err := bcrypt.CompareHashAndPassword(u.PasswordHash, []byte(cp.PasswordOld)); err != nil {
-		c.log.Err(err).Msgf("auth: login: %s", web.ErrAuthFailed.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("auth: login: %s", web.ErrAuthFailed.Error())
 		return User{}, web.ErrAuthFailed
 	}
 	hash, err := bcrypt.GenerateFromPassword([]byte(cp.Password), bcrypt.DefaultCost)
 	if err != nil {
-		c.log.Err(err).Msgf("auth: change password: %s", auth.ErrGenHash.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("auth: change password: %s", auth.ErrGenHash.Error())
 		return User{}, auth.ErrGenHash
 	}
 	// update user with new password and token version
@@ -99,16 +102,17 @@ func (c *Core) ChangePassword(ctx context.Context, cp ChangePassword) (User, err
 	u.DateUpdated = time.Now().UTC()
 	u.TokenVersion = u.TokenVersion + 1
 	if err := c.storer.Update(ctx, u); err != nil {
-		c.log.Err(err).Msgf("auth: change password: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("auth: change password: %s", database.ErrQueryDB.Error())
 		return User{}, database.WrapStorerError(err)
 	}
 	return u, nil
 }
 
 func (c *Core) ResetPasswordRequest(ctx context.Context, email string) (ResetPassword, error) {
+	tID := web.GetTraceID(ctx)
 	u, err := c.storer.QueryByEmail(ctx, email)
 	if err != nil {
-		c.log.Err(err).Msgf("auth: reset password request: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("auth: reset password request: %s", database.ErrQueryDB.Error())
 		return ResetPassword{}, database.WrapStorerError(err)
 	}
 	if u.IsDeleted {
@@ -117,7 +121,7 @@ func (c *Core) ResetPasswordRequest(ctx context.Context, email string) (ResetPas
 	token := make([]byte, 32)
 	_, err = rand.Read(token)
 	if err != nil {
-		c.log.Err(err).Msgf("auth: reset password request: %s", auth.ErrGenResetToken.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("auth: reset password request: %s", auth.ErrGenResetToken.Error())
 		return ResetPassword{}, auth.ErrGenResetToken
 	}
 	et := hex.EncodeToString(token)
@@ -130,7 +134,7 @@ func (c *Core) ResetPasswordRequest(ctx context.Context, email string) (ResetPas
 	}
 	err = c.storer.StoreResetToken(ctx, rt)
 	if err != nil {
-		c.log.Err(err).Msgf("auth: reset password request: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("auth: reset password request: %s", database.ErrQueryDB.Error())
 		return ResetPassword{}, database.WrapStorerError(err)
 	}
 	rp := ResetPassword{
@@ -142,23 +146,24 @@ func (c *Core) ResetPasswordRequest(ctx context.Context, email string) (ResetPas
 }
 
 func (c *Core) ResetPasswordSubmit(ctx context.Context, sp SubmitPassword) (User, error) {
+	tID := web.GetTraceID(ctx)
 	rt, err := c.storer.QueryResetTokenByID(ctx, sp.ResetToken)
 	if err != nil {
-		c.log.Err(err).Msgf("auth: reset password validate: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("auth: reset password validate: %s", database.ErrQueryDB.Error())
 		return User{}, database.WrapStorerError(err)
 	}
 	if rt.ExpiresAt.Before(time.Now().UTC()) {
-		c.log.Error().Msgf("auth: reset password validate: %s", auth.ErrValidateResetToken.Error())
+		c.log.Error().Str("TraceID", tID).Msgf("auth: reset password validate: %s", auth.ErrValidateResetToken.Error())
 		return User{}, auth.ErrValidateResetToken
 	}
 	// delete all tokens
 	if err := c.storer.DeleteResetTokensByUserID(ctx, rt.UserID); err != nil {
-		c.log.Err(err).Msgf("auth: reset password validate: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("auth: reset password validate: %s", database.ErrQueryDB.Error())
 		return User{}, database.WrapStorerError(err)
 	}
 	u, err := c.storer.QueryByEmail(ctx, rt.Email)
 	if err != nil {
-		c.log.Err(err).Msgf("auth: reset password validate: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("auth: reset password validate: %s", database.ErrQueryDB.Error())
 		return User{}, database.WrapStorerError(err)
 	}
 	if u.IsDeleted {
@@ -166,7 +171,7 @@ func (c *Core) ResetPasswordSubmit(ctx context.Context, sp SubmitPassword) (User
 	}
 	hash, err := bcrypt.GenerateFromPassword([]byte(sp.Password), bcrypt.DefaultCost)
 	if err != nil {
-		c.log.Err(err).Msgf("auth: reset password submit: %s", auth.ErrGenHash.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("auth: reset password submit: %s", auth.ErrGenHash.Error())
 		return User{}, auth.ErrGenHash
 	}
 	// update user with new password and token version
@@ -176,22 +181,23 @@ func (c *Core) ResetPasswordSubmit(ctx context.Context, sp SubmitPassword) (User
 	// NOTE: if user didnt get verification email, they can ask for reset pwd
 	u.IsActive = true
 	if err := c.storer.Update(ctx, u); err != nil {
-		c.log.Err(err).Msgf("auth: reset password submit: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("auth: reset password submit: %s", database.ErrQueryDB.Error())
 		return User{}, database.WrapStorerError(err)
 	}
 	return u, nil
 }
 
 func (c *Core) LogoutAll(ctx context.Context, dt DeleteToken) (int32, error) {
+	tID := web.GetTraceID(ctx)
 	u, err := c.storer.QueryByID(ctx, dt.Subject)
 	if err != nil {
-		c.log.Err(err).Msgf("auth: logout all: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("auth: logout all: %s", database.ErrQueryDB.Error())
 		return 0, database.WrapStorerError(err)
 	}
 	u.DateUpdated = time.Now().UTC()
 	u.TokenVersion = u.TokenVersion + 1
 	if err := c.storer.Update(ctx, u); err != nil {
-		c.log.Err(err).Msgf("auth: logout all: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("auth: logout all: %s", database.ErrQueryDB.Error())
 		return 0, database.WrapStorerError(err)
 	}
 	return u.TokenVersion, nil

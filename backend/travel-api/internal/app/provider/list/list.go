@@ -7,6 +7,7 @@ import (
 
 	"github.com/f4mk/travel/backend/travel-api/internal/app/usecase/list"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/images"
+	"github.com/f4mk/travel/backend/travel-api/internal/pkg/web"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/rs/zerolog"
@@ -196,6 +197,7 @@ func (s *Storer) DeleteList(ctx context.Context, userID string, listID string) e
 }
 
 func (s *Storer) CreateItem(ctx context.Context, i list.Item) (err error) {
+	tID := web.GetTraceID(ctx)
 	item := populateItem(i)
 	point := StorerPoint{
 		ID:     i.Point.ID,
@@ -211,7 +213,7 @@ func (s *Storer) CreateItem(ctx context.Context, i list.Item) (err error) {
 	defer func() {
 		if err != nil {
 			if rErr := tx.Rollback(); rErr != nil {
-				s.log.Err(rErr).Msg("failed to rollback after error")
+				s.log.Err(rErr).Str("TraceID", tID).Msg("failed to rollback after error")
 			}
 		}
 	}()
@@ -268,6 +270,7 @@ func (s *Storer) CreateItem(ctx context.Context, i list.Item) (err error) {
 }
 
 func (s *Storer) UpdateItem(ctx context.Context, i list.Item, toDelete []string) (err error) {
+	tID := web.GetTraceID(ctx)
 	item := populateItem(i)
 	point := StorerPoint{
 		ID:     i.Point.ID,
@@ -283,7 +286,7 @@ func (s *Storer) UpdateItem(ctx context.Context, i list.Item, toDelete []string)
 	defer func() {
 		if err != nil {
 			if rErr := tx.Rollback(); rErr != nil {
-				s.log.Err(rErr).Msg("failed to rollback after error")
+				s.log.Err(rErr).Str("TraceID", tID).Msg("failed to rollback after error")
 			}
 		}
 	}()
@@ -336,6 +339,7 @@ func (s *Storer) UpdateItem(ctx context.Context, i list.Item, toDelete []string)
 }
 
 func (s *Storer) DeleteItemAdmin(ctx context.Context, itemID string) (err error) {
+	tID := web.GetTraceID(ctx)
 	qItem := `DELETE FROM items WHERE item_id = $1;`
 	qImages := `UPDATE images SET status = $1 WHERE item_id = $2;`
 	tx, err := s.repo.Beginx()
@@ -345,7 +349,7 @@ func (s *Storer) DeleteItemAdmin(ctx context.Context, itemID string) (err error)
 	defer func() {
 		if err != nil {
 			if rErr := tx.Rollback(); rErr != nil {
-				s.log.Err(rErr).Msg("failed to rollback after error")
+				s.log.Err(rErr).Str("TraceID", tID).Msg("failed to rollback after error")
 			}
 		}
 	}()

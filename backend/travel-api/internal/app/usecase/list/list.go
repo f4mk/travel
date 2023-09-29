@@ -39,51 +39,56 @@ func NewCore(l *zerolog.Logger, s storer) *Core {
 }
 
 func (c *Core) GetAllLists(ctx context.Context, userID string) ([]List, error) {
+	tID := web.GetTraceID(ctx)
 	ls, err := c.storer.QueryListsByUserID(ctx, userID)
 	if err != nil {
-		c.log.Err(err).Msgf("lists: query all: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("lists: query all: %s", database.ErrQueryDB.Error())
 		return nil, database.WrapStorerError(err)
 	}
 	return ls, nil
 }
 
 func (c *Core) GetListByID(ctx context.Context, userID string, listID string) (List, error) {
+	tID := web.GetTraceID(ctx)
 	list, err := c.storer.QueryListByID(ctx, userID, listID)
 	if err != nil {
-		c.log.Err(err).Msgf("lists: query: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("lists: query: %s", database.ErrQueryDB.Error())
 		return List{}, database.WrapStorerError(err)
 	}
 	return list, nil
 }
 
 func (c *Core) GetItemsByListID(ctx context.Context, userID string, listID string) ([]Item, error) {
+	tID := web.GetTraceID(ctx)
 	is, err := c.storer.QueryItemsByListID(ctx, userID, listID)
 	if err != nil {
-		c.log.Err(err).Msgf("lists: query: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("lists: query: %s", database.ErrQueryDB.Error())
 		return []Item{}, database.WrapStorerError(err)
 	}
 	return is, nil
 }
 
 func (c *Core) GetItemByID(ctx context.Context, userID, itemID string) (Item, error) {
+	tID := web.GetTraceID(ctx)
 	item, err := c.storer.QueryItemByID(ctx, itemID)
 	if err != nil {
-		c.log.Err(err).Msgf("item: query: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("item: query: %s", database.ErrQueryDB.Error())
 		return Item{}, database.WrapStorerError(err)
 	}
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		c.log.Err(err).Msgf("item: query: %s", auth.ErrGetClaims.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("item: query: %s", auth.ErrGetClaims.Error())
 		return Item{}, auth.ErrGetClaims
 	}
 	if !claims.Authorize(auth.RoleAdmin) && (item.UserID != userID && item.Private) {
-		c.log.Error().Msgf("item: query: %s", web.ErrForbidden.Error())
+		c.log.Error().Str("TraceID", tID).Msgf("item: query: %s", web.ErrForbidden.Error())
 		return Item{}, web.ErrForbidden
 	}
 	return item, nil
 }
 
 func (c *Core) CreateList(ctx context.Context, nl NewList) (List, error) {
+	tID := web.GetTraceID(ctx)
 	desc := ""
 	if nl.Description != nil {
 		desc = *nl.Description
@@ -105,25 +110,26 @@ func (c *Core) CreateList(ctx context.Context, nl NewList) (List, error) {
 		DateUpdated: now,
 	}
 	if err := c.storer.CreateList(ctx, list); err != nil {
-		c.log.Err(err).Msgf("list: create: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("list: create: %s", database.ErrQueryDB.Error())
 		return List{}, database.WrapStorerError(err)
 	}
 	return list, nil
 }
 
 func (c *Core) UpdateListByID(ctx context.Context, ul UpdateList) (List, error) {
+	tID := web.GetTraceID(ctx)
 	list, err := c.storer.QueryListByID(ctx, ul.UserID, ul.ID)
 	if err != nil {
-		c.log.Err(err).Msgf("list: update: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("list: update: %s", database.ErrQueryDB.Error())
 		return List{}, database.WrapStorerError(err)
 	}
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		c.log.Err(err).Msgf("list: update: %s", auth.ErrGetClaims.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("list: update: %s", auth.ErrGetClaims.Error())
 		return List{}, auth.ErrGetClaims
 	}
 	if !claims.Authorize(auth.RoleAdmin) && list.UserID != ul.UserID {
-		c.log.Error().Msgf("item: query: %s", web.ErrForbidden.Error())
+		c.log.Error().Str("TraceID", tID).Msgf("item: query: %s", web.ErrForbidden.Error())
 		return List{}, web.ErrForbidden
 	}
 	if ul.Name != nil {
@@ -147,35 +153,37 @@ func (c *Core) UpdateListByID(ctx context.Context, ul UpdateList) (List, error) 
 	list.DateUpdated = time.Now().UTC()
 
 	if err := c.storer.UpdateList(ctx, list); err != nil {
-		c.log.Err(err).Msgf("list: update: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("list: update: %s", database.ErrQueryDB.Error())
 		return List{}, database.WrapStorerError(err)
 	}
-	c.log.Warn().Msgf("list: update: %s", list.ID)
+	c.log.Warn().Str("TraceID", tID).Msgf("list: update: %s", list.ID)
 	return list, nil
 }
 
 func (c *Core) DeleteListByID(ctx context.Context, userID string, listID string) error {
+	tID := web.GetTraceID(ctx)
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		c.log.Err(err).Msgf("list: delete: %s", auth.ErrGetClaims.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("list: delete: %s", auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
 	if claims.Authorize(auth.RoleAdmin) {
 		if err := c.storer.DeleteListAdmin(ctx, listID); err != nil {
-			c.log.Err(err).Msgf("list: delete by admin: %s", database.ErrQueryDB.Error())
+			c.log.Err(err).Str("TraceID", tID).Msgf("list: delete by admin: %s", database.ErrQueryDB.Error())
 			return database.WrapStorerError(err)
 		}
-		c.log.Warn().Msgf("list: deleted by admin: %s", listID)
+		c.log.Warn().Str("TraceID", tID).Msgf("list: deleted by admin: %s", listID)
 		return nil
 	}
 	if err := c.storer.DeleteList(ctx, userID, listID); err != nil {
-		c.log.Err(err).Msgf("list: delete: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("list: delete: %s", database.ErrQueryDB.Error())
 		return database.WrapStorerError(err)
 	}
 	return nil
 }
 
 func (c *Core) CreateItem(ctx context.Context, ni NewItem) (Item, error) {
+	tID := web.GetTraceID(ctx)
 	now := time.Now().UTC()
 	itemID := uuid.New().String()
 	point := Point{
@@ -198,25 +206,26 @@ func (c *Core) CreateItem(ctx context.Context, ni NewItem) (Item, error) {
 		DateUpdated: now,
 	}
 	if err := c.storer.CreateItem(ctx, item); err != nil {
-		c.log.Err(err).Msgf("item: create: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("item: create: %s", database.ErrQueryDB.Error())
 		return Item{}, database.WrapStorerError(err)
 	}
 	return item, nil
 }
 
 func (c *Core) UpdateItemByID(ctx context.Context, ui UpdateItem) (Item, error) {
+	tID := web.GetTraceID(ctx)
 	item, err := c.storer.QueryItemByID(ctx, ui.ID)
 	if err != nil {
-		c.log.Err(err).Msgf("item: update: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("item: update: %s", database.ErrQueryDB.Error())
 		return Item{}, database.WrapStorerError(err)
 	}
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		c.log.Err(err).Msgf("item: update: %s", auth.ErrGetClaims.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("item: update: %s", auth.ErrGetClaims.Error())
 		return Item{}, auth.ErrGetClaims
 	}
 	if !claims.Authorize(auth.RoleAdmin) && item.UserID != ui.UserID {
-		c.log.Error().Msgf("item: update: %s", web.ErrForbidden.Error())
+		c.log.Error().Str("TraceID", tID).Msgf("item: update: %s", web.ErrForbidden.Error())
 		return Item{}, web.ErrForbidden
 	}
 	if ui.Point != nil {
@@ -264,29 +273,30 @@ func (c *Core) UpdateItemByID(ctx context.Context, ui UpdateItem) (Item, error) 
 	}
 	item.DateUpdated = time.Now().UTC()
 	if err := c.storer.UpdateItem(ctx, item, toDelete); err != nil {
-		c.log.Err(err).Msgf("item: update: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("item: update: %s", database.ErrQueryDB.Error())
 		return Item{}, database.WrapStorerError(err)
 	}
-	c.log.Warn().Msgf("item: update: %s", item.ID)
+	c.log.Warn().Str("TraceID", tID).Msgf("item: update: %s", item.ID)
 	return item, nil
 }
 
 func (c *Core) DeleteItemByID(ctx context.Context, userID, itemID string) error {
+	tID := web.GetTraceID(ctx)
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		c.log.Err(err).Msgf("item: delete: %s", auth.ErrGetClaims.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("item: delete: %s", auth.ErrGetClaims.Error())
 		return auth.ErrGetClaims
 	}
 	if claims.Authorize(auth.RoleAdmin) {
 		if err := c.storer.DeleteItemAdmin(ctx, itemID); err != nil {
-			c.log.Err(err).Msgf("item: delete by admin: %s", database.ErrQueryDB.Error())
+			c.log.Err(err).Str("TraceID", tID).Msgf("item: delete by admin: %s", database.ErrQueryDB.Error())
 			return database.WrapStorerError(err)
 		}
-		c.log.Warn().Msgf("item: deleted by admin: %s", itemID)
+		c.log.Warn().Str("TraceID", tID).Msgf("item: deleted by admin: %s", itemID)
 		return nil
 	}
 	if err := c.storer.DeleteItem(ctx, userID, itemID); err != nil {
-		c.log.Err(err).Msgf("item: delete: %s", database.ErrQueryDB.Error())
+		c.log.Err(err).Str("TraceID", tID).Msgf("item: delete: %s", database.ErrQueryDB.Error())
 		return database.WrapStorerError(err)
 	}
 	return nil
