@@ -40,7 +40,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /images/{listID}:
+  /images/upload/{listID}:
     post:
       description: upload images
       tags: ["images","post"]

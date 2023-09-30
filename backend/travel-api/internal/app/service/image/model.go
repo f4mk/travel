@@ -14,11 +14,11 @@ type ErrorResponse struct {
 	Fields *map[string]string `json:"fields,omitempty"`
 }
 
-// PostImagesListIDMultipartBody defines parameters for PostImagesListID.
-type PostImagesListIDMultipartBody struct {
+// PostImagesUploadListIDMultipartBody defines parameters for PostImagesUploadListID.
+type PostImagesUploadListIDMultipartBody struct {
 	// Images images to upload
 	Images *[]openapi_types.File `json:"images,omitempty"`
 }
 
-// PostImagesListIDMultipartRequestBody defines body for PostImagesListID for multipart/form-data ContentType.
-type PostImagesListIDMultipartRequestBody PostImagesListIDMultipartBody
+// PostImagesUploadListIDMultipartRequestBody defines body for PostImagesUploadListID for multipart/form-data ContentType.
+type PostImagesUploadListIDMultipartRequestBody PostImagesUploadListIDMultipartBody
