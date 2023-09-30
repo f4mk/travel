@@ -39,6 +39,8 @@ func NewCore(l *zerolog.Logger, s storer) *Core {
 }
 
 func (c *Core) GetAllLists(ctx context.Context, userID string) ([]List, error) {
+	ctx, span := web.AddSpan(ctx, "usecase.list.get-all-lists")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	ls, err := c.storer.QueryListsByUserID(ctx, userID)
 	if err != nil {
@@ -49,6 +51,8 @@ func (c *Core) GetAllLists(ctx context.Context, userID string) ([]List, error) {
 }
 
 func (c *Core) GetListByID(ctx context.Context, userID string, listID string) (List, error) {
+	ctx, span := web.AddSpan(ctx, "usecase.list.get-list-by-id")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	list, err := c.storer.QueryListByID(ctx, userID, listID)
 	if err != nil {
@@ -59,6 +63,8 @@ func (c *Core) GetListByID(ctx context.Context, userID string, listID string) (L
 }
 
 func (c *Core) GetItemsByListID(ctx context.Context, userID string, listID string) ([]Item, error) {
+	ctx, span := web.AddSpan(ctx, "usecase.list.get-items-by-list-id")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	is, err := c.storer.QueryItemsByListID(ctx, userID, listID)
 	if err != nil {
@@ -69,6 +75,8 @@ func (c *Core) GetItemsByListID(ctx context.Context, userID string, listID strin
 }
 
 func (c *Core) GetItemByID(ctx context.Context, userID, itemID string) (Item, error) {
+	ctx, span := web.AddSpan(ctx, "usecase.list.get-item-by-id")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	item, err := c.storer.QueryItemByID(ctx, itemID)
 	if err != nil {
@@ -88,6 +96,8 @@ func (c *Core) GetItemByID(ctx context.Context, userID, itemID string) (Item, er
 }
 
 func (c *Core) CreateList(ctx context.Context, nl NewList) (List, error) {
+	ctx, span := web.AddSpan(ctx, "usecase.list.create-list")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	desc := ""
 	if nl.Description != nil {
@@ -116,7 +126,9 @@ func (c *Core) CreateList(ctx context.Context, nl NewList) (List, error) {
 	return list, nil
 }
 
-func (c *Core) UpdateListByID(ctx context.Context, ul UpdateList) (List, error) {
+func (c *Core) UpdateList(ctx context.Context, ul UpdateList) (List, error) {
+	ctx, span := web.AddSpan(ctx, "usecase.list.update-list")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	list, err := c.storer.QueryListByID(ctx, ul.UserID, ul.ID)
 	if err != nil {
@@ -160,7 +172,9 @@ func (c *Core) UpdateListByID(ctx context.Context, ul UpdateList) (List, error) 
 	return list, nil
 }
 
-func (c *Core) DeleteListByID(ctx context.Context, userID string, listID string) error {
+func (c *Core) DeleteList(ctx context.Context, userID string, listID string) error {
+	ctx, span := web.AddSpan(ctx, "usecase.list.delete-list-by-id")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
@@ -183,6 +197,8 @@ func (c *Core) DeleteListByID(ctx context.Context, userID string, listID string)
 }
 
 func (c *Core) CreateItem(ctx context.Context, ni NewItem) (Item, error) {
+	ctx, span := web.AddSpan(ctx, "usecase.list.create-item")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	now := time.Now().UTC()
 	itemID := uuid.New().String()
@@ -212,7 +228,9 @@ func (c *Core) CreateItem(ctx context.Context, ni NewItem) (Item, error) {
 	return item, nil
 }
 
-func (c *Core) UpdateItemByID(ctx context.Context, ui UpdateItem) (Item, error) {
+func (c *Core) UpdateItem(ctx context.Context, ui UpdateItem) (Item, error) {
+	ctx, span := web.AddSpan(ctx, "usecase.list.update-item")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	item, err := c.storer.QueryItemByID(ctx, ui.ID)
 	if err != nil {
@@ -280,7 +298,9 @@ func (c *Core) UpdateItemByID(ctx context.Context, ui UpdateItem) (Item, error) 
 	return item, nil
 }
 
-func (c *Core) DeleteItemByID(ctx context.Context, userID, itemID string) error {
+func (c *Core) DeleteItem(ctx context.Context, userID, itemID string) error {
+	ctx, span := web.AddSpan(ctx, "usecase.list.delete-item")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {

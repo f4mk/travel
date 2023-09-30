@@ -20,6 +20,9 @@ func Errors(log *zerolog.Logger) web.Middleware {
 
 			if err := handler(ctx, w, r); err != nil {
 				log.Err(err).Msgf("%s : ERROR     :", v.TraceID)
+				ctx, span := web.AddSpan(ctx, "middleware.error")
+				span.RecordError(err)
+				span.End()
 
 				if err := web.RespondError(ctx, w, err); err != nil {
 					return err

@@ -9,7 +9,9 @@ import (
 
 	"github.com/dimfeld/httptreemux/v5"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -45,11 +47,11 @@ func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (a *App) Handle(method string, path string, handler Handler, mw ...Middleware) {
 
 	h := func(w http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithTimeout(r.Context(), a.timeout)
-		defer cancel()
+		ctx, span := a.startSpan(w, r)
+		defer span.End()
 
-		span := trace.SpanFromContext(ctx)
-		span.SetAttributes(attribute.String("endpoint", r.RequestURI))
+		ctx, cancel := context.WithTimeout(ctx, a.timeout)
+		defer cancel()
 
 		v := Values{
 			TraceID: span.SpanContext().TraceID().String(),
@@ -74,6 +76,19 @@ func (a *App) Handle(method string, path string, handler Handler, mw ...Middlewa
 	}
 
 	a.mux.Handle(method, path, h)
+}
+
+func (a *App) startSpan(w http.ResponseWriter, r *http.Request) (context.Context, trace.Span) {
+	ctx := r.Context()
+	span := trace.SpanFromContext(ctx)
+	if a.tracer != nil {
+		ctx, span = a.tracer.Start(ctx, "handler")
+		span.SetAttributes(attribute.String("endpoint", r.RequestURI))
+	}
+
+	otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(w.Header()))
+
+	return ctx, span
 }
 
 func (a *App) SignalShutdown() {

@@ -43,6 +43,8 @@ func NewCore(l *zerolog.Logger, sr Server, st Storer, cv Converter) *Core {
 }
 
 func (c *Core) GetImageByID(ctx context.Context, fileID string, userID string) (io.ReadCloser, error) {
+	ctx, span := web.AddSpan(ctx, "usecase.image.get-image-by-id")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	img, err := c.storer.QueryByID(ctx, fileID)
 	if err != nil {
@@ -67,6 +69,8 @@ func (c *Core) StoreImages(
 	imageStreams []io.Reader,
 	listID, userID string,
 ) ([]string, error) {
+	ctx, span := web.AddSpan(ctx, "usecase.image.store-images")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	var imageIDs []string
 	var imageItems []Image

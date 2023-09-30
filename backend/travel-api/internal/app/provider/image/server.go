@@ -5,6 +5,7 @@ import (
 	"io"
 	"sync"
 
+	"github.com/f4mk/travel/backend/travel-api/internal/pkg/web"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/rs/zerolog"
@@ -45,6 +46,8 @@ func NewServer(
 }
 
 func (s *Server) ServeFile(ctx context.Context, fileID string) (io.ReadCloser, error) {
+	ctx, span := web.AddSpan(ctx, "provider.image.server.serve-file")
+	defer span.End()
 	object, err := s.minioClient.GetObject(ctx, s.bucketName, fileID, minio.GetObjectOptions{})
 	if err != nil {
 		return nil, err
@@ -53,6 +56,8 @@ func (s *Server) ServeFile(ctx context.Context, fileID string) (io.ReadCloser, e
 }
 
 func (s *Server) SaveFiles(ctx context.Context, filesID []string, streams []io.ReadCloser) error {
+	ctx, span := web.AddSpan(ctx, "provider.image.server.save-files")
+	defer span.End()
 	var wg sync.WaitGroup
 	errChan := make(chan error, len(filesID))
 	for i, fileID := range filesID {
@@ -89,6 +94,8 @@ func (s *Server) SaveFiles(ctx context.Context, filesID []string, streams []io.R
 }
 
 func (s *Server) TryDeleteFiles(ctx context.Context, filesID []string) error {
+	ctx, span := web.AddSpan(ctx, "provider.image.server.try-delete-files")
+	defer span.End()
 	var errEncountered error
 	for _, fileID := range filesID {
 		err := s.minioClient.RemoveObject(ctx, s.bucketName, fileID, minio.RemoveObjectOptions{})

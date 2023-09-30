@@ -25,6 +25,8 @@ func NewStorer(l *zerolog.Logger, r *sqlx.DB) *Storer {
 }
 
 func (s *Storer) QueryListsByUserID(ctx context.Context, uID string) ([]list.List, error) {
+	ctx, span := web.AddSpan(ctx, "provider.list.query-list-by-user-id")
+	defer span.End()
 	res := []StorerList{}
 	q := `SELECT * from lists where user_id=$1`
 	if err := s.repo.SelectContext(ctx, &res, q, uID); err != nil {
@@ -51,6 +53,8 @@ func (s *Storer) QueryListsByUserID(ctx context.Context, uID string) ([]list.Lis
 }
 
 func (s *Storer) QueryListByID(ctx context.Context, uID string, lID string) (list.List, error) {
+	ctx, span := web.AddSpan(ctx, "provider.list.query-list-by-id")
+	defer span.End()
 	q := `SELECT * FROM lists WHERE list_id = $1 AND user_id = $2;`
 	res := StorerList{}
 	if err := s.repo.GetContext(ctx, &res, q, lID, uID); err != nil {
@@ -73,6 +77,8 @@ func (s *Storer) QueryListByID(ctx context.Context, uID string, lID string) (lis
 }
 
 func (s *Storer) QueryItemsByListID(ctx context.Context, userID string, listID string) ([]list.Item, error) {
+	ctx, span := web.AddSpan(ctx, "provider.list.query-items-by-list-id")
+	defer span.End()
 	q := `
 		SELECT items.*, points.point_id,
 			ST_Y(points.location) AS lat, ST_X(points.location) AS lng
@@ -102,6 +108,8 @@ func (s *Storer) QueryItemsByListID(ctx context.Context, userID string, listID s
 }
 
 func (s *Storer) QueryItemByID(ctx context.Context, itemID string) (list.Item, error) {
+	ctx, span := web.AddSpan(ctx, "provider.list.query-item-by-id")
+	defer span.End()
 	q := `
 		SELECT items.*, points.point_id,
 			ST_Y(points.location) AS lat, ST_X(points.location) AS lng,
@@ -135,6 +143,8 @@ func (s *Storer) QueryItemByID(ctx context.Context, itemID string) (list.Item, e
 }
 
 func (s *Storer) CreateList(ctx context.Context, l list.List) error {
+	ctx, span := web.AddSpan(ctx, "provider.list.create-list")
+	defer span.End()
 	list := populateList(l)
 	q := `
 		INSERT INTO lists (
@@ -157,6 +167,8 @@ func (s *Storer) CreateList(ctx context.Context, l list.List) error {
 }
 
 func (s *Storer) UpdateList(ctx context.Context, l list.List) error {
+	ctx, span := web.AddSpan(ctx, "provider.list.update-list")
+	defer span.End()
 	list := populateList(l)
 	q := `
 		UPDATE lists SET
@@ -179,6 +191,8 @@ func (s *Storer) UpdateList(ctx context.Context, l list.List) error {
 }
 
 func (s *Storer) DeleteListAdmin(ctx context.Context, listID string) error {
+	ctx, span := web.AddSpan(ctx, "provider.list.delete-list-admin")
+	defer span.End()
 	q := `DELETE FROM lists WHERE list_id = $1;`
 	err := handleRowsResult(s.repo.ExecContext(ctx, q, listID))
 	if err != nil {
@@ -188,6 +202,8 @@ func (s *Storer) DeleteListAdmin(ctx context.Context, listID string) error {
 }
 
 func (s *Storer) DeleteList(ctx context.Context, userID string, listID string) error {
+	ctx, span := web.AddSpan(ctx, "provider.list.delete-list")
+	defer span.End()
 	q := `DELETE FROM lists WHERE user_id = $1 AND list_id = $2;`
 	err := handleRowsResult(s.repo.ExecContext(ctx, q, userID, listID))
 	if err != nil {
@@ -197,6 +213,8 @@ func (s *Storer) DeleteList(ctx context.Context, userID string, listID string) e
 }
 
 func (s *Storer) CreateItem(ctx context.Context, i list.Item) (err error) {
+	ctx, span := web.AddSpan(ctx, "provider.list.create-item")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	item := populateItem(i)
 	point := StorerPoint{
@@ -270,6 +288,8 @@ func (s *Storer) CreateItem(ctx context.Context, i list.Item) (err error) {
 }
 
 func (s *Storer) UpdateItem(ctx context.Context, i list.Item, toDelete []string) (err error) {
+	ctx, span := web.AddSpan(ctx, "provider.list.update-item")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	item := populateItem(i)
 	point := StorerPoint{
@@ -339,6 +359,8 @@ func (s *Storer) UpdateItem(ctx context.Context, i list.Item, toDelete []string)
 }
 
 func (s *Storer) DeleteItemAdmin(ctx context.Context, itemID string) (err error) {
+	ctx, span := web.AddSpan(ctx, "provider.list.delete-item-admin")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	qItem := `DELETE FROM items WHERE item_id = $1;`
 	qImages := `UPDATE images SET status = $1 WHERE item_id = $2;`
@@ -368,6 +390,8 @@ func (s *Storer) DeleteItemAdmin(ctx context.Context, itemID string) (err error)
 }
 
 func (s *Storer) DeleteItem(ctx context.Context, userID string, itemID string) error {
+	ctx, span := web.AddSpan(ctx, "provider.list.delete-item")
+	defer span.End()
 	qItem := `
 		DELETE FROM items WHERE item_id = $1 
 		AND EXISTS (

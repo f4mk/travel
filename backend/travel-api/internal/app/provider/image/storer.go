@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/f4mk/travel/backend/travel-api/internal/app/usecase/image"
+	"github.com/f4mk/travel/backend/travel-api/internal/pkg/web"
 	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog"
 )
@@ -18,6 +19,8 @@ func NewStorer(l *zerolog.Logger, r *sqlx.DB) *Storer {
 }
 
 func (s *Storer) QueryByID(ctx context.Context, imageID string) (image.Image, error) {
+	ctx, span := web.AddSpan(ctx, "provider.image.storer.query-by-id")
+	defer span.End()
 	img := StorerImage{}
 	q := `SELECT * from images where imageID=$1`
 	if err := s.repo.SelectContext(ctx, &img, q, imageID); err != nil {
@@ -38,6 +41,8 @@ func (s *Storer) QueryByID(ctx context.Context, imageID string) (image.Image, er
 }
 
 func (s *Storer) Create(ctx context.Context, images []image.Image) (err error) {
+	ctx, span := web.AddSpan(ctx, "provider.image.storer.create")
+	defer span.End()
 	q := `INSERT INTO images (
 		image_id, list_id, user_id,
 		item_id, private,	description,

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/f4mk/travel/backend/travel-api/internal/pkg/web"
 	"github.com/rs/zerolog"
 )
 
@@ -25,7 +26,8 @@ func NewCore(l *zerolog.Logger, s Sender) *Core {
 }
 
 func (c *Core) SendResetMessage(ctx context.Context, m MessageReset) error {
-
+	ctx, span := web.AddSpan(ctx, "usecase.mail.send-reset-message")
+	defer span.End()
 	sub := "Password reset"
 	head := fmt.Sprintf("Hello %s", m.Name)
 	body := `You (or somebody on your behalf)
@@ -44,7 +46,8 @@ func (c *Core) SendResetMessage(ctx context.Context, m MessageReset) error {
 }
 
 func (c *Core) SendVerifyMessage(ctx context.Context, m MessageVerify) error {
-
+	ctx, span := web.AddSpan(ctx, "usecase.mail.send-verify-message")
+	defer span.End()
 	sub := "Account created"
 	head := fmt.Sprintf("Hello %s", m.Name)
 	body := `You (or somebody on your behalf)

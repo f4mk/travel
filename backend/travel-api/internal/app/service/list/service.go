@@ -25,6 +25,8 @@ func NewService(l *zerolog.Logger, c *listUsecase.Core) *Service {
 }
 
 func (s *Service) GetLists(ctx context.Context, w http.ResponseWriter, _ *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.list.get-lists")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
@@ -48,6 +50,8 @@ func (s *Service) GetLists(ctx context.Context, w http.ResponseWriter, _ *http.R
 }
 
 func (s *Service) GetList(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.list.get-list")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
@@ -72,6 +76,8 @@ func (s *Service) GetList(ctx context.Context, w http.ResponseWriter, r *http.Re
 }
 
 func (s *Service) GetItems(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.list.get-items")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
@@ -100,6 +106,8 @@ func (s *Service) GetItems(ctx context.Context, w http.ResponseWriter, r *http.R
 }
 
 func (s *Service) GetItem(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.list.get-item")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
@@ -124,6 +132,8 @@ func (s *Service) GetItem(ctx context.Context, w http.ResponseWriter, r *http.Re
 }
 
 func (s *Service) CreateList(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.list.create-list")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	nl := NewList{}
 	if err := web.Decode(r, &nl); err != nil {
@@ -157,6 +167,8 @@ func (s *Service) CreateList(ctx context.Context, w http.ResponseWriter, r *http
 }
 
 func (s *Service) UpdateList(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.list.update-list")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	ul := UpdateList{}
 	if err := web.Decode(r, &ul); err != nil {
@@ -191,7 +203,7 @@ func (s *Service) UpdateList(ctx context.Context, w http.ResponseWriter, r *http
 		ItemsID:     isID,
 	}
 
-	res, err := s.core.UpdateListByID(ctx, l)
+	res, err := s.core.UpdateList(ctx, l)
 	if err != nil {
 		s.log.Err(err).Str("TraceID", tID).Msg(ErrUpdateListBusiness.Error())
 		return fmt.Errorf(
@@ -204,6 +216,8 @@ func (s *Service) UpdateList(ctx context.Context, w http.ResponseWriter, r *http
 }
 
 func (s *Service) DeleteList(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.list.delete-list")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	dl := struct{}{}
 	if err := web.Decode(r, &dl); err != nil {
@@ -223,7 +237,7 @@ func (s *Service) DeleteList(ctx context.Context, w http.ResponseWriter, r *http
 		s.log.Err(err).Str("TraceID", tID).Msg(ErrListValidateListUUID.Error())
 		return err
 	}
-	if err := s.core.DeleteListByID(ctx, claims.Subject, listID); err != nil {
+	if err := s.core.DeleteList(ctx, claims.Subject, listID); err != nil {
 		s.log.Err(err).Str("TraceID", tID).Msg(ErrDeleteListBusiness.Error())
 		return fmt.Errorf(
 			"cannot delete list: %w",
@@ -234,6 +248,8 @@ func (s *Service) DeleteList(ctx context.Context, w http.ResponseWriter, r *http
 }
 
 func (s *Service) CreateItem(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.list.create-item")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	ni := NewItem{}
 	if err := web.Decode(r, &ni); err != nil {
@@ -283,6 +299,8 @@ func (s *Service) CreateItem(ctx context.Context, w http.ResponseWriter, r *http
 }
 
 func (s *Service) UpdateItem(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.list.update-item")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	ui := UpdateItem{}
 	if err := web.Decode(r, &ui); err != nil {
@@ -329,7 +347,7 @@ func (s *Service) UpdateItem(ctx context.Context, w http.ResponseWriter, r *http
 		ImagesID:    imgsID,
 		Visited:     ui.Visited,
 	}
-	res, err := s.core.UpdateItemByID(ctx, i)
+	res, err := s.core.UpdateItem(ctx, i)
 	if err != nil {
 		s.log.Err(err).Str("TraceID", tID).Msg(ErrUpdateItemBusiness.Error())
 		return fmt.Errorf(
@@ -342,6 +360,8 @@ func (s *Service) UpdateItem(ctx context.Context, w http.ResponseWriter, r *http
 }
 
 func (s *Service) DeleteItem(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.list.delete-item")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	di := struct{}{}
 	if err := web.Decode(r, &di); err != nil {
@@ -361,7 +381,7 @@ func (s *Service) DeleteItem(ctx context.Context, w http.ResponseWriter, r *http
 		s.log.Err(err).Str("TraceID", tID).Msg(ErrItemValidateItemUUID.Error())
 		return err
 	}
-	if err := s.core.DeleteItemByID(ctx, claims.Subject, itemID); err != nil {
+	if err := s.core.DeleteItem(ctx, claims.Subject, itemID); err != nil {
 		s.log.Err(err).Str("TraceID", tID).Msg(ErrDeleteItemBusiness.Error())
 		return fmt.Errorf(
 			"cannot delete item: %w",

@@ -5,6 +5,7 @@ import (
 	"io"
 	"sync"
 
+	"github.com/f4mk/travel/backend/travel-api/internal/pkg/web"
 	"github.com/rs/zerolog"
 )
 
@@ -23,6 +24,8 @@ func NewConverter(l *zerolog.Logger, c ImgConverter, m int16) *Converter {
 }
 
 func (c *Converter) Convert(ctx context.Context, images []io.Reader) ([]io.ReadCloser, error) {
+	ctx, span := web.AddSpan(ctx, "provider.image.converter.convert")
+	defer span.End()
 	results := make(chan convResult, len(images))
 	converted := make([]io.ReadCloser, len(images))
 	var firstError error

@@ -5,11 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	queue "github.com/f4mk/travel/backend/pkg/mb"
 	mailUsecase "github.com/f4mk/travel/backend/travel-api/internal/app/usecase/mail"
 	"github.com/f4mk/travel/backend/travel-api/internal/pkg/messages"
+	"github.com/f4mk/travel/backend/travel-api/internal/pkg/web"
 	"github.com/rs/zerolog"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type Service struct {
@@ -49,7 +52,15 @@ func (s *Service) Serve(ctx context.Context, errMsgCh chan<- ServeError, errServ
 			m := messages.Message{}
 			err := json.Unmarshal(msg.Body, &m)
 			tID := m.ID
-			ctx = context.WithValue(ctx, "TraceID", tID)
+
+			ctx, span := web.AddSpan(ctx, "service.mail.serve", attribute.String("TraceID", tID))
+			defer span.End()
+
+			v := web.Values{
+				TraceID: span.SpanContext().TraceID().String(),
+				Now:     time.Now().UTC(),
+			}
+			ctx = web.SetValues(ctx, &v)
 
 			if err != nil {
 				s.log.Err(err).Str("TraceID", tID).Msg(ErrParseMessage.Error())

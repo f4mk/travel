@@ -38,6 +38,8 @@ func NewService(
 }
 
 func (s *Service) Serve(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.image.serve")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	fileID := web.Param(r, "fname")
 	claims, err := auth.GetClaims(ctx)
@@ -59,6 +61,8 @@ func (s *Service) Serve(ctx context.Context, w http.ResponseWriter, r *http.Requ
 }
 
 func (s *Service) Store(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.image.store")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	listID := web.Param(r, "listID")
 	claims, err := auth.GetClaims(ctx)

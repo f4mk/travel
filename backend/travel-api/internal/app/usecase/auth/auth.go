@@ -36,6 +36,8 @@ func NewCore(l *zerolog.Logger, s Storer) *Core {
 }
 
 func (c *Core) Login(ctx context.Context, lu LoginUser) (AuthenticatedUser, error) {
+	ctx, span := web.AddSpan(ctx, "usecase.auth.login")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	u, err := c.storer.QueryByEmail(ctx, lu.Email)
 	if err != nil {
@@ -67,6 +69,8 @@ func (c *Core) Login(ctx context.Context, lu LoginUser) (AuthenticatedUser, erro
 }
 
 func (c *Core) Logout(ctx context.Context, dt DeleteToken) error {
+	ctx, span := web.AddSpan(ctx, "usecase.auth.logout")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	_, err := c.storer.QueryByID(ctx, dt.Subject)
 	if err != nil {
@@ -82,6 +86,8 @@ func (c *Core) Logout(ctx context.Context, dt DeleteToken) error {
 }
 
 func (c *Core) ChangePassword(ctx context.Context, cp ChangePassword) (User, error) {
+	ctx, span := web.AddSpan(ctx, "usecase.auth.change-password")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	u, err := c.storer.QueryByID(ctx, cp.UserID)
 	if err != nil {
@@ -109,6 +115,8 @@ func (c *Core) ChangePassword(ctx context.Context, cp ChangePassword) (User, err
 }
 
 func (c *Core) ResetPasswordRequest(ctx context.Context, email string) (ResetPassword, error) {
+	ctx, span := web.AddSpan(ctx, "usecase.auth.reset-password-request")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	u, err := c.storer.QueryByEmail(ctx, email)
 	if err != nil {
@@ -146,6 +154,8 @@ func (c *Core) ResetPasswordRequest(ctx context.Context, email string) (ResetPas
 }
 
 func (c *Core) ResetPasswordSubmit(ctx context.Context, sp SubmitPassword) (User, error) {
+	ctx, span := web.AddSpan(ctx, "usecase.auth.reset-password-submit")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	rt, err := c.storer.QueryResetTokenByID(ctx, sp.ResetToken)
 	if err != nil {
@@ -188,6 +198,8 @@ func (c *Core) ResetPasswordSubmit(ctx context.Context, sp SubmitPassword) (User
 }
 
 func (c *Core) LogoutAll(ctx context.Context, dt DeleteToken) (int32, error) {
+	ctx, span := web.AddSpan(ctx, "usecase.auth.logout-all")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	u, err := c.storer.QueryByID(ctx, dt.Subject)
 	if err != nil {

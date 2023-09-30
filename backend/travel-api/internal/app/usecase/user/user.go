@@ -45,6 +45,8 @@ func NewCore(l *zerolog.Logger, s Storer) *Core {
 }
 
 func (c *Core) QueryAll(ctx context.Context) ([]User, error) {
+	ctx, span := web.AddSpan(ctx, "usecase.user.query-all")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	us, err := c.storer.QueryAll(ctx)
 	if err != nil {
@@ -55,6 +57,8 @@ func (c *Core) QueryAll(ctx context.Context) ([]User, error) {
 }
 
 func (c *Core) Create(ctx context.Context, nu NewUser) (User, string, error) {
+	ctx, span := web.AddSpan(ctx, "usecase.user.create")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	hash, err := bcrypt.GenerateFromPassword([]byte(nu.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -103,6 +107,8 @@ func (c *Core) Create(ctx context.Context, nu NewUser) (User, string, error) {
 }
 
 func (c *Core) Update(ctx context.Context, uu UpdateUser) (User, error) {
+	ctx, span := web.AddSpan(ctx, "usecase.user.update")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	u, err := c.storer.QueryByID(ctx, uu.ID)
 	if err != nil {
@@ -138,6 +144,8 @@ func (c *Core) Update(ctx context.Context, uu UpdateUser) (User, error) {
 }
 
 func (c *Core) Verify(ctx context.Context, vu VerifyUser) (User, error) {
+	ctx, span := web.AddSpan(ctx, "usecase.user.verify")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	vt, err := c.storer.QueryTokenByEmail(ctx, vu.Email)
 	if err != nil {
@@ -168,6 +176,8 @@ func (c *Core) Verify(ctx context.Context, vu VerifyUser) (User, error) {
 }
 
 func (c *Core) QueryByID(ctx context.Context, uID string) (User, error) {
+	ctx, span := web.AddSpan(ctx, "usecase.user.querry-by-id")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	u, err := c.storer.QueryByID(ctx, uID)
 	if err != nil {
@@ -187,6 +197,8 @@ func (c *Core) QueryByID(ctx context.Context, uID string) (User, error) {
 }
 
 func (c *Core) Delete(ctx context.Context, du DeleteUser) (User, error) {
+	ctx, span := web.AddSpan(ctx, "usecase.user.delete")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	u, err := c.storer.QueryByID(ctx, du.ID)
 	if err != nil {

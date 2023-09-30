@@ -5,10 +5,13 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+
+	"go.opentelemetry.io/otel/attribute"
 )
 
 func Respond(ctx context.Context, w http.ResponseWriter, data any, statusCode int) error {
-
+	ctx, span := AddSpan(ctx, "web.response", attribute.Int("status", statusCode))
+	defer span.End()
 	// TODO: think what to do with this
 	_ = SetStatusCode(ctx, statusCode)
 
@@ -40,6 +43,8 @@ func RespondRaw(
 	statusCode int,
 	ctype string,
 ) error {
+	ctx, span := AddSpan(ctx, "web.response-raw", attribute.Int("status", statusCode))
+	defer span.End()
 	_ = SetStatusCode(ctx, statusCode)
 
 	w.Header().Set("Content-Type", ctype)
@@ -52,7 +57,6 @@ func RespondRaw(
 }
 
 func RespondError(ctx context.Context, w http.ResponseWriter, err error) error {
-
 	var re ResponseError
 	var status int
 

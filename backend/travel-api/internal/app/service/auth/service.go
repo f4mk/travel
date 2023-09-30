@@ -40,8 +40,10 @@ func NewService(
 }
 
 func (s *Service) Login(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	lu := LoginUser{}
 	tID := web.GetTraceID(ctx)
+	ctx, span := web.AddSpan(ctx, "service.auth.login")
+	defer span.End()
+	lu := LoginUser{}
 	if err := web.Decode(r, &lu); err != nil {
 		s.log.Err(err).Str("TraceID", tID).Msg(ErrLoginDecode.Error())
 		return web.NewRequestError(
@@ -94,6 +96,8 @@ func (s *Service) Login(ctx context.Context, w http.ResponseWriter, r *http.Requ
 }
 
 func (s *Service) Logout(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.auth.logout")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	lu := struct{}{}
 	if err := web.Decode(r, &lu); err != nil {
@@ -141,6 +145,8 @@ func (s *Service) Logout(ctx context.Context, w http.ResponseWriter, r *http.Req
 }
 
 func (s *Service) ChangePassword(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.auth.change-password")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	p := ChangePassword{}
 	if err := web.Decode(r, &p); err != nil {
@@ -180,6 +186,8 @@ func (s *Service) ChangePassword(ctx context.Context, w http.ResponseWriter, r *
 }
 
 func (s *Service) Refresh(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.auth.refresh")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	e := struct{}{}
 	if err := web.Decode(r, &e); err != nil {
@@ -237,6 +245,8 @@ func (s *Service) Refresh(ctx context.Context, w http.ResponseWriter, r *http.Re
 }
 
 func (s *Service) Validate(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.auth.validate")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	e := struct{}{}
 	if err := web.Decode(r, &e); err != nil {
@@ -267,6 +277,8 @@ func (s *Service) Validate(ctx context.Context, w http.ResponseWriter, r *http.R
 }
 
 func (s *Service) PasswordReset(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.auth.password-reset")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	rp := ResetPassword{}
 	if err := web.Decode(r, &rp); err != nil {
@@ -310,6 +322,8 @@ func (s *Service) PasswordReset(ctx context.Context, w http.ResponseWriter, r *h
 }
 
 func (s *Service) PasswordResetSubmit(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.auth.password-reset-submit")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	srp := SubmitResetPassword{}
 	if err := web.Decode(r, &srp); err != nil {
@@ -343,6 +357,8 @@ func (s *Service) PasswordResetSubmit(ctx context.Context, w http.ResponseWriter
 }
 
 func (s *Service) LogoutAll(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.auth.logout-all")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	lu := struct{}{}
 	if err := web.Decode(r, &lu); err != nil {

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	authUsecase "github.com/f4mk/travel/backend/travel-api/internal/app/usecase/auth"
+	"github.com/f4mk/travel/backend/travel-api/internal/pkg/web"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog"
@@ -19,6 +20,8 @@ func NewStorer(l *zerolog.Logger, r *sqlx.DB) *Storer {
 }
 
 func (s *Storer) QueryByEmail(ctx context.Context, email string) (authUsecase.User, error) {
+	ctx, span := web.AddSpan(ctx, "provider.auth.query-by-email")
+	defer span.End()
 	user := StorerUser{}
 	q := `SELECT * FROM users WHERE email = $1;`
 	if err := s.repo.GetContext(ctx, &user, q, email); err != nil {
@@ -40,6 +43,8 @@ func (s *Storer) QueryByEmail(ctx context.Context, email string) (authUsecase.Us
 }
 
 func (s *Storer) QueryByID(ctx context.Context, id string) (authUsecase.User, error) {
+	ctx, span := web.AddSpan(ctx, "provider.auth.query-by-id")
+	defer span.End()
 	user := StorerUser{}
 	q := `SELECT * FROM users WHERE user_id = $1;`
 	if err := s.repo.GetContext(ctx, &user, q, id); err != nil {
@@ -61,6 +66,8 @@ func (s *Storer) QueryByID(ctx context.Context, id string) (authUsecase.User, er
 }
 
 func (s *Storer) Update(ctx context.Context, u authUsecase.User) error {
+	ctx, span := web.AddSpan(ctx, "provider.auth.update")
+	defer span.End()
 	user := StorerUser{
 		ID:           u.ID,
 		Name:         u.Name,
@@ -84,6 +91,8 @@ func (s *Storer) Update(ctx context.Context, u authUsecase.User) error {
 }
 
 func (s *Storer) StoreResetToken(ctx context.Context, rt authUsecase.ResetToken) error {
+	ctx, span := web.AddSpan(ctx, "provider.auth.store-reset-token")
+	defer span.End()
 	token := StorerResetToken{
 		TokenID:   rt.TokenID,
 		UserID:    rt.UserID,
@@ -99,12 +108,16 @@ func (s *Storer) StoreResetToken(ctx context.Context, rt authUsecase.ResetToken)
 }
 
 func (s *Storer) DeleteResetTokensByUserID(ctx context.Context, uID string) error {
+	ctx, span := web.AddSpan(ctx, "provider.auth.delete-reset-tokens-by-user-id")
+	defer span.End()
 	q := `DELETE from reset_tokens WHERE user_id = $1;`
 	_, err := s.repo.ExecContext(ctx, q, uID)
 	return err
 }
 
 func (s *Storer) QueryResetTokenByID(ctx context.Context, t string) (authUsecase.ResetToken, error) {
+	ctx, span := web.AddSpan(ctx, "provider.auth.query-reset-token-by-id")
+	defer span.End()
 	token := StorerResetToken{}
 	q := `SELECT * FROM reset_tokens WHERE token_id = $1`
 	if err := s.repo.GetContext(ctx, &token, q, t); err != nil {
@@ -121,6 +134,8 @@ func (s *Storer) QueryResetTokenByID(ctx context.Context, t string) (authUsecase
 }
 
 func (s *Storer) DeleteToken(ctx context.Context, t authUsecase.DeleteToken) error {
+	ctx, span := web.AddSpan(ctx, "provider.auth.delete-token")
+	defer span.End()
 	token := StorerDeleteToken{
 		TokenID:      t.TokenID,
 		Subject:      t.Subject,

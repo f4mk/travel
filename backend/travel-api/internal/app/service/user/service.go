@@ -46,6 +46,8 @@ func NewService(l *zerolog.Logger, a *authPkg.Auth, c *userUsecase.Core, mq *que
 
 // TODO: should be in admin space or removed
 func (s *Service) GetUsers(ctx context.Context, w http.ResponseWriter, _ *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.user.get-users")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	res, err := s.core.QueryAll(ctx)
 	if err != nil {
@@ -68,6 +70,8 @@ func (s *Service) GetUsers(ctx context.Context, w http.ResponseWriter, _ *http.R
 }
 
 func (s *Service) GetUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.user.get-user")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	id := web.Param(r, "id")
 	if err := web.ValidateUUID(id); err != nil {
@@ -95,6 +99,8 @@ func (s *Service) GetUser(ctx context.Context, w http.ResponseWriter, r *http.Re
 }
 
 func (s *Service) GetMe(ctx context.Context, w http.ResponseWriter, _ *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.user.get-me")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
@@ -119,6 +125,8 @@ func (s *Service) GetMe(ctx context.Context, w http.ResponseWriter, _ *http.Requ
 }
 
 func (s *Service) CreateUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.user.create-user")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	u := NewUser{}
 	if err := web.Decode(r, &u); err != nil {
@@ -163,6 +171,8 @@ func (s *Service) CreateUser(ctx context.Context, w http.ResponseWriter, r *http
 }
 
 func (s *Service) VerifyUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.user.verify-user")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	vu := VerifyUser{}
 	if err := web.Decode(r, &vu); err != nil {
@@ -194,6 +204,8 @@ func (s *Service) VerifyUser(ctx context.Context, w http.ResponseWriter, r *http
 }
 
 func (s *Service) UpdateUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.user.update-user")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
@@ -232,6 +244,8 @@ func (s *Service) UpdateUser(ctx context.Context, w http.ResponseWriter, r *http
 }
 
 func (s *Service) DeleteUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ctx, span := web.AddSpan(ctx, "service.user.delete-user")
+	defer span.End()
 	tID := web.GetTraceID(ctx)
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
