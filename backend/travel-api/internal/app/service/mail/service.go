@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	queue "github.com/f4mk/travel/backend/pkg/mb"
@@ -77,14 +78,14 @@ func (s *Service) Serve(ctx context.Context, errMsgCh chan<- ServeError, errServ
 
 			if m.Type == messages.ResetPassword {
 				mReset := mailUsecase.MessageReset{
-					Email:      m.Email,
+					Email:      strings.ToLower(m.Email),
 					Name:       m.Name,
 					ResetToken: m.Token,
 				}
 				err = s.core.SendResetMessage(ctx, mReset)
 			} else if m.Type == messages.RegisterVerify {
 				mVerify := mailUsecase.MessageVerify{
-					Email:       m.Email,
+					Email:       strings.ToLower(m.Email),
 					Name:        m.Name,
 					VerifyToken: m.Token,
 				}

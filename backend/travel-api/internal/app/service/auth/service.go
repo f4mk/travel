@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	queue "github.com/f4mk/travel/backend/pkg/mb"
@@ -52,7 +53,7 @@ func (s *Service) Login(ctx context.Context, w http.ResponseWriter, r *http.Requ
 		)
 	}
 	au := authUsecase.LoginUser{
-		Email:    lu.Email,
+		Email:    strings.ToLower(lu.Email),
 		Password: lu.Password,
 	}
 	res, err := s.core.Login(ctx, au)
@@ -288,7 +289,7 @@ func (s *Service) PasswordReset(ctx context.Context, w http.ResponseWriter, r *h
 			http.StatusBadRequest,
 		)
 	}
-	res, err := s.core.ResetPasswordRequest(ctx, rp.Email)
+	res, err := s.core.ResetPasswordRequest(ctx, strings.ToLower(rp.Email))
 	if err != nil {
 		if errors.Is(err, auth.ErrResetTokenReqLimit) {
 			return web.NewRequestError(

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	queue "github.com/f4mk/travel/backend/pkg/mb"
 	userUsecase "github.com/f4mk/travel/backend/travel-api/internal/app/usecase/user"
@@ -138,7 +139,7 @@ func (s *Service) CreateUser(ctx context.Context, w http.ResponseWriter, r *http
 	}
 	nu := userUsecase.NewUser{
 		Name:     u.Name,
-		Email:    u.Email,
+		Email:    strings.ToLower(u.Email),
 		Password: u.Password,
 	}
 	user, token, err := s.core.Create(ctx, nu)
@@ -183,7 +184,7 @@ func (s *Service) VerifyUser(ctx context.Context, w http.ResponseWriter, r *http
 		)
 	}
 	uu := userUsecase.VerifyUser{
-		Email: vu.Email,
+		Email: strings.ToLower(vu.Email),
 		Token: vu.Token,
 	}
 	res, err := s.core.Verify(ctx, uu)
@@ -219,6 +220,10 @@ func (s *Service) UpdateUser(ctx context.Context, w http.ResponseWriter, r *http
 			err,
 			http.StatusBadRequest,
 		)
+	}
+	if u.Email != nil {
+		str := strings.ToLower(*u.Email)
+		u.Email = &str
 	}
 	uu := userUsecase.UpdateUser{
 		ID:       claims.Subject,
