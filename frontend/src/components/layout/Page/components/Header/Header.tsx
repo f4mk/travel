@@ -5,6 +5,7 @@ import { Button, Loader } from '@mantine/core'
 
 import { useGetMe } from '#/api/user'
 import logo from '#/assets/coggers.png'
+import { CenteredLoader } from '#/components/ui/CenteredLoader'
 import { RoundButton } from '#/components/ui/RoundButton'
 import { ROUTES } from '#/constants/routes'
 import { lazy } from '#/utils'
@@ -15,15 +16,13 @@ const { ProfileMenu } = lazy(() => import('#/components/ui/ProfileMenu'))
 
 export const Header = () => {
   const navigate = useNavigate()
-
-  const { data } = useGetMe({
-    onError: (error) => {
-      if (error.response.status === 401) {
-        navigate(ROUTES.ROOT)
-      }
+  const { data, isFetching } = useGetMe({
+    onError: () => {
+      navigate(ROUTES.ROOT)
     },
-    suspense: true,
+    retry: false,
   })
+
   console.log(data)
   const handleTabChange = useCallback(
     (path: string) => {
@@ -36,7 +35,9 @@ export const Header = () => {
     navigate(ROUTES.APP.ROOT)
   }, [navigate])
 
-  return (
+  return isFetching ? (
+    <CenteredLoader />
+  ) : (
     <S.Header>
       <RoundButton onClick={handleLogoClick}>
         <S.Img src={logo} alt="logo" loading="lazy" />
