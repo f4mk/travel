@@ -1,4 +1,9 @@
-import { useMutation, UseMutationOptions } from '@tanstack/react-query'
+import {
+  useMutation,
+  UseMutationOptions,
+  useQuery,
+  UseQueryOptions,
+} from '@tanstack/react-query'
 
 import { createRequest, getTokenFromHeader, setToken } from '#/api/request'
 import { HttpError, HttpErrorWithPayload } from '#/api/request/errors'
@@ -11,8 +16,6 @@ import {
   LogoutAllError,
   LogoutAllRequest,
   LogoutAllResponse,
-  LogoutError,
-  LogoutRequest,
   LogoutResponse,
   PasswordChangeError,
   PasswordChangeRequest,
@@ -55,21 +58,21 @@ export const useLogin = (
   }, options)
 }
 
-export const useLogout = (
-  options?: UseMutationOptions<LogoutResponse, LogoutError, LogoutRequest>
-) => {
+export const useLogout = (options?: UseQueryOptions<LogoutResponse>) => {
   const url = '/api/auth/logout'
   const lang = useGetLocale()
 
-  return useMutation(
-    createRequest({
-      url,
+  return useQuery({
+    queryKey: [url, lang],
+    queryFn: createRequest({
       method: 'POST',
+      url,
       lang,
-      handleErrorCodes: [400, 401, 404, 500],
+      body: {},
+      handleErrorCodes: [401, 404, 500],
     }),
-    options
-  )
+    ...options,
+  })
 }
 
 export const useLogoutAll = (

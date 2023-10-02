@@ -4,7 +4,7 @@ import { JwtPayload } from './types'
 
 const isExpired = (exp: number) => {
   const expTime = Temporal.Instant.fromEpochSeconds(exp)
-  if (expTime > Temporal.Now.instant()) {
+  if (Temporal.Instant.compare(expTime, Temporal.Now.instant()) === 1) {
     return false
   }
   return true
@@ -13,7 +13,7 @@ const isExpired = (exp: number) => {
 const decodeJwt = (token: string) => {
   try {
     const [_, payloadEnc, __] = token.split('.')
-    const payloadDec = Buffer.from(payloadEnc, 'base64').toString('utf8')
+    const payloadDec = atob(payloadEnc)
     const payload = JSON.parse(payloadDec) as JwtPayload
     return payload
   } catch (e) {

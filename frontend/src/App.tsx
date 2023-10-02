@@ -9,7 +9,9 @@ import { LocaleProvider, useLocale, useTheme } from '#/hooks'
 
 import { createRouter } from './router'
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { refetchOnWindowFocus: false, retry: false } },
+})
 
 export const App = () => {
   const { locale, t } = useLocale(navigator.language)

@@ -1,13 +1,24 @@
 import { FormattedMessage } from 'react-intl'
+import { useNavigate } from 'react-router-dom'
 import { Menu } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { Cog, LogOut, MessageSquare, Trash } from 'lucide-react'
 
+import { useLogout } from '#/api/auth'
 import { ProfileButton } from '#/components/ui/ProfileButton'
+import { ROUTES } from '#/constants/routes'
 
 export const ProfileMenu = () => {
+  const navigate = useNavigate()
   const [menuOpened, { open: menuOpen, close: menuClose }] =
     useDisclosure(false)
+
+  const { refetch: logout } = useLogout({
+    enabled: false,
+    onSuccess: () => {
+      navigate(ROUTES.ROOT)
+    },
+  })
 
   return (
     <Menu opened={menuOpened} onClose={menuClose} shadow="md" width={200}>
@@ -39,7 +50,7 @@ export const ProfileMenu = () => {
           />
         </Menu.Item>
         <Menu.Divider />
-        <Menu.Item icon={<LogOut />}>
+        <Menu.Item icon={<LogOut />} onClick={() => logout()}>
           <FormattedMessage
             description="Profile menu Sign Out button text"
             defaultMessage="Sign Out"
