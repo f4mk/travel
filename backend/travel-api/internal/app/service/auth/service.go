@@ -142,7 +142,7 @@ func (s *Service) Logout(ctx context.Context, w http.ResponseWriter, r *http.Req
 		s.log.Err(err).Str("TraceID", tID).Msg(ErrLogoutRevokeToken.Error())
 		return ErrLogoutRevokeToken
 	}
-	return web.Respond(ctx, w, struct{}{}, http.StatusOK)
+	return web.Respond(ctx, w, struct{}{}, http.StatusCreated)
 }
 
 func (s *Service) ChangePassword(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
@@ -391,7 +391,7 @@ func (s *Service) LogoutAll(ctx context.Context, w http.ResponseWriter, r *http.
 		s.log.Err(err).Str("TraceID", tID).Msg(ErrLoginStoreTokenVersion.Error())
 		return ErrLoginStoreTokenVersion
 	}
-	return web.Respond(ctx, w, struct{}{}, http.StatusOK)
+	return web.Respond(ctx, w, struct{}{}, http.StatusCreated)
 }
 
 func clearSession(w http.ResponseWriter) {

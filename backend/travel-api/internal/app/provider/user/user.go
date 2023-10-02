@@ -216,10 +216,17 @@ func (s *Storer) Delete(ctx context.Context, u userUsecase.User) error {
 func (s *Storer) StoreVerifyToken(ctx context.Context, vt userUsecase.VerifyToken) error {
 	ctx, span := web.AddSpan(ctx, "provider.user.store-verify-token")
 	defer span.End()
+	t := StorerToken{
+		TokenID:   vt.TokenID,
+		UserID:    vt.UserID,
+		Email:     vt.Email,
+		ExpiresAt: vt.ExpiresAt,
+		IssuedAt:  vt.IssuedAt,
+	}
 	q := `INSERT INTO verify_tokens (token_id, user_id, email, expires_at, issued_at)
 	VALUES (:token_id, :user_id, :email, :expires_at, :issued_at);
 	`
-	_, err := s.repo.NamedExecContext(ctx, q, vt)
+	_, err := s.repo.NamedExecContext(ctx, q, t)
 	return err
 }
 
