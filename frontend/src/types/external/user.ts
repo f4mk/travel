@@ -221,7 +221,7 @@ export interface paths {
     post: {
       requestBody: {
         content: {
-          'application/json': components['schemas']['VerifyUser']
+          'application/json': components['schemas']['VerifyAccount']
         }
       }
       responses: {
@@ -280,7 +280,7 @@ export interface components {
       /** @description user password */
       password: string
     }
-    VerifyUser: {
+    VerifyAccount: {
       /** @description user email */
       email: string
       /** @description user verification token */

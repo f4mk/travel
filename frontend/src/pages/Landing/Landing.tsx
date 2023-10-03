@@ -12,7 +12,7 @@ import * as S from './styled'
 
 const { Auth } = lazy(() => import('#/components/ui/Auth'))
 
-export const LandingPage = () => {
+export const Landing = () => {
   const { showModal, hideModal } = useModal()
   const [searchParams, setSearchParams] = useSearchParams()
   const handleOpen = (view: EFormView) => {

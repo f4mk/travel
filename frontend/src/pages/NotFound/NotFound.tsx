@@ -5,7 +5,7 @@ import { Button, Title } from '@mantine/core'
 import { ROUTES } from '#/constants/routes'
 
 import * as S from './styled'
-export const NotFoundPage = () => {
+export const NotFound = () => {
   const navigate = useNavigate()
   return (
     <S.Div>

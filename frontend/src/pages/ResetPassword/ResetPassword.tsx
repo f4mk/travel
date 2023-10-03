@@ -11,7 +11,7 @@ import { getUrlParams } from '#/utils'
 import * as S from './styled'
 import { FormValues } from './types'
 
-export const ResetPasswordPage = () => {
+export const ResetPassword = () => {
   const navigate = useNavigate()
   const { formatMessage } = useIntl()
   const { onSubmit, getInputProps, isValid } = useForm<FormValues>({

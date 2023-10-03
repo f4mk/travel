@@ -12,14 +12,14 @@ import { lazy } from '#/utils'
 
 import { ROUTES } from './constants/routes'
 
-const { BlogPage } = lazy(() => import('#/pages/BlogPage'))
-const { IndexPage } = lazy(() => import('#/pages/IndexPage'))
-const { MapPage } = lazy(() => import('#/pages/MapPage'))
-const { LandingPage } = lazy(() => import('#/pages/LandingPage'))
-const { VerifyPage } = lazy(() => import('#/pages/VerifyPage'))
-const { ResetPasswordPage } = lazy(() => import('#/pages/ResetPasswordPage'))
-const { ConfirmCreatePage } = lazy(() => import('#/pages/ConfirmCreatePage'))
-const { NotFoundPage } = lazy(() => import('#/pages/NotFoundPage'))
+const { Blog } = lazy(() => import('#/pages/Blog'))
+const { Index } = lazy(() => import('#/pages/Index'))
+const { Map } = lazy(() => import('#/pages/Map'))
+const { Landing } = lazy(() => import('#/pages/Landing'))
+const { VerifyAccount } = lazy(() => import('#/pages/VerifyAccount'))
+const { ResetPassword } = lazy(() => import('#/pages/ResetPassword'))
+const { ConfirmCreateUser } = lazy(() => import('#/pages/ConfirmCreateUser'))
+const { NotFound } = lazy(() => import('#/pages/NotFound'))
 
 export const createRouter = (ModalProvider: ComponentType) =>
   createBrowserRouter(
@@ -32,7 +32,7 @@ export const createRouter = (ModalProvider: ComponentType) =>
           index
           element={
             <Suspense fallback={<CenteredLoader />}>
-              <LandingPage />
+              <Landing />
             </Suspense>
           }
         />
@@ -40,7 +40,7 @@ export const createRouter = (ModalProvider: ComponentType) =>
           path={ROUTES.USER_VERIFY}
           element={
             <Suspense fallback={<CenteredLoader />}>
-              <VerifyPage />
+              <VerifyAccount />
             </Suspense>
           }
         />
@@ -48,7 +48,7 @@ export const createRouter = (ModalProvider: ComponentType) =>
           path={ROUTES.USER_CREATE}
           element={
             <Suspense fallback={<CenteredLoader />}>
-              <ConfirmCreatePage />
+              <ConfirmCreateUser />
             </Suspense>
           }
         />
@@ -56,7 +56,7 @@ export const createRouter = (ModalProvider: ComponentType) =>
           path={ROUTES.PASSWORD_RESET}
           element={
             <Suspense fallback={<CenteredLoader />}>
-              <ResetPasswordPage />
+              <ResetPassword />
             </Suspense>
           }
         />
@@ -65,7 +65,7 @@ export const createRouter = (ModalProvider: ComponentType) =>
             index
             element={
               <Suspense fallback={<CenteredLoader />}>
-                <IndexPage />
+                <Index />
               </Suspense>
             }
           />
@@ -73,7 +73,7 @@ export const createRouter = (ModalProvider: ComponentType) =>
             path={ROUTES.APP.MAP}
             element={
               <Suspense fallback={<CenteredLoader />}>
-                <MapPage />
+                <Map />
               </Suspense>
             }
           />
@@ -81,7 +81,7 @@ export const createRouter = (ModalProvider: ComponentType) =>
             path={ROUTES.APP.BLOG}
             element={
               <Suspense fallback={<CenteredLoader />}>
-                <BlogPage />
+                <Blog />
               </Suspense>
             }
           />
@@ -90,7 +90,7 @@ export const createRouter = (ModalProvider: ComponentType) =>
           path="*"
           element={
             <Suspense fallback={<CenteredLoader />}>
-              <NotFoundPage />
+              <NotFound />
             </Suspense>
           }
         />

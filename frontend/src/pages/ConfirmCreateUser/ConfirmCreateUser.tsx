@@ -5,7 +5,7 @@ import { Button, Text, Title } from '@mantine/core'
 import { ROUTES } from '#/constants/routes'
 
 import * as S from './styled'
-export const ConfirmCreatePage = () => {
+export const ConfirmCreateUser = () => {
   const navigate = useNavigate()
 
   const handleRedirect = () => {

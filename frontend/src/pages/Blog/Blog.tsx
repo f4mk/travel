@@ -1,6 +1,6 @@
 import { FormattedMessage } from 'react-intl'
 
-export const BlogPage = () => {
+export const Blog = () => {
   return (
     <FormattedMessage
       description="Blog page title"

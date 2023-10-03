@@ -9,7 +9,7 @@ import { ROUTES } from '#/constants/routes'
 import { getUrlParams } from '#/utils'
 
 import * as S from './styled'
-export const VerifyPage = () => {
+export const VerifyAccount = () => {
   const navigate = useNavigate()
   const { email, token } = getUrlParams('email', 'token')
   const { mutate, isLoading, isError } = useVerifyUser()

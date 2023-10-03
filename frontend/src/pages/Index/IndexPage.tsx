@@ -1,6 +1,6 @@
 import { FormattedMessage } from 'react-intl'
 
-export const IndexPage = () => {
+export const Index = () => {
   return (
     <FormattedMessage
       description="Home page title"

@@ -1,4 +1,4 @@
-import { Map } from '#/components/layout/Map'
+import { Map as MapUI } from '#/components/layout/Map'
 import { MapCard } from '#/components/ui/map/MapCard'
 import { Pin } from '#/components/ui/map/Pin'
 
@@ -30,10 +30,10 @@ const cards = [
   },
 ]
 
-export const MapPage = () => {
+export const Map = () => {
   return (
     <S.Div>
-      <Map>
+      <MapUI>
         <>
           {pins.map((pin) => (
             <Pin key={pin.id} {...pin} />
@@ -42,7 +42,7 @@ export const MapPage = () => {
             <MapCard key={card.id} {...card} />
           ))}
         </>
-      </Map>
+      </MapUI>
     </S.Div>
   )
 }
