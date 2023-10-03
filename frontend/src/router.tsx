@@ -13,7 +13,7 @@ import { lazy } from '#/utils'
 import { ROUTES } from './constants/routes'
 
 const { Blog } = lazy(() => import('#/pages/Blog'))
-const { Index } = lazy(() => import('#/pages/Index'))
+const { Home } = lazy(() => import('#/pages/Home'))
 const { Map } = lazy(() => import('#/pages/Map'))
 const { Landing } = lazy(() => import('#/pages/Landing'))
 const { VerifyAccount } = lazy(() => import('#/pages/VerifyAccount'))
@@ -65,7 +65,7 @@ export const createRouter = (ModalProvider: ComponentType) =>
             index
             element={
               <Suspense fallback={<CenteredLoader />}>
-                <Index />
+                <Home />
               </Suspense>
             }
           />
