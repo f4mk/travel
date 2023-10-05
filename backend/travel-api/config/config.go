@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/caarlos0/env/v9"
@@ -140,8 +141,8 @@ func New(configPath string) (*Config, error) {
 		os.Exit(1)
 	}
 
-	cfg.MailService.PrivateKey = string(privateKeyContent)
-	cfg.MailService.PublicKey = string(publicKeyContent)
+	cfg.MailService.PrivateKey = strings.TrimSpace(string(privateKeyContent))
+	cfg.MailService.PublicKey = strings.TrimSpace(string(publicKeyContent))
 
 	return &cfg, nil
 }

@@ -105,16 +105,22 @@ export const usePasswordReset = (
 ) => {
   const url = '/api/auth/password/reset'
   const lang = useGetLocale()
-
-  return useMutation(
-    createRequest({
-      url,
+  return useMutation(async (body: PasswordResetRequest) => {
+    const newReq = new Request(url, {
       method: 'POST',
-      lang,
-      handleErrorCodes: [400, 500],
-    }),
-    options
-  )
+      body: JSON.stringify(body),
+      headers: { 'Accept-Language': lang },
+    })
+    const res = await fetch(newReq)
+    if (!res.ok) {
+      if (res.status === 400) {
+        return handleErrorWithPayload(res)
+      }
+      throw new HttpError(res)
+    }
+
+    return res.json() as Promise<PasswordResetResponse>
+  }, options)
 }
 
 export const usePasswordResetSubmit = (
@@ -127,15 +133,22 @@ export const usePasswordResetSubmit = (
   const url = '/api/auth/password/reset/submit'
   const lang = useGetLocale()
 
-  return useMutation(
-    createRequest({
-      url,
+  return useMutation(async (body: PasswordResetSubmitRequest) => {
+    const newReq = new Request(url, {
       method: 'POST',
-      lang,
-      handleErrorCodes: [400, 403, 500],
-    }),
-    options
-  )
+      body: JSON.stringify(body),
+      headers: { 'Accept-Language': lang },
+    })
+    const res = await fetch(newReq)
+    if (!res.ok) {
+      if (res.status === 400) {
+        return handleErrorWithPayload(res)
+      }
+      throw new HttpError(res)
+    }
+
+    return res.json() as Promise<PasswordResetSubmitResponse>
+  }, options)
 }
 
 export const usePasswordChange = (
