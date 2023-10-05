@@ -115,6 +115,7 @@ func (s *Service) Serve(ctx context.Context, errMsgCh chan<- ServeError, errServ
 }
 
 func (s *Service) Stop() <-chan struct{} {
+	s.log.Warn().Msg("stopping mail service")
 	return s.doneCh
 }
 

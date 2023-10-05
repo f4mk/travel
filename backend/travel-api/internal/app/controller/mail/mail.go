@@ -48,6 +48,7 @@ func New(cfg Config) (*Agent, error) {
 }
 
 func (ma *Agent) Shutdown(ctx context.Context) {
+	ma.log.Warn().Msg("shutting down mail agent")
 	ma.shutdown()
 	doneCh := make(chan struct{})
 	go func() {
