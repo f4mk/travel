@@ -28,10 +28,10 @@ export const ConfirmCreateUser = () => {
         <FormattedMessage
           description="User creation page need verification message"
           defaultMessage={`Your account has been created.
-            In order to activate it you need to follow the 
+            To activate it you need to follow the 
             link that we have sent to your email.
             If you didn't get the letter, try using password recovery option.`}
-          id="NxODDO"
+          id="DhpNph"
         />
       </Text>
       <Button variant="subtle" onClick={handleRedirect}>

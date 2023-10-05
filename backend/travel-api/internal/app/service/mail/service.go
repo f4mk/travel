@@ -67,7 +67,7 @@ func (s *Service) Serve(ctx context.Context, errMsgCh chan<- ServeError, errServ
 				s.log.Err(err).Str("TraceID", tID).Msg(ErrParseMessage.Error())
 				// makes no sense to requeue due to invalid json
 				if err := msg.Nack(false, false); err != nil {
-					s.log.Err(err).Str("TraceID", tID).Msg(ErrNackReqMessage.Error())
+					s.log.Err(err).Str("TraceID", tID).Msgf(ErrNackMessage.Error())
 				}
 				// send error outside
 				err = sendError(errMsgCh, fmt.Errorf(ErrNackReqMessage.Error(), err), msg.Body)
@@ -103,8 +103,7 @@ func (s *Service) Serve(ctx context.Context, errMsgCh chan<- ServeError, errServ
 				if err != nil {
 					s.log.Warn().Str("TraceID", tID).Msg(ErrChanFull.Error())
 				}
-			}
-			if err := msg.Ack(false); err != nil {
+			} else if err := msg.Ack(false); err != nil {
 				// TODO: retry? nothing really can do here, the message was already processed
 				s.log.Err(err).Str("TraceID", tID).Msg(ErrAckMessage.Error())
 			}
