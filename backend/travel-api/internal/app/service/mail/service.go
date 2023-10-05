@@ -108,6 +108,7 @@ func (s *Service) Serve(ctx context.Context, errMsgCh chan<- ServeError, errServ
 			}
 
 		case <-ctx.Done():
+			s.log.Warn().Msg("shutting down mail service due to ctx done")
 			close(s.doneCh)
 			return
 		}
