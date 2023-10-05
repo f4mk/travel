@@ -30,7 +30,7 @@ spec:
           - name: haproxy-certs-volume
             mountPath: /certs-volume
       containers:
-        - image: haproxy:2.8
+        - image: haproxy:alpine3.18
           name: haproxy
           imagePullPolicy: IfNotPresent
           securityContext:

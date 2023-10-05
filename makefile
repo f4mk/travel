@@ -33,6 +33,7 @@ pull:
 	docker pull registry:2.8.2
 	docker pull minio/minio:RELEASE.2023-08-29T23-07-35Z
 	docker pull h2non/imaginary:1.2.4
+	docker pull haproxy:alpine3.18
 
 images: backend-image backend-image-cron backend-image-metrics front-image haproxy-image-volume
 	
@@ -44,7 +45,7 @@ cert:
 
 # KIND
 kind-load-all:
-	kind load docker-image haproxy:2.8 && \
+	kind load docker-image haproxy:alpine3.18 && \
 	kind load docker-image rabbitmq:3.12.4-management-alpine && \
 	kind load docker-image travel-static:latest && \
 	kind load docker-image travel-api:latest && \
