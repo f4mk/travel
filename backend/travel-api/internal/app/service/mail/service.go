@@ -53,12 +53,11 @@ func (s *Service) Serve(ctx context.Context, errMsgCh chan<- ServeError, errServ
 			m := messages.Message{}
 			err := json.Unmarshal(msg.Body, &m)
 			tID := m.ID
-
 			ctx, span := web.AddSpan(ctx, "service.mail.serve", attribute.String("TraceID", tID))
 			defer span.End()
 
 			v := web.Values{
-				TraceID: span.SpanContext().TraceID().String(),
+				TraceID: tID,
 				Now:     time.Now().UTC(),
 			}
 			ctx = web.SetValues(ctx, &v)
