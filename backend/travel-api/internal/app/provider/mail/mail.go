@@ -55,22 +55,30 @@ func (s *Sender) SendResetPwdEmail(ctx context.Context, l mailUsecase.Letter) er
 	}
 	var buf bytes.Buffer
 	if err := tmpl.Execute(&buf, letter); err != nil {
-		panic(err)
+		s.log.Err(err).Str("TraceID", tID).Msg("error executing template")
+		return err
 	}
-	recipients := []mailjet.Recipient{{
-		Email: l.To,
-		Name:  l.Name,
-	}}
 	// TODO: refactor this
-	email := &mailjet.InfoSendMail{
-		FromEmail:  "noreply@traillyst.com",
-		FromName:   "Traillyst",
-		Subject:    l.Subject,
-		TextPart:   l.Header + "\n" + l.Body + "\n" + link,
-		HTMLPart:   buf.String(),
-		Recipients: recipients,
+	messagesInfo := []mailjet.InfoMessagesV31{
+		{
+			From: &mailjet.RecipientV31{
+				Email: "noreply@traillyst.com",
+				Name:  "Traillyst",
+			},
+			To: &mailjet.RecipientsV31{
+				mailjet.RecipientV31{
+					Email: l.To,
+					Name:  l.Name,
+				},
+			},
+			Subject:  l.Subject,
+			TextPart: l.Header + "\n" + l.Body + "\n" + link,
+			HTMLPart: buf.String(),
+		},
 	}
-	_, err = s.mail.SendMail(email)
+
+	messages := mailjet.MessagesV31{Info: messagesInfo}
+	_, err = s.mail.SendMailV31(&messages)
 	if err != nil {
 		s.log.Err(err).Str("TraceID", tID).Msg("error sending email")
 		return err
@@ -108,7 +116,8 @@ func (s *Sender) SendRegisterEmail(ctx context.Context, l mailUsecase.Letter) er
 	}
 	var buf bytes.Buffer
 	if err := tmpl.Execute(&buf, letter); err != nil {
-		panic(err)
+		s.log.Err(err).Str("TraceID", tID).Msg("error executing template")
+		return err
 	}
 	recipients := []mailjet.Recipient{{
 		Email: l.To,
