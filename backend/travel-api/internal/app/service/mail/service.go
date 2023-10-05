@@ -63,15 +63,15 @@ func (s *Service) Serve(ctx context.Context, errMsgCh chan<- ServeError, errServ
 			ctx = web.SetValues(ctx, &v)
 
 			if err != nil {
-				s.log.Err(err).Str("TraceID", tID).Msg(ErrParseMessage.Error())
+				s.log.Err(err).Str("TraceID", tID).Msgf("error decoding message: %s", ErrParseMessage.Error())
 				// makes no sense to requeue due to invalid json
 				if err := msg.Nack(false, false); err != nil {
-					s.log.Err(err).Str("TraceID", tID).Msgf(ErrNackMessage.Error())
+					s.log.Err(err).Str("TraceID", tID).Msgf("error NACKing after decoding: %s", ErrNackMessage.Error())
 				}
 				// send error outside
 				err = sendError(errMsgCh, fmt.Errorf(ErrNackReqMessage.Error(), err), msg.Body)
 				if err != nil {
-					s.log.Warn().Str("TraceID", tID).Msg(ErrChanFull.Error())
+					s.log.Warn().Str("TraceID", tID).Msgf("error sending err after decoding: %s", ErrChanFull.Error())
 				}
 			}
 
